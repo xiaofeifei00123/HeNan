@@ -36,7 +36,7 @@ class GetUpar():
         print(fl[-19:])
         p = wrf.getvar(data_nc, 'pressure', squeeze=False)
 
-        for var in ['ua', 'va', 'td', 'temp', 'theta_e', 'height_agl']:
+        for var in ['ua', 'va', 'td', 'temp', 'theta_e', 'height_agl', 'geopt']:
             da = wrf.getvar(data_nc, var, squeeze=False)
             # dds[var] = da.expand_dims(dim='Time')
             dds[var] = wrf.interplevel(da, p, pre_level, squeeze=False)

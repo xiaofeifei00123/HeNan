@@ -56,12 +56,13 @@ def nearest_position(stn_lat, stn_lon, xlat, xlon ):
 
 
 # %%
-flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GDAS/YSU_1800.nc'
+flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/ERA5/YSU_1912_rain_ERAI.nc'
 ds_all = xr.open_dataset(flnm)
 ## 获取降水数据
 da_rain = ds_all['RAINNC']
-da_rain = da_rain.rename({'XLAT':'lat','XLONG':'lon', 'XTIME':'time'})
-da_rain = da_rain.swap_dims({'Time':'time'})
+# da_rain = da_rain.rename({'XLAT':'lat','XLONG':'lon', 'XTIME':'time'})
+da_rain = da_rain.rename({'XLAT':'lat','XLONG':'lon',})
+# da_rain = da_rain.swap_dims({'Time':'time'})
 ## 改成北京时间
 tt = da_rain.time+pd.Timedelta(hours=+8)
 da_rain = da_rain.assign_coords({'time':('time',tt.values)})
@@ -268,7 +269,7 @@ class Draw(object):
                'time':str(date)}
         ax = self.create_map(ax)
         ax.set_title(date, fontsize=30)
-        ax.set_title('GDAS_1800', fontsize=20,loc='right')
+        ax.set_title('ERA5_1912', fontsize=20,loc='right')
         cf = self.draw_contourf_single(da, ax, dic)
         # ax6 = fig.add_axes([0.18, 0.06, 0.7, 0.02])  # 重新生成一个新的坐标图
 
@@ -287,7 +288,7 @@ class Draw(object):
         )
         cb.ax.tick_params(labelsize=18)  # 设置色标标注的大小
         cb.set_label('Precipitation (mm)', fontdict={'size':20})
-        fig_name = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_12/'+date+'_YSU_1800_GDAS.png'
+        fig_name = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_12/'+date+'_YSU_1912_ERAI.png'
         # fig.savefig('/mnt/zfm_18T/fengxiang/HeNan/Draw/test.png')
         fig.savefig(fig_name)
         pass

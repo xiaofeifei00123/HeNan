@@ -15,8 +15,6 @@ import xarray as xr
 import os
 import xesmf as xe
 import numpy as np
-import netCDF4 as nc
-import wrf
 
 
 # from metpy.units import units
@@ -38,7 +36,7 @@ path = '/mnt/zfm_18T/fengxiang/HeNan/Data/ERA5/YSU_1912/'
 fl_list = os.popen('ls {}/wrfout*'.format(path))  # 打开一个管道
 fl_list = fl_list.read().split()
 
-fl_list = fl_list[0:1]
+fl_list = fl_list[0:5]
 # %%
 # fl = fl_list[0]
 # ds = xr.open_dataset(fl)
@@ -76,20 +74,23 @@ r = 0   # 第0个时次就算降水为0
 for fl in fl_list:
     
     ds = xr.open_dataset(fl)
-    data_nc = nc.Dataset(fl_list[0])
+    # data_nc = nc.Dataset(fl_list[0])
     print(ds.Time.XTIME.values)
     # print(ds.Time.values)
     dds = xr.Dataset()
     dds['RAINNC'] = ds['RAINNC']-r
     r = ds['RAINNC']
 
-    for var in ['ua', 'va', 'td', 'temp', 'theta_e', 'pressure', 'height_agl']:
-        dds[var] = wrf.getvar(data_nc, var, squeeze=False)
+    # for var in ['ua', 'va', 'td', 'temp', 'theta_e', 'pressure', 'height_agl']:
+    #     dds[var] = wrf.getvar(data_nc, var, squeeze=False)
         # dds[var] = da.expand_dims(dim='Time')
 
     dds_list.append(dds)
 dds_concate = xr.concat(dds_list, dim='time')
 dds_concate
+
+# %%
+dds_concate.XTIME
 
 # %%
 # dds_concate['ua']
