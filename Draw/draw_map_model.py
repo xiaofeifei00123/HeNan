@@ -3,8 +3,10 @@
 '''
 Description:
 在地图上画图的模板
-# cartopy库
-地图上的等值线、填色、风矢图
+cartopy库
+只用改ax的投影格式为lambert即可
+所有的数据用platecaree
+地图上的等值线、填色、风矢图(变为np.dataarray)
 -----------------------------------------
 Time             :2021/09/13 11:39:04
 Author           :Forxd
@@ -15,42 +17,33 @@ Version          :1.0
 import xarray as xr
 import cmaps
 import numpy as np
-# import xesmf as xe
-# import netCDF4 as nc
-# import pandas as pd
-# import metpy
-import  metpy.calc as mc
-
-# import salem
 import cartopy.crs as ccrs
 import cartopy.feature as cfeat
 from cartopy.mpl.ticker import LongitudeFormatter, LatitudeFormatter
 from cartopy.io.shapereader import Reader, natural_earth
 from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
-import matplotlib as mpl
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mticker
 import matplotlib.gridspec as gridspec
-# import geopandas
-import cmaps
 from multiprocessing import Pool
-# from global_variable import station_dic
-# from get_cmap import get_cmap_q
+from netCDF4 import Dataset
+
+
+from wrf import get_cartopy, smooth2d, getvar
+
+
 
 plt.rcParams['font.family'] = ['sans-serif']
 plt.rcParams['font.sans-serif'] = ['SimHei']
-
-# fl = '/mnt/zfm_18T/fengxiang/DATA/FY_TBB/TBB_FY2G_201607.nc'
-# ds_q = xr.open_dataset(fl)
-from wrf import (getvar, interplevel, to_np, latlon_coords, get_cartopy,
-                 cartopy_xlim, cartopy_ylim)
-from netCDF4 import Dataset
 
 # %%
 # fl_fnl = '/mnt/zfm_18T/fengxiang/DATA/FNL/fnl_2016.nc'
 # fl_gdas = '/mnt/zfm_18T/fengxiang/DATA/FNL/gdas_2016_0710_20.nc'
 fl_wrf = '/mnt/zfm_18T/fengxiang/HeNan/Data/ERA5/YSU_1800_upar.nc'
 ds_fnl = xr.open_dataset(fl_wrf)
+
+# %%
+# ds_fnl
 
 
 # %%
@@ -132,11 +125,6 @@ class Map():
     def create_map(self,):
         """在底图上添加底图的要素, 省界等
         """
-        # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/ERA5/YSU_1800/wrfout_d03_2021-07-18_00:00:00'
-        # ncfile = Dataset(flnm)
-        # z = getvar(ncfile, 'z')
-        # u = getvar(ncfile, 'ua')
-        # proj = get_cartopy(u)
         proj = ccrs.PlateCarree()
         # proj = ccrs.LambertConformal(central_latitude=33, central_longitude=120)  # 创建坐标系
         # --设置地图属性
@@ -163,16 +151,16 @@ class Map():
         ax = self.ax
         
         # # -- 设置图像范围
-        ax.set_extent([110, 120, 30, 38], crs=ccrs.PlateCarree())
-
+        # ax.set_extent([108, 117, 31, 38], crs=ccrs.PlateCarree())
         
         ## --- 添加边界线
         # # ax.add_feature(provinces, linewidth=1, zorder=2)
         # # ax.add_feature(Tibet, linewidth=2, zorder=2)  # 添加青藏高原区域
-        ax.add_feature(provinces, linewidth=1, zorder=10)
-        # ax.coastlines(resolution='110m')
+        ax.add_feature(provinces, linewidth=2, zorder=10)
         # # ax.add_feature(city, linewidth=1, zorder=2)  # 添加青藏高原区域
 
+        ## -- 画海岸线
+        # ax.coastlines(resolution='110m')
 
         
         ## --设置网格属性, 不画默认的标签
@@ -195,19 +183,11 @@ class Map():
 
         gl.xformatter = LONGITUDE_FORMATTER  #使横坐标转化为经纬度格式
         gl.yformatter = LATITUDE_FORMATTER
-        # gl.xlocator = mticker.FixedLocator(np.arange(75, 105 + 5, 5))
-        # gl.xlocator = mticker.FixedLocator(np.arange(55, 105 + 5, 5))
         gl.xlocator = mticker.FixedLocator(np.arange(100, 120 + 1, 1))
-        # gl.ylocator = mticker.FixedLocator(np.arange(20, 50, 5))
         gl.ylocator = mticker.FixedLocator(np.arange(10, 55, 1))
-        gl.xlabel_style = {'size': 12}  #修改经纬度字体大小
-        gl.ylabel_style = {'size': 12}
+        gl.xlabel_style = {'size': 16}  #修改经纬度字体大小
+        gl.ylabel_style = {'size': 16}
         ax.spines['geo'].set_linewidth(0.7)  #调节边框粗细
-            
-            
-            
-            
-
         return ax
         
 
@@ -218,36 +198,20 @@ class DataShow():
         """
         x = da.lon
         y = da.lat
-        # levels = [220,230, 240, 250, 260, 270, 280, 290, 300]  # 需要画出的等值线
-        # levels = [205,210, 215,220, 225,235,245]  # 需要画出的等值线
-        levels = [205, 210, 215, 220, 225, 235, 245]  # 需要画出的等值线
-        # levels = np.arange(3000, 3300,50)
+        # levels = [205, 210, 215, 220, 225, 235, 245]  # 需要画出的等值线
+        contour_levels = np.arange(2,19,2)
         
-        cmap = cmaps.precip3_16lev_r
+        colormap = cmaps.precip3_16lev
+        # colormap = cmaps.precip3_16lev_r  # 反转色标
         crx = ax.contourf(x,
                           y,
                           da,
-                          cmap=cmap,
+                          cmap=colormap,
                         #   norm=norm,
                           extend='both',
                         #   extend='max',
-                        #   levels=levels,
-                        #   levels=self.levels,
+                          levels=contour_levels,
                           transform=ccrs.PlateCarree())
-                          
-
-        # box = [80, 115, 20, 40]
-        # ax.set_extent(box, crs=ccrs.PlateCarree())
-        # ax.set_title(title[2], loc='left',  fontsize=12)
-        # ax.set_title(dic['name'], loc='left',  fontsize=12)
-        # ax.set_extent([70, 105, 25, 41], crs=ccrs.LambertConformal())
-        # ax.xaxis.set_tick_params(labelsize=10)
-        # ax.yaxis.set_tick_params(labelsize=10)
-        # ax.text(99.5, 38.5, title[1])
-        # ax.set_title(title[1], loc='right',  fontsize=12)
-        # ax.set_tilte(title[1], loc='right')
-        # ax.text(78,26.2,title[0], fontsize=12)
-        # self.draw_station(ax)
         return crx
 
     def draw_contour(self, da, ax):
@@ -264,15 +228,16 @@ class DataShow():
         
         crx = ax.contour(x,
                           y,
-                          da,
-                          colors = 'blue',
+                          da/10,
+                          colors = 'red',
                         #   cmap=cmap,
                         #   norm=norm,
                         #   extend='both',
                         #   extend='max',
-                          levels=levels,
+                        #   levels=levels,
                         #   levels=self.levels,
                           transform=ccrs.PlateCarree())
+        ax.clabel(crx,inline=1, fontsize=20, colors='black') # 等值线的标注
         return crx
 
     def draw_barbas(self,u,v):
@@ -293,17 +258,22 @@ class DataShow():
         '''
         绘制风矢图
         '''
-        # u = u[::12,::12]
-        # v = v[::12,::12]
+        u = u[::12,::12]
+        v = v[::12,::12]
         # y = u.coords['lat']
         y = u.lat.values
         x = u.lon.values
         # print(y)
+        # print(type(u))
+        # print(type(y))
         # x = u.coords['lon']
+
+
         ax = self.ax
         # Q = ax.quiver(x,y,u,v,units='inches',scale=18,pivot='middle')  # 绘制风矢
-        Q = ax.quiver(x, y, u,v,units='inches',scale=18,pivot='middle', transform=ccrs.PlateCarree())  # 绘制风矢
-        # qk = ax.quiverkey(Q, 0.9, 0.9, 1, r'$1\ m/s$', labelpos='E',coordinates='figure')   # 设置参考风矢
+        # Q = ax.quiver(x, y, u,v,units='inches',scale=18,pivot='middle', transform=ccrs.PlateCarree())  # 绘制风矢
+        Q = ax.quiver(x, y, u.values,v.values,units='inches',scale=18,pivot='middle', transform=ccrs.PlateCarree())  # 绘制风矢
+        qk = ax.quiverkey(Q, X=0.7, Y=0.15, U=10, label=r'$10\ m/s$', labelpos='E',coordinates='figure')   # 设置参考风矢
 
 
 class Picture(Map, DataShow):
@@ -324,12 +294,14 @@ class Picture(Map, DataShow):
         """
 
         ## 设置地图的范围
-        # lat = ds_fnl.lat
-        # lon = ds_fnl.lon
+        lat = ds_fnl.lat
+        lon = ds_fnl.lon
         ax = self.ax
         # ax.set_extent([lon.min(), lon.max(), lat.min(), lat.max()], crs=ccrs.PlateCarree())
-        # box = [100, 125, 30, 40]
+
+        # box = [110, 116, 32, 37]
         # ax.set_extent(box, crs=ccrs.PlateCarree())
+        # ax.set_extent(box)
 
         ## 设置图片标题
         self.create_map()
@@ -338,64 +310,57 @@ class Picture(Map, DataShow):
         # cf = self.draw_contourf_single(da, ax, dic)
         
         ## 绘制云顶亮温
-        # cs = self.draw_contourf(dict['q'], ax)
+        cs = self.draw_contourf(dict['q'], ax)
 
-        # ccc = self.draw_contour(dict['height_ag'], ax)
-        # ax.clabel(ccc,inline=1, fontsize=20)
-        
-        # cccc = self.draw_barbas(dict['u'], dict['v'])
+        ccc = self.draw_contour(dict['geopt'], ax)
         cccc = self.draw_quiver(dict['u'], dict['v'])
         self.draw_station()
-        
-        
-        # return cs
-        # fig_name = '/mnt/zfm_18T/fengxiang/SWV/picture/'+date+'.png'
-        # fig.savefig(fig_name)
+        return cs
 
 class Draw():
+    """绘图的类
+    负责创建画纸, 一张图或多张图的区别
+    保存图片
+    """
 
     def draw_one_subplot(self,dict):
         pass 
         fig = plt.figure(figsize=(12, 9), dpi=600)
-        # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/ERA5/YSU_1800/wrfout_d03_2021-07-18_00:00:00'
-        # ncfile = Dataset(flnm)
-        # z = getvar(ncfile, 'z')
-        # u = getvar(ncfile, 'ua')
-        # proj = get_cartopy(u)
         # proj = ccrs.PlateCarree()  # 创建坐标系
-        proj = ccrs.LambertConformal(central_longitude=120, central_latitude=33)
-        # proj = ccrs.LambertConformal(central_latitude=33, central_longitude=120)  # 创建坐标系
+        # flnm_nc = '/mnt/zfm_18T/fengxiang/HeNan/Data/ERA5/YSU_1800/wrfout_d02_2021-07-18_00:00:00'
+        # ncfile = Dataset(flnm_nc)
+        # slp = getvar(ncfile, 'slp')
+        # proj = get_cartopy(slp)
+        ## 手动设置投影格式
+        proj = ccrs.LambertConformal(
+            central_longitude=120.0,
+            central_latitude=32,
+            standard_parallels=(30, 60),
+            cutoff=-30,)
+        # proj = ccrs.LambertConformal(central_longitude=120, central_latitude=33)
         ax = fig.add_axes([0.1,0.1,0.85,0.85], projection=proj)
         pr = Picture(ax, )
-        # da_input = ds_q['q'].isel(time=0).T
-        # dict = {}
-        # dict['q'] = ds_q['q'].sel(time='2016-07-11 1200').T
-        # dict['height'] = ds_fnl['height'].sel(pressure=500, time='2016-07-11 1200')
-        # dict['u'] = ds_fnl['U'].sel(pressure=500, time='2016-07-11 1200')
-        # dict['v'] = ds_fnl['V'].sel(pressure=500, time='2016-07-11 1200')
-        # ds_input =da_input.to_dataset()
         
-        # cs = pr.draw_single(ds_input, picture_dic)
         tt = dict['q'].time
         titile = str(tt.dt.strftime('%Y-%m-%d %H').values)
-        pressure = str(int(dict['height'].pressure.values))+' hPa'
+        pressure = str(int(dict['u'].pressure.values))+' hPa'
         picture_dic = {'pressure':pressure, 'time':'111111', 'title':titile}
         
-        
-
         cs = pr.draw_single(fig, dict, picture_dic)
-
-        # cb = fig.colorbar(
-        #     cs,
-        #     # cax=ax6,
-        #     orientation='horizontal',
-        #     # ticks=bounds,
-        #     fraction=0.05,  # 色标大小
-        #     pad=0.1,  # 透明度
-        # )
-        # figpath = '/mnt/zfm_18T/fengxiang/SWV/picture_q_wind/'
-        # fig_name = str(tt.dt.strftime('%Y-%m-%d_%H').values)+"_"+pressure
-        # fig.savefig(figpath+fig_name)
+        cb = fig.colorbar(
+            cs,
+            # cax=ax6,
+            orientation='horizontal',
+            # ticks=bounds,
+            fraction=0.04,  # 色标大小
+            pad=0.08,  # colorbar和图之间的距离
+            # label='q (g/kg)',
+        )
+        font = {'size':15}
+        cb.set_label('q (g/kg)', fontdict=font)
+        figpath = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_700/'
+        fig_name = str(tt.dt.strftime('%Y-%m-%d_%H').values)+"_"+pressure
+        fig.savefig(figpath+fig_name)
 
 
 
@@ -404,45 +369,22 @@ def main():
     pre = 700
     
     for t in ds_fnl.time:
+        print(t)
         dict = {}
         ds_fnl.sel(pressure=pre, time=t)
-        dict['q'] = ds_fnl['q'].sel(time=t, pressure=pre).T
-        dict['height'] = ds_fnl['height_agl'].sel(pressure=pre, time=t)
+        # dict['q'] = ds_fnl['q'].sel(time=t, pressure=pre).T*10**3
+        dict['q'] = ds_fnl['q'].sel(time=t, pressure=pre)*10**3
+        dict['height_agl'] = ds_fnl['height_agl'].sel(pressure=pre, time=t)
+        dict['geopt'] = ds_fnl['geopt'].sel(pressure=pre, time=t)
         dict['u'] = ds_fnl['ua'].sel(pressure=pre, time=t)
         dict['v'] = ds_fnl['va'].sel(pressure=pre, time=t)
     dr.draw_one_subplot(dict)
-        # print(dict['q'])
-main()
-
-# %%
-
-# dict['height']
-# pp = dict['height'].pressure
-# tt = dict['q'].time
-# ccc = str(tt.dt.strftime('%Y-%m-%d %H').values)
-# ccc
-
-
-
-
-
-
+    # print(dict['u'])
+    return dict
+# aa = main()
 
 
 # %%
-
-
-# tt = ds.time
-# da = ds['q'].isel(time=0)
-# title = tt[0].dt.strftime('%d_%H').values
-# dr.draw_single(da.T, title)
-        # print(aa.time)
-        # i = aa.time
-
-
-
-
-
 
 
 # %%

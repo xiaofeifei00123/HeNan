@@ -107,6 +107,9 @@ def get_proj():
     false_easting = (info['e_we'][0] - 1) / 2 * info['dx']
     false_northing = (info['e_sn'][0] - 1) / 2 * info['dy']
 
+    # false_easting = (info['e_we'][2] - 1) / 2 * info['dx']/9
+    # false_northing = (info['e_sn'][2] - 1) / 2 * info['dy']/9
+    # print(info['e_we'])
     
     extent_area = [0, false_easting * 2, 0, false_northing * 2]
                   
