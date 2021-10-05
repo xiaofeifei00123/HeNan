@@ -56,16 +56,34 @@ def nearest_position(stn_lat, stn_lon, xlat, xlon ):
 
 
 # %%
-flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/ERA5/YSU_1912_rain_ERAI.nc'
-ds_all = xr.open_dataset(flnm)
-## 获取降水数据
-da_rain = ds_all['RAINNC']
-# da_rain = da_rain.rename({'XLAT':'lat','XLONG':'lon', 'XTIME':'time'})
-da_rain = da_rain.rename({'XLAT':'lat','XLONG':'lon',})
-# da_rain = da_rain.swap_dims({'Time':'time'})
-## 改成北京时间
-tt = da_rain.time+pd.Timedelta(hours=+8)
-da_rain = da_rain.assign_coords({'time':('time',tt.values)})
+# flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/ERA5/YSU_1912_rain_ERAI.nc'
+# ds_all = xr.open_dataset(flnm)
+# ## 获取降水数据
+# da_rain = ds_all['RAINNC']
+# # da_rain = da_rain.rename({'XLAT':'lat','XLONG':'lon', 'XTIME':'time'})
+# da_rain = da_rain.rename({'XLAT':'lat','XLONG':'lon',})
+# # da_rain = da_rain.swap_dims({'Time':'time'})
+# ## 改成北京时间
+# tt = da_rain.time+pd.Timedelta(hours=+8)
+# da_rain = da_rain.assign_coords({'time':('time',tt.values)})
+
+
+flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/OBS/rain_era.nc'
+da_rain_all = xr.open_dataarray(flnm)
+
+# %%
+# da_rain
+dd = da_rain_all.sel(time=slice('2021-07-20 08', '2021-07-20 20'))  # 24小时逐小时降水
+# dd.shape
+da_rain = da_rain_all.isel(dtime=0)
+# ccc = da_rain.drop_vars('dtime')
+# ccc.swap_dims({'dtime':'time'})
+
+# %%
+# da_rain.time
+
+
+
 
 
 ## 筛选单个时次的数据
@@ -86,6 +104,20 @@ da_rain = da_rain.assign_coords({'time':('time',tt.values)})
 
 # cc = nearest_position(stn_lon=stn_lon, stn_lat=stn_lat,xlat=da.lat, xlon=da.lon)
 # da[cc]
+
+# %%
+
+
+
+
+# da_rain
+# da.dtime.values+da.time.values
+# da.time[0]+da.dtime
+# cc = da.dtime.astype('str')#  +'hours'
+# da.dtime
+# pd.Timedelta(str(da.dtime[0].values), unit='h')
+# pd.Timedelta(str(da.dtime[0].values)+'hours')
+# t = pd.date_range(start=)
 
 
 
@@ -230,6 +262,7 @@ class Draw(object):
         # ax.set_title("jjjj")
         x = data.lon
         y = data.lat
+        print(data)
         crx = ax.contourf(x,
                           y,
                           data,
@@ -269,7 +302,7 @@ class Draw(object):
                'time':str(date)}
         ax = self.create_map(ax)
         ax.set_title(date, fontsize=30)
-        ax.set_title('ERA5_1912', fontsize=20,loc='right')
+        ax.set_title('era_thin_grid', fontsize=20,loc='right')
         cf = self.draw_contourf_single(da, ax, dic)
         # ax6 = fig.add_axes([0.18, 0.06, 0.7, 0.02])  # 重新生成一个新的坐标图
 
@@ -288,7 +321,8 @@ class Draw(object):
         )
         cb.ax.tick_params(labelsize=18)  # 设置色标标注的大小
         cb.set_label('Precipitation (mm)', fontdict={'size':20})
-        fig_name = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_12/'+date+'_YSU_1912_ERAI.png'
+        # fig_name = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_12/'+date+'_YSU_1912_ERAI.png'
+        fig_name = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_12/'+date+'ERAsmall.png'
         # fig.savefig('/mnt/zfm_18T/fengxiang/HeNan/Draw/test.png')
         fig.savefig(fig_name)
         pass
@@ -352,6 +386,7 @@ class Draw(object):
 
 def get_sum_rain(da_rain):
     dd = da_rain.sel(time=slice('2021-07-20 08', '2021-07-20 20'))  # 24小时逐小时降水
+    # print(dd)
     da_sum = dd.sum(dim='time')  # 24小时总降水量
     lat = dd.isel(time=0).lat
     lon = dd.isel(time=0).lon
@@ -370,9 +405,14 @@ def get_sum_rain(da_rain):
     
 if __name__ == '__main__':
     pass
-    cc = get_sum_rain(da_rain)
-    dr = Draw()
-    dr.draw_single(cc, '20_08-20_20')
+    # cc = get_sum_rain(da_rain)
+    dd = da_rain.sum(dim='time')
+    # print(dd.lat)
+    # dd.plot()
+    # cc = dd.sel()
+    # print(cc.max())
+    # dr = Draw()
+    # dr.draw_single(cc, '20_08-20_20')
     # main()
     # dr = Draw()
     # aa = da_rain.time.to_series()

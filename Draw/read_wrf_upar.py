@@ -62,7 +62,7 @@ class GetUpar():
         """多进程读取文件
         """
         pass
-        pool = Pool(4)
+        pool = Pool(1)
         result = []
         for fl in fl_list:
             tr = pool.apply_async(self.get_upar_one, args=(fl,))
@@ -81,7 +81,7 @@ class GetUpar():
     def get_upar(self, path):
         pass
         # path = '/mnt/zfm_18T/fengxiang/HeNan/Data/ERA5/YSU_1912/'
-        fl_list = os.popen('ls {}/wrfout_d03*'.format(path))  # 打开一个管道
+        fl_list = os.popen('ls {}/wrfout_d02*'.format(path))  # 打开一个管道
         fl_list = fl_list.read().split()
         # fl_list = fl_list[0:2]
         dds = self.get_upar_multi(fl_list)
@@ -102,6 +102,6 @@ if __name__ == '__main__':
         path_wrfout = path_main+'YSU_'+t+'/'
         ds = gu.get_upar(path_wrfout)
         flnm = 'YSU_'+t
-        path_save = path_main+flnm+'_upar.nc'
+        path_save = path_main+flnm+'_upar_d02.nc'
         print(path_save)
         ds.to_netcdf(path_save)

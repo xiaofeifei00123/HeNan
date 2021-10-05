@@ -1,18 +1,14 @@
 # %%
-from netCDF4 import Dataset
+# import metdig
+# import datetime
+# from metdig.io.cassandra import get_obs_stations
+import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib.cm import get_cmap
-import cartopy.crs as crs
-from cartopy.feature import NaturalEarthFeature
-from wrf import (getvar, interplevel, to_np, latlon_coords, get_cartopy,
-                 cartopy_xlim, cartopy_ylim)
 # %%
 
-flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/ERA5/YSU_1800/wrfout_d03_2021-07-18_00:00:00'
-ncfile = Dataset(flnm)
-z = getvar(ncfile, 'z')
-u = getvar(ncfile, 'ua')
+# aa = pd.Timestamp('2021-07-20 0800')
+# aa.strftime('%Y%m%d%H%M%S.000')
+np.pi
 
-# %%
-get_cartopy(u)
+
+

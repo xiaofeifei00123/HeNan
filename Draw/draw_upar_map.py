@@ -39,8 +39,8 @@ plt.rcParams['font.sans-serif'] = ['SimHei']
 # %%
 # fl_fnl = '/mnt/zfm_18T/fengxiang/DATA/FNL/fnl_2016.nc'
 # fl_gdas = '/mnt/zfm_18T/fengxiang/DATA/FNL/gdas_2016_0710_20.nc'
-fl_wrf = '/mnt/zfm_18T/fengxiang/HeNan/Data/ERA5/YSU_1800_upar.nc'
-ds_fnl = xr.open_dataset(fl_wrf)
+# fl_wrf = '/mnt/zfm_18T/fengxiang/HeNan/Data/ERA5/YSU_1800_upar.nc'
+# ds_fnl = xr.open_dataset(fl_wrf)
 
 # %%
 # ds_fnl
@@ -156,7 +156,7 @@ class Map():
         ## --- 添加边界线
         # # ax.add_feature(provinces, linewidth=1, zorder=2)
         # # ax.add_feature(Tibet, linewidth=2, zorder=2)  # 添加青藏高原区域
-        ax.add_feature(provinces, linewidth=2, zorder=10)
+        ax.add_feature(provinces, linewidth=1, zorder=10)
         # # ax.add_feature(city, linewidth=1, zorder=2)  # 添加青藏高原区域
 
         ## -- 画海岸线
@@ -183,8 +183,8 @@ class Map():
 
         gl.xformatter = LONGITUDE_FORMATTER  #使横坐标转化为经纬度格式
         gl.yformatter = LATITUDE_FORMATTER
-        gl.xlocator = mticker.FixedLocator(np.arange(100, 120 + 1, 1))
-        gl.ylocator = mticker.FixedLocator(np.arange(10, 55, 1))
+        gl.xlocator = mticker.FixedLocator(np.arange(106, 138 + 1, 1))
+        gl.ylocator = mticker.FixedLocator(np.arange(20, 41, 1))
         gl.xlabel_style = {'size': 16}  #修改经纬度字体大小
         gl.ylabel_style = {'size': 16}
         ax.spines['geo'].set_linewidth(0.7)  #调节边框粗细
@@ -223,7 +223,17 @@ class DataShow():
         # levels = [205,210, 215,220, 225,235,245]  # 需要画出的等值线
         # levels = [205, 210, 215, 220, 225, 235, 245]  # 需要画出的等值线
         # levels = np.arange(5000, 5800, 10)
-        levels = np.arange(3000, 3200,50)
+        if da.pressure.values == 500:
+            level_contour = np.arange(5720, 5770,10) # 500hPa
+        elif da.pressure.values == 700:
+            level_contour = np.arange(3040, 3100,10) # 700hPa
+        elif da.pressure.values == 850:
+            level_contour = np.arange(1410, 1470,10) # 850hPa
+        else:
+            print(da.pressure.values)
+        # level_contour = np.arange(5720, 5770,10) # 500hPa
+        # level_contour = np.arange(3040, 3100,10) # 700hPa
+        # level_contour = np.arange(1410, 1470,10) # 850hPa
         # cmap = cmaps.precip_16lev 
         
         crx = ax.contour(x,
@@ -234,7 +244,7 @@ class DataShow():
                         #   norm=norm,
                         #   extend='both',
                         #   extend='max',
-                        #   levels=levels,
+                          levels=level_contour,
                         #   levels=self.levels,
                           transform=ccrs.PlateCarree())
         ax.clabel(crx,inline=1, fontsize=20, colors='black') # 等值线的标注
@@ -277,7 +287,8 @@ class DataShow():
 
 
 class Picture(Map, DataShow):
-    """绘图的主类
+    """绘图的子类
+    所有图片的基类
     """
 
     def __init__(self, ax):
@@ -294,8 +305,8 @@ class Picture(Map, DataShow):
         """
 
         ## 设置地图的范围
-        lat = ds_fnl.lat
-        lon = ds_fnl.lon
+        # lat = ds_fnl.lat
+        # lon = ds_fnl.lon
         ax = self.ax
         # ax.set_extent([lon.min(), lon.max(), lat.min(), lat.max()], crs=ccrs.PlateCarree())
 
@@ -307,12 +318,13 @@ class Picture(Map, DataShow):
         self.create_map()
         ax.set_title(picture_dic['title'], fontsize=30)
         ax.set_title(picture_dic['pressure'], fontsize=20,loc='right')
+        ax.set_title(picture_dic['initial_time'], fontsize=20,loc='left')
         # cf = self.draw_contourf_single(da, ax, dic)
         
         ## 绘制云顶亮温
         cs = self.draw_contourf(dict['q'], ax)
 
-        ccc = self.draw_contour(dict['geopt'], ax)
+        # ccc = self.draw_contour(dict['geopt'], ax)
         cccc = self.draw_quiver(dict['u'], dict['v'])
         self.draw_station()
         return cs
@@ -323,9 +335,9 @@ class Draw():
     保存图片
     """
 
-    def draw_one_subplot(self,dict):
+    def draw_one_subplot(self,dict, initialtime):
         pass 
-        fig = plt.figure(figsize=(12, 9), dpi=600)
+        fig = plt.figure(figsize=(12, 10), dpi=600)
         # proj = ccrs.PlateCarree()  # 创建坐标系
         # flnm_nc = '/mnt/zfm_18T/fengxiang/HeNan/Data/ERA5/YSU_1800/wrfout_d02_2021-07-18_00:00:00'
         # ncfile = Dataset(flnm_nc)
@@ -344,7 +356,7 @@ class Draw():
         tt = dict['q'].time
         titile = str(tt.dt.strftime('%Y-%m-%d %H').values)
         pressure = str(int(dict['u'].pressure.values))+' hPa'
-        picture_dic = {'pressure':pressure, 'time':'111111', 'title':titile}
+        picture_dic = {'pressure':pressure, 'initial_time':initialtime, 'title':titile}
         
         cs = pr.draw_single(fig, dict, picture_dic)
         cb = fig.colorbar(
@@ -358,74 +370,76 @@ class Draw():
         )
         font = {'size':15}
         cb.set_label('q (g/kg)', fontdict=font)
-        figpath = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_700/'
-        fig_name = str(tt.dt.strftime('%Y-%m-%d_%H').values)+"_"+pressure
+        figpath = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_upar_GDAS/'
+        fig_name = str(tt.dt.strftime('%Y-%m-%d_%H').values)+"_"+pressure+'_GDAS_'+picture_dic['initial_time']+'do2'
         fig.savefig(figpath+fig_name)
 
 
 
-def main():
+
+def draw_single(t, ds_fnl, pre, initial_time):
+    """画单个时次，单层的图
+
+    Args:
+        t ([type]): 时间
+        ds_fnl ([type]): 多维数据
+        pre ([type]): 气压层
+    """
+    title = str(t.dt.strftime('%Y-%m-%d %H').values)
+    print(title)
+    dict = {}
+    ds_fnl.sel(pressure=pre, time=t)
+    # dict['q'] = ds_fnl['q'].sel(time=t, pressure=pre).T*10**3
+    dict['q'] = ds_fnl['q'].sel(time=t, pressure=pre)*10**3
+    dict['height_agl'] = ds_fnl['height_agl'].sel(pressure=pre, time=t)
+    dict['geopt'] = ds_fnl['geopt'].sel(pressure=pre, time=t)
+    dict['u'] = ds_fnl['ua'].sel(pressure=pre, time=t)
+    dict['v'] = ds_fnl['va'].sel(pressure=pre, time=t)
     dr = Draw()
-    pre = 700
+    dr.draw_one_subplot(dict, initial_time)
     
-    for t in ds_fnl.time:
-        print(t)
-        dict = {}
-        ds_fnl.sel(pressure=pre, time=t)
-        # dict['q'] = ds_fnl['q'].sel(time=t, pressure=pre).T*10**3
-        dict['q'] = ds_fnl['q'].sel(time=t, pressure=pre)*10**3
-        dict['height_agl'] = ds_fnl['height_agl'].sel(pressure=pre, time=t)
-        dict['geopt'] = ds_fnl['geopt'].sel(pressure=pre, time=t)
-        dict['u'] = ds_fnl['ua'].sel(pressure=pre, time=t)
-        dict['v'] = ds_fnl['va'].sel(pressure=pre, time=t)
-    dr.draw_one_subplot(dict)
-    # print(dict['u'])
-    return dict
-# aa = main()
 
 
-# %%
 
-
-# %%
 def single_process_draw():
     """单进程绘图
     """
-    fl = '/mnt/zfm_18T/fengxiang/DATA/FY_TBB/TBB_FY2G_201607.nc'
-    ds = xr.open_dataset(fl)
-# da = ds['q'].isel(time=0)
-    dr = Draw()
-    tt = ds.time
-    for t in tt:
-        da = ds['q'].sel(time=t)
-        title = t.dt.strftime('%d_%H').values
-        dr.draw_single(da.T, title)
-        # print(aa.time)
-        # i = aa.time
+    fl_wrf = '/mnt/zfm_18T/fengxiang/HeNan/Data/ERA5/YSU_1800_upar.nc'
+    ds_fnl = xr.open_dataset(fl_wrf)
+    pre = 500
+    for t in ds_fnl.time:
+        pass
+        draw_single(t, ds_fnl, pre)
 
 def multi_process_draw():
     """多进程绘图
     """
-    fl = '/mnt/zfm_18T/fengxiang/DATA/FY_TBB/TBB_FY2G_201607.nc'
-    ds = xr.open_dataset(fl)
-    pool = Pool(12)
-    # result = []
-    dr = Draw()
-    tt = ds.time
-    for t in tt:
-        da = ds['q'].sel(time=t)
-        title = t.dt.strftime('%d_%H').values
-        tr = pool.apply_async(dr.draw_single, args=(da.T,title,))
-        # print("计算%d"%i)
-        # result.append(tr)
-    pool.close()
-    pool.join()
+    # fl = '/mnt/zfm_18T/fengxiang/DATA/FY_TBB/TBB_FY2G_201607.nc'
+    # ds = xr.open_dataset(fl)
+    # fl_wrf = '/mnt/zfm_18T/fengxiang/HeNan/Data/ERA5/YSU_1800_upar.nc'
+    fl = '/mnt/zfm_18T/fengxiang/HeNan/Data/GDAS/'
+    ti_list = ['1800', '1812', '1900', '1912']
+    
+    for i in ti_list:
+        fl_wrf = fl+'YSU_'+i+'_upar_d02.nc'
+        ds_fnl = xr.open_dataset(fl_wrf)
+        # pre = 500
+        # pre_list = [500, 700, 850]
+        pre_list = [500]
+        for pre in pre_list:
+            pool = Pool(10)
+            for t in ds_fnl.time:
+                # draw_single(t, ds_fnl, pre)
+                tr = pool.apply_async(draw_single, args=(t,ds_fnl,pre,i,))
+            pool.close()
+            pool.join()
 
 
 if __name__ == "__main__":
     pass
-    main()
-    # multi_process_draw()
+    # main()
+    # single_process_draw()
+    multi_process_draw()
 
 
 
