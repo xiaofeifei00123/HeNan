@@ -2,7 +2,8 @@
 # -*- encoding: utf-8 -*-
 '''
 Description:
-读micpas的探空资料
+读micpas的探空资料, 第5类
+02时的探空没有温度和露点温度
 -----------------------------------------
 Time             :2021/07/26 09:48:05
 Author           :Forxd
@@ -25,7 +26,12 @@ from multiprocessing import Pool
 
 # from data_process_main import GetData
 
-
+# %%
+### 可以使用nmc改写这个程序
+# from nmc_met_io.read_micaps import read_micaps_1, read_micaps_2, read_micaps_5
+# flnm = '/mnt/zfm_18T/fengxiang/DATA/UPAR/202107_upar/20210706020000.000'
+# ds  = read_micaps_5(flnm)
+# ds[ds['ID']=='57083']
 
 # %%
 class GetMicaps():
@@ -130,8 +136,11 @@ class GetMicaps():
 
         # #### 在这里计算U,V        
 
-        vards['U'] = xr.ufuncs.sin(vards['wind_d']/180*np.pi)*vards['wind_s']*(-1)
-        vards['V'] = xr.ufuncs.cos(vards['wind_d']/180*np.pi)*vards['wind_s']*(-1)
+        # vards['U'] = xr.ufuncs.sin(vards['wind_d']/180*np.pi)*vards['wind_s']*(-1)
+        # vards['V'] = xr.ufuncs.cos(vards['wind_d']/180*np.pi)*vards['wind_s']*(-1)
+        vards['U'] = -1*np.sin(vards['wind_d']/180*np.pi)*vards['wind_s']
+        vards['V'] = -1*np.cos(vards['wind_d']/180*np.pi)*vards['wind_s']
+        # v = -1*np.cos(ddf['wind_angle']/180*np.pi)*ddf['wind_speed']
         vards = vards.drop_vars(['wind_d', 'wind_s'])
         return vards
 
@@ -194,33 +203,6 @@ class GetMicaps():
         ds_return = xr.concat(da_time, pd.Index(ttt, name='time'))
         return ds_return
 
-
-
-
-def get_station_average(ds_input):
-    """求站点的平均值
-       micaps资料处理区域平均的时候, 用站点平均代替
-       
-    ds_input:站点资料的Dataset
-    return: 包括区域平均值的Dataset
-    """
-    land_dic = {
-        'bare':['ShiQuanhe', 'MangYa', 'GeErmu'],
-        'bush':['GaiZe'],
-        'grass':['ShenZha','LaSa', 'NaQu', 'YuShu', 'DaRi', 'BaTang', 'ChangDu'],
-        'all':['ShiQuanhe', 'MangYa', 'GeErmu','GaiZe','ShenZha','LaSa', 'NaQu', 'YuShu', 'DaRi', 'BaTang', 'ChangDu']
-    }
-    for key in land_dic:
-        station_list = land_dic[key]
-        rain_station_list = []
-        for i in station_list:  # 循环出站点
-            r = ds_input[i]
-            rain_station_list.append(r)
-        rain_station_array = xr.concat(rain_station_list, pd.Index(station_list, name='station'))
-        rain_station_mean = rain_station_array.mean(dim='station')  # 多站的平均值
-        ds_input[key] = rain_station_mean  # 将计算出的站点均值，再存入原数组
-    ds_return = ds_input
-    return ds_return
 ############ 测试开始 ############
 def get_one_station():
     ds_nc = xr.Dataset()
