@@ -4,6 +4,7 @@
 Description:
 读取micaps高空形势场数据
 使用nwc(国家气象中心的python包)
+绘制高空形势场
 -----------------------------------------
 Time             :2021/10/03 14:33:01
 Author           :Forxd
@@ -33,7 +34,7 @@ import cartopy.crs as ccrs
 # %%
 # def get_analaysis(dic):
 def get_analysis(dic={'var':'height', 'level':'500', 'time':pd.Timestamp('2021-07-20 0800') }):
-    """读micaps14类数据
+    """读micaps 14类数据
 
     Returns:
         [type]: [description]
@@ -80,6 +81,7 @@ def get_analysis(dic={'var':'height', 'level':'500', 'time':pd.Timestamp('2021-0
 
 # %%
 def get_plot(dic):
+    """读取micaps 2类数据，高空填图数据"""
     path = '/mnt/zfm_18T/fengxiang/HeNan/Data/OBS/Micaps/high/PLOT/'
     flnm = path+dic['level']+'/'+dic['time'].strftime('%Y%m%d%H%M%S.000')
     # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/OBS/Micaps/high/PLOT/500/20210720080000.000'

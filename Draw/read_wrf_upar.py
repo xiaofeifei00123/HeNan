@@ -37,8 +37,8 @@ class GetUpar():
     """
     def get_upar_one(self, fl):
         # dds_list = []
-        # pre_level = [1000, 850, 700, 500, 250]
-        pre_level = np.arange(1000, 90, -20)  # 对d03使用垂直方向10度的分辨率
+        pre_level = [1000, 850, 700, 500, 200]
+        # pre_level = np.arange(1000, 90, -20)  # 对d03使用垂直方向10度的分辨率
         # pre_level = np.arange(1000, 90, -50)  # 对d02使用垂直方向100度的分辨率
         dds = xr.Dataset()
         data_nc = nc.Dataset(fl)
@@ -71,7 +71,7 @@ class GetUpar():
         """多进程读取文件
         """
         pass
-        pool = Pool(4)
+        pool = Pool(2)
         result = []
         for fl in fl_list:
             tr = pool.apply_async(self.get_upar_one, args=(fl,))
@@ -91,7 +91,7 @@ class GetUpar():
     def get_upar(self, path):
         pass
         # path = '/mnt/zfm_18T/fengxiang/HeNan/Data/ERA5/YSU_1912/'
-        fl_list = os.popen('ls {}/wrfout_d03*'.format(path))  # 打开一个管道
+        fl_list = os.popen('ls {}/wrfout_d02*'.format(path))  # 打开一个管道
         fl_list = fl_list.read().split()
         # fl_list = fl_list[0:2]
         dds = self.get_upar_multi(fl_list)
@@ -117,7 +117,7 @@ def combine():
             path_wrfout = path_main+'YSU_'+t+'/'
             ds = gu.get_upar(path_wrfout)
             flnm = 'YSU_'+t
-            path_save = path_main+flnm+'_upar_d03.nc'
+            path_save = path_main+flnm+'_upar_d02.nc'
             print(path_save)
             ds.to_netcdf(path_save)
 
@@ -133,14 +133,21 @@ def regrid():
         # path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/ERA5/'
         path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/'+f+'/'
         # gu = GetUpar()
+        area = {
+            'lon1':107,
+            'lon2':135,
+            'lat1':20,
+            'lat2':40,
+            'interval':0.1,
+        }
         for t in time_list:
             # path_wrfout = path_main+'YSU_'+t+'/'
             # ds = gu.get_upar(path_wrfout)
             flnm = 'YSU_'+t
-            path_in = path_main+flnm+'_upar_d03.nc'
+            path_in = path_main+flnm+'_upar_d02.nc'
             ds = xr.open_dataset(path_in)
-            ds_out = regrid_xesmf(ds)
-            path_out = path_main+flnm+'_upar_d03_latlon.nc'
+            ds_out = regrid_xesmf(ds, area)
+            path_out = path_main+flnm+'_upar_d02_latlon.nc'
             ds_out.to_netcdf(path_out)
 
             

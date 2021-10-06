@@ -18,11 +18,13 @@ from metpy.calc import virtual_potential_temperature
 from metpy.calc import potential_temperature
 from metpy.calc import relative_humidity_from_dewpoint
 from metpy.calc import dewpoint_from_relative_humidity
+import metpy.interpolate as interp
 from wrf import projection
 import xarray as xr
 import xesmf as xe
 import matplotlib.pyplot as plt
 import cartopy.crs as ccrs
+import numpy as np
 
 
 def caculate_diagnostic(ds):
@@ -103,14 +105,16 @@ def caculate_diagnostic(ds):
     ds_return = ds_return.transpose(*dims_origin)
     return ds_return
 
-def regrid_xesmf(dataset):
+def regrid_xesmf(dataset, area):
     """利用xESMF库，将非标准格点的数据，插值到标准格点上去
     Args:
         dataset ([type]): Dataset格式的数据, 多变量，多时次，多层次
     读的是80-102度的数据
+        area, 需要插值的网格点范围, 即latlon坐标的经纬度范围
     """
     ## 创建ds_out, 利用函数创建,这个东西相当于掩膜一样
-    ds_regrid = xe.util.grid_2d(110, 116, 0.05, 32, 37, 0.05)
+    ds_regrid = xe.util.grid_2d(area['lon1'], area['lon2'], area['interval'], area['lat1'], area['lat2'], area['interval'])
+    # ds_regrid = xe.util.grid_2d(110, 116, 0.05, 32, 37, 0.05)
     regridder = xe.Regridder(dataset, ds_regrid, 'bilinear')  # 好像是创建了一个掩膜一样
     ds_out = regridder(dataset)  # 返回插值后的变量
 
@@ -129,7 +133,44 @@ def regrid_xesmf(dataset):
     return ds_return
     
 
-###  测试插值程序
+def interp_metpy(sta):
+    """
+    站点插值到格点
+    反距离权重插值
+
+    Args:
+        sta (DataFrame): [lon,lat,height]
+
+    Returns:
+        [type]: [description]
+    """
+    # h = sta['temperature']
+    # import metpy.interpolate as interp
+    h = sta['height']
+
+    lon = sta['lon']
+    lat = sta['lat']
+    # x,y,z = interp.interpolate_to_grid(lon, lat, h, 'barnes', hres=0.5, minimum_neighbors=2)
+    # grid1 = meb.grid([60,150,0.25],[10,60,0.25])
+    # x0, x1 = 69.05, 150.1
+    # y0, y1 = 0, 55.1 
+
+    x0, x1 = 0, 160
+    y0, y1 = 0, 80
+    # res = 1 / 32.0
+    # res = 1 / 10  # 0.1°
+    res = 1
+    mx, my = np.meshgrid(np.arange(x0, x1, res),
+                            np.arange(y0, y1, res),
+                            indexing="ij")
+    # mx
+    # grd2 = meb.interp_sg_idw(stb, grid1)
+    # z = interp.inverse_distance_to_grid(lon, lat, h, mx, my, r=10)
+    # x,y,z = interp.remove_nan_observations(lon,lat, h)
+
+    z = interp.inverse_distance_to_grid(lon, lat, h, mx, my, r=5, min_neighbors=1)
+    return mx,my,z
+###  测试非均匀网格点插值程序
 # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/ERA5/YSU_1800_upar_d03.nc'
 # ds_input = xr.open_dataset(flnm)
 # ds_input.XTIME
