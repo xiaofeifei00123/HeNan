@@ -38,9 +38,10 @@ from multiprocessing import Pool
 
 
 def frame_dataset(sta):
-    sta = sta.rename(columns={'dewpoint':'td', 'temperature':'temp', 'level':'pressure'})
+    sta = sta.rename(columns={'dewpoint_depression':'t_td', 'temperature':'temp', 'level':'pressure'})
     sta['u'] = -1*np.sin(sta['wind_angle']/180*np.pi)*sta['wind_speed']
     sta['v'] = -1*np.cos(sta['wind_angle']/180*np.pi)*sta['wind_speed']
+    sta['td'] = sta['temp'] - sta['t_td']
     sta.index.name = 'station'
     sta.columns.name = 'var'
     ds = xr.Dataset(sta)
@@ -60,7 +61,7 @@ def get_plot(dic):
     # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/OBS/Micaps/high/PLOT/500/20210720080000.000'
     df = read_micaps_2(flnm)
     sta = meb.sta_data(df, columns = [
-                'id', 'lon', 'lat', 'alt', 'grade', 'height', 'temperature', 'dewpoint',
+                'id', 'lon', 'lat', 'alt', 'grade', 'height', 'temperature', 'dewpoint_depression',
                 'wind_angle', 'wind_speed', 'time', 'level'])
 
     return sta
@@ -86,18 +87,19 @@ def interp_metpy(da):
     lat = da.lat.values
 
     area = {
-        'lon1':107,
-        'lon2':135,
-        'lat1':20,
-        'lat2':40,
-        'interval':0.1,
+        'lon1':107-1,
+        'lon2':135+1,
+        'lat1':20-1,
+        'lat2':40+1,
+        'interval':0.5,
     }
 
     ds_regrid = xe.util.grid_2d(area['lon1'], area['lon2'], area['interval'], area['lat1'], area['lat2'], area['interval'])
     mx = ds_regrid['lon'].values
     my = ds_regrid['lat'].values
 
-    z = interp.inverse_distance_to_grid(lon, lat, h, mx, my, r=5, min_neighbors=1)
+    # z = interp.inverse_distance_to_grid(lon, lat, h, mx, my, r=5, min_neighbors=1)
+    z = interp.inverse_distance_to_grid(lon, lat, h, mx, my, r=2, min_neighbors=1)
 
     ## 重新设置coords属性
     lon1 = mx[0,:]
@@ -114,7 +116,7 @@ def interp_metpy(da):
     return da
 
 
-def get_one(t, level=500):
+def get_one(t, level):
     """获得一个时次, 一个层次的插值过后的高空填图数据
     """
     # t = pd.Timestamp('2021-07-19 2000')
@@ -182,13 +184,13 @@ def main_multi():
     for j in result:
         time_list.append(j.get())
     # print(c)
-    tttt = ttt-pd.Timedelta('-8H')
+    tttt = ttt-pd.Timedelta('8H')
     ds3 = xr.concat(time_list, pd.Index(tttt, name='time'))
     return ds3
 
 if __name__ == '__main__':
     aa = main_multi()
-    aa.to_netcdf('/mnt/zfm_18T/fengxiang/HeNan/Data/OBS/obs_upar_latlon.nc')
+    aa.to_netcdf('/mnt/zfm_18T/fengxiang/HeNan/Data/OBS/obs_upar_latlon1.nc')
     
     
     

@@ -29,6 +29,7 @@ import numpy as np
 
 def caculate_diagnostic(ds):
     """计算比湿，位温等诊断变量
+    传入的温度和露点必须是摄氏温度
     根据td或者rh计算q,theta_v
     返回比湿q, 虚位温theta_v, 相对湿度rh
 
@@ -53,13 +54,13 @@ def caculate_diagnostic(ds):
         """探空资料的温度单位大多是degC"""
         td = ds['td']
         dew_point = units.Quantity(td.values, "degC")
-        temperature = units.Quantity(t.values, "K")
+        temperature = units.Quantity(t.values, "degC")
     elif 'rh' in var_list:
         """FNL资料的单位是K"""
         # rh = da.sel(variable='rh')
         rh = ds['rh']
         rh = units.Quantity(rh.values, "%")
-        temperature = units.Quantity(t.values, "K")
+        temperature = units.Quantity(t.values, "degC")
         dew_point = dewpoint_from_relative_humidity(temperature, rh)
     else:
         print("输入的DataArray中必须要有rh或者td中的一个")
@@ -119,8 +120,8 @@ def regrid_xesmf(dataset, area):
     ds_out = regridder(dataset)  # 返回插值后的变量
 
     ### 重新构建经纬度坐标
-    lat = ds_out.lat.sel(x=0).values
-    lon = ds_out.lon.sel(y=0).values
+    lat = ds_out.lat.sel(x=0).values.round(2)
+    lon = ds_out.lon.sel(y=0).values.round(2)
     ds_1 = ds_out.drop_vars(['lat', 'lon'])  # 可以删除variable和coords
 
     ## 设置和dims, x, y相互依存的coords, 即lat要和y的维度一样

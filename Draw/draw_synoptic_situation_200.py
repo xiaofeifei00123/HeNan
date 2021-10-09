@@ -207,6 +207,7 @@ class DataShow():
         contour_levels = np.arange(30,61,5)
         
         colormap = cmaps.precip3_16lev
+        # colormap = cmaps.ViBlGrWhYeOrRe
         # colormap = cmaps.precip3_16lev_r  # 反转色标
         crx = ax.contourf(x,
                           y,
@@ -238,7 +239,7 @@ class DataShow():
         return crx
 
     def draw_contour_height(self, da, ax, **kw):
-        """在地图上绘制等值线
+        """在地图上绘制等位势高度线
         """
         x = da.lon
         y = da.lat

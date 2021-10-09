@@ -134,11 +134,11 @@ def regrid():
         path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/'+f+'/'
         # gu = GetUpar()
         area = {
-            'lon1':107,
-            'lon2':135,
-            'lat1':20,
-            'lat2':40,
-            'interval':0.1,
+            'lon1':107-1,
+            'lon2':135+1,
+            'lat1':20-1,
+            'lat2':40+1,
+            'interval':0.5,
         }
         for t in time_list:
             # path_wrfout = path_main+'YSU_'+t+'/'
@@ -148,6 +148,7 @@ def regrid():
             ds = xr.open_dataset(path_in)
             ds_out = regrid_xesmf(ds, area)
             path_out = path_main+flnm+'_upar_d02_latlon.nc'
+            ds_out = ds_out.rename({'ua':'u', 'va':'v', 'geopt':'height'})
             ds_out.to_netcdf(path_out)
 
             

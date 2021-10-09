@@ -327,7 +327,7 @@ class Draw(object):
             # label='Precipitation mm',
             # shrink=0.5, # 按比例缩放colorbar的大小
             fraction = 0.05,  # 色标大小,相对于原图的大小
-            pad=0.08,  #  色标和子图间距离
+            pad=0.05,  #  色标和子图间距离
         )
         cb.ax.tick_params(labelsize=30)  # 设置色标标注的大小
         # cb.set_label('Precipitation (mm)', fontdict={'size':20})
