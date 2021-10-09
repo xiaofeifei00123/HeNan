@@ -18,7 +18,7 @@ station_dic = {
         'lon': 113.66,
         'name': 'ShiQuanhe',
         'number': '57083',
-        'height': 112
+        'height': 113.66
     },
     # 'ShiQuanhe': {
     #     'abbreviation':'SQH',

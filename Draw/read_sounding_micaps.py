@@ -3,7 +3,20 @@
 '''
 Description:
 读micpas的探空资料, 第5类
-02时的探空没有温度和露点温度
+02时的探空没有温度和露点温度, 故不读它
+且该脚本只读取了郑州站的数据
+height是海拔高度(m)
+
+
+那曲站数据为例
+站号   经度  纬度  海拔高度 单站内容长度
+55299 92.07 31.48 4508.2 1098
+   588.3   450.8   13.8   4.1   248   5.1
+   588.3   450.8   13.8   4.1   248   5
+   588.3   450.8   13.8   4.1   248   5.1
+   588.3   450.8   13.8   4.1   248   5
+气压  位势高度(10gpm) 温度  露点  风向  风速
+
 -----------------------------------------
 Time             :2021/07/26 09:48:05
 Author           :Forxd
@@ -20,7 +33,7 @@ import sys
 import os
 from io import StringIO
 
-from xarray.core import variable
+# from xarray.core import variable
 from global_variable import station_dic
 from multiprocessing import Pool
 
@@ -41,8 +54,6 @@ class GetMicaps():
         self.station = station
         self.station_number = station['number']
         self.path_micaps = '/mnt/zfm_18T/fengxiang/DATA/UPAR/202107_upar/'
-        # self.path_micaps = '/mnt/zfm_18T/fengxiang/DATA/UPAR/TEST/'
-        self.pressure_level = np.arange(1000, 2000, -20)
 
     def read_data_once(self, flnm):
         """根据初始的txt文件
@@ -99,11 +110,13 @@ class GetMicaps():
         df = df.where(df < 9999, np.nan)  # 将缺省值赋值为NaN
         df = df.drop_duplicates('pressure', 'first')  # 返回副本
         df = df.set_index(['pressure'])  # 将pressure这一列设为index
-        df.columns.name = 'variable'
+        df.columns.name = 'variable'  # 还必须是这个名称
 
-        ## 将第一层的离地高度设为0        
-        df.iloc[0,0] = self.station['height']/10
-        # print(df)
+        # print(df['height'].min())
+        ## 换算位势高度单位， 位势10m--> 位势m
+        df['height'] = df['height']*10
+        df['height_agl'] = df['height']-self.station['height']
+        print(df['height_agl'])
         da = xr.DataArray(df)
         # print('读成功')
         return da
@@ -120,7 +133,7 @@ class GetMicaps():
         var_list = list(da.coords['variable'].values)
         # print(var_list)
         # pressure_level = np.arange(800,100,-1)
-        pressure_level = np.arange(1000,100,-10)
+        pressure_level = np.arange(1000,10,-10)
         var_list_process = []
         vards = xr.Dataset()
         for var in var_list:
@@ -132,14 +145,12 @@ class GetMicaps():
         # print("返回")
         # print(dc)
         # return da
-        vards['height'] = (vards['height']-self.station['height']/10)*10
-
         # #### 在这里计算U,V        
 
         # vards['U'] = xr.ufuncs.sin(vards['wind_d']/180*np.pi)*vards['wind_s']*(-1)
         # vards['V'] = xr.ufuncs.cos(vards['wind_d']/180*np.pi)*vards['wind_s']*(-1)
-        vards['U'] = -1*np.sin(vards['wind_d']/180*np.pi)*vards['wind_s']
-        vards['V'] = -1*np.cos(vards['wind_d']/180*np.pi)*vards['wind_s']
+        vards['u'] = -1*np.sin(vards['wind_d']/180*np.pi)*vards['wind_s']
+        vards['v'] = -1*np.cos(vards['wind_d']/180*np.pi)*vards['wind_s']
         # v = -1*np.cos(ddf['wind_angle']/180*np.pi)*ddf['wind_speed']
         vards = vards.drop_vars(['wind_d', 'wind_s'])
         return vards
@@ -196,8 +207,8 @@ class GetMicaps():
             ttt.append(tt)
             # print(ttt)
             da = self.transpose_data_once(data_file)
-            # print(da)
             ds_interp = self.interp_data(da)
+            # print(ds_interp['height'].sel(pressure=500))
 
             da_time.append(ds_interp)  # 很多时次都是到595hPa才有值, 气压和高度的对应关系会随着时间发展而变化, 气压坐标和高度坐标不能通用
         ds_return = xr.concat(da_time, pd.Index(ttt, name='time'))
@@ -209,13 +220,15 @@ def get_one_station():
     station = station_dic['ZhenZhou']
     gd = GetMicaps(station=station)    
     ds = gd.data_micaps()
+    ## 位势高度更名为geopt
+    ds = ds.rename({'height':'geopt'})
     ds.to_netcdf('/mnt/zfm_18T/fengxiang/HeNan/Data/upar_zhenzhou.nc')
     return ds
 aa = get_one_station()
 
 # %%
 # aa.time
-aa.to_netcdf('/mnt/zfm_18T/fengxiang/HeNan/Data/upar_zhenzhou.nc')
+# aa.to_netcdf('/mnt/zfm_18T/fengxiang/HeNan/Data/upar_zhenzhou.nc')
 
 # %%
 if __name__ == '__main__':
