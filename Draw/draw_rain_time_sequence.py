@@ -46,8 +46,15 @@ plt.rcParams['font.sans-serif'] = ['SimHei']
 plt.rcParams['axes.unicode_minus'] = False
 
 # %%
+def get_data_mean():
+    flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/rain_all.nc'
+    ds = xr.open_dataset(flnm)
+    ds = ds.sel(time=slice('2021-07-20 00', '2021-07-20 12'))
+    ds_all = ds.mean(dim=['lat', 'lon'])
+    return ds_all
 
 
+# %%
 class GetDataMax():
     def get_rain_ec_max(self, ):
         flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/OBS/rain_ec.nc'
@@ -184,7 +191,14 @@ class Draw():
                             'GDAS1912',
                             ]
 
-    def draw_time_sequence(self,ax, dic):
+    def draw_time_sequence(self,ax, dic, pic_dic):
+        """[summary]
+
+        Args:
+            ax ([type]): [description]
+            dic ([type]): 数据
+            pic_dic ([type]): 图片元素控制
+        """
 
         QNSE = dic['OBS']
         x_label = QNSE.coords['time']
@@ -226,7 +240,9 @@ class Draw():
 
         # ax.set_xticks(x_label[::24])  # 这个是选择哪几个坐标画上来的了,都有只是显不显示
         ax.set_xticks(x_label[::2])  # 这个是选择哪几个坐标画上来的了,都有只是显不显示
-        ax.set_yticks(np.arange(0, 230, 20))
+        # ax.set_yticks(np.arange(0, 230, 20))
+        # ax.set_yticks(pic_dic['yticks'])
+        
         # ax.set_yticks(np.arange(0, 20.1, 1))
         # ax.xaxis.set_tick_params(labelsize=15)
         # ax.xaxis.set_tick_params(labelsize=self.fontsize*1.8, rotation=45)
@@ -246,7 +262,7 @@ class Draw():
         # fig.savefig('/home/fengxiang/Project/Asses_pbl_July/Draw/Rain/time_sequecnce.png')
     
 
-    def draw_single(self, rain, title):
+    def draw_single(self, rain, pic_dic):
         """[summary]
 
         Args:
@@ -254,17 +270,16 @@ class Draw():
         """
         fig = plt.figure(figsize=(12, 8), dpi=200)  # 创建页面
         ax = fig.add_axes([0.12, 0.2, 0.83, 0.7])
-
-        self.draw_time_sequence(ax, rain)
-            
+        self.draw_time_sequence(ax, rain, pic_dic)
         ax.legend(ncol=5 ,bbox_to_anchor=(0.5,-0.3) ,loc='lower center',fontsize=self.fontsize*2.0, edgecolor='white')
+        title = pic_dic['title']
         ax.set_title(title, fontsize=30)
         # # flnm = '/mnt/zfm_18T/fengxiang/Asses_PBL/Rain/rain_staion1_'+self.month+'.png'   # 这里要改
         flnm = self.path+'time_sequence'+"_"+title+'.png'   # 这里要改
         # fig.suptitle('The mean time sequence', fontsize=self.fontsize*2.0)
         fig.savefig(flnm)
 
-def get_data():
+def get_data_max():
     aa = draw_forecast()
     gx = GetDataMax()
     r1 = gx.get_max_dataframe()
@@ -277,9 +292,22 @@ def get_data():
 # ds_all['ERA51900']
 if __name__ == '__main__':
     # main()
-    
-    ds_all = get_data()
     dr = Draw()
-    dr.draw_single(ds_all, 'max_rain')
+
+    ## 区域最大降水
+    pic_dic_max = {
+        'title':'max_rain',
+        'yticks':np.arange(0,230,20),
+    }
+    ds_max = get_data_max()
+    dr.draw_single(ds_max, 'max_rain')
+
+    ## 区域平均降水
+    pic_dic_mean = {
+        'title':'mean_rain',
+        'yticks':np.arange(0,4,0.5),
+    }
+    ds_mean = get_data_mean()
+    dr.draw_single(ds_mean, pic_dic_mean)
 
 
