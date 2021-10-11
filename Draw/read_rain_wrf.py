@@ -16,6 +16,7 @@ import xarray as xr
 import os
 import xesmf as xe
 import numpy as np
+from read_global import caculate_diagnostic, regrid_xesmf
 
 # %%
 def get_rain(path):
@@ -29,8 +30,12 @@ def get_rain(path):
         ds = xr.open_dataset(fl)
         da = ds['RAINNC']-r
         r = ds['RAINNC'].values
-        dda = da.rename({'XLAT':'lat', 'XLONG':'lon', 'XTIME':'time'})
-        dc = dda.swap_dims({'Time':'time'})
+
+        dda = da.squeeze()  # 该是几维的就是几维的
+        dc = dda.rename({'XLAT':'lat', 'XLONG':'lon', 'XTIME':'time'})
+
+        # dda = da.rename({'XLAT':'lat', 'XLONG':'lon', 'XTIME':'time'})
+        # dc = dda.swap_dims({'Time':'time'})
         # da = da.swap_dims({'Time':'XTIME'})
         # da = da.rename({'XTIME':'time'})
         dds_list.append(dc)
@@ -96,6 +101,41 @@ def get_GFS():
     path_save = path_main+flnm+'_rain.nc'
     ds.to_netcdf(path_save)
 
+def regrid():
+    """
+    将combine得到的数据，插值到latlon格点上
+    将二维的latlon坐标水平插值到一维的latlon坐标上
+    """
+    time_list = ['1800', '1812', '1900', '1912']
+    initial_file_list = ['ERA5', 'GDAS']
+    interval = 0.125
+    area = {
+        'lon1':110-1-interval/2,
+        'lon2':116+1,
+        'lat1':32-1-interval/2,
+        'lat2':37+1,
+        'interval':interval,
+    }
+    ## wrf的插值
+    for f in initial_file_list:
+        path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/'+f+'/'
+        for t in time_list:
+            # path_wrfout = path_main+'YSU_'+t+'/'
+            # ds = gu.get_upar(path_wrfout)
+            flnm = 'YSU_'+t
+            path_in = path_main+flnm+'_rain.nc'
+            ds = xr.open_dataset(path_in)
+            ds_out = regrid_xesmf(ds, area)
+            path_out = path_main+flnm+'_rain_latlon.nc'
+            # ds_out = ds_out.rename({'ua':'u', 'va':'v', 'geopt':'height'})
+            ds_out.to_netcdf(path_out)
+    ## GFS的插值
+    path_GFS_in = '/mnt/zfm_18T/fengxiang/HeNan/Data/GFS/YSU_GFS_rain.nc'
+    ds = xr.open_dataset(path_GFS_in)
+    ds_out = regrid_xesmf(ds, area)
+    path_GFS_out = '/mnt/zfm_18T/fengxiang/HeNan/Data/GFS/YSU_GFS_rain_latlon.nc'
+    ds_out.to_netcdf(path_GFS_out)
+    
 # %%
 ### 测试开始
 def test():
@@ -109,7 +149,8 @@ if __name__ == '__main__':
     pass
     # get_ERAI()
     # get_ERA5()
-    get_GFS()
+    # get_GFS()
     # get_GDAS()
+    regrid()
 
 

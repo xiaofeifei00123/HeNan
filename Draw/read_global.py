@@ -110,6 +110,7 @@ def caculate_diagnostic(ds):
 
 def regrid_xesmf(dataset, area):
     """利用xESMF库，将非标准格点的数据，插值到标准格点上去
+    注意：dataset的coords, lat,lon 必须同时是一维或是二维的
     Args:
         dataset ([type]): Dataset格式的数据, 多变量，多时次，多层次
     读的是80-102度的数据
@@ -122,8 +123,8 @@ def regrid_xesmf(dataset, area):
     ds_out = regridder(dataset)  # 返回插值后的变量
 
     ### 重新构建经纬度坐标
-    lat = ds_out.lat.sel(x=0).values.round(2)
-    lon = ds_out.lon.sel(y=0).values.round(2)
+    lat = ds_out.lat.sel(x=0).values.round(3)
+    lon = ds_out.lon.sel(y=0).values.round(3)
     ds_1 = ds_out.drop_vars(['lat', 'lon'])  # 可以删除variable和coords
 
     ## 设置和dims, x, y相互依存的coords, 即lat要和y的维度一样

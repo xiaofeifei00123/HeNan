@@ -4,8 +4,8 @@
 Description:
 读取观测站点降水，并插值
 保存：
-    插值的数据，
-    未插值的数据
+    插值的数据，nc搁谁
+    未插值的数据, csv
 -----------------------------------------
 Time             :2021/09/28 20:39:34
 Author           :Forxd
@@ -103,6 +103,7 @@ def get_max_dataframe(df_station):
     da = xr.DataArray.from_series(ps)
     rain_obs_max = da.rename({'index':'time'})
     return rain_obs_max
+
 # %%
 if __name__ == '__main__':
     pass

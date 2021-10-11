@@ -10,6 +10,102 @@ from metpy.units import units
 import xarray as xr
 import datetime
 import meteva.base as meb
+
+# %%
+flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/OBS/rain_station.nc'
+ds = xr.open_dataset(flnm)
+ds
+# %%
+# ds
+inter_val = 0.125
+area = {
+    'lon1':110-1-inter_val/2,
+    'lon2':116+1,
+    'lat1':32-1-inter_val/2,
+    'lat2':37+1,
+    'interval':0.125,
+}
+ds_regrid = xe.util.grid_2d(area['lon1'], area['lon2'], area['interval'], area['lat1'], area['lat2'], area['interval'])
+ds_regrid
+
+# %%
+def regrid_xesmf(dataset, area):
+    """利用xESMF库，将非标准格点的数据，插值到标准格点上去
+    Args:
+        dataset ([type]): Dataset格式的数据, 多变量，多时次，多层次
+    读的是80-102度的数据
+        area, 需要插值的网格点范围, 即latlon坐标的经纬度范围
+    """
+    ## 创建ds_out, 利用函数创建,这个东西相当于掩膜一样
+    ds_regrid = xe.util.grid_2d(area['lon1'], area['lon2'], area['interval'], area['lat1'], area['lat2'], area['interval'])
+    # ds_regrid = xe.util.grid_2d(110, 116, 0.05, 32, 37, 0.05)
+    regridder = xe.Regridder(dataset, ds_regrid, 'bilinear')  # 好像是创建了一个掩膜一样
+    ds_out = regridder(dataset)  # 返回插值后的变量
+
+    ### 重新构建经纬度坐标
+    lat = ds_out.lat.sel(x=0).values.round(3)
+    lon = ds_out.lon.sel(y=0).values.round(3)
+    ds_1 = ds_out.drop_vars(['lat', 'lon'])  # 可以删除variable和coords
+
+    ## 设置和dims, x, y相互依存的coords, 即lat要和y的维度一样
+    ds2 = ds_1.assign_coords({'lat':('y',lat), 'lon':('x',lon)})
+    # ## 将新的lat,lon, coords设为dims
+    ds3 = ds2.swap_dims({'y':'lat', 'x':'lon'})
+    ## 删除不需要的coords
+    # ds_return = ds3.drop_vars(['XTIME'])
+    ds_return = ds3
+    return ds_return
+
+# %%    
+
+path = '/mnt/zfm_18T/fengxiang/HeNan/Data/ERA5/YSU_1800_rain.nc'
+ds = xr.open_dataset(path)
+
+# %%
+inter_val = 0.125
+area = {
+    'lon1':110-1-inter_val/2,
+    'lon2':116+1,
+    'lat1':32-1-inter_val/2,
+    'lat2':37+1,
+    'interval':0.125,
+}
+ds_out = regrid_xesmf(ds, area)
+# %%
+ds_out.max()
+# %%
+# ll = ds_out.lat
+# # ll[0].values
+# for i in ll:
+#     print(i.values)
+    
+    
+
+# path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/ERA5/YSU_1800_rain.nc'
+# ds = xr.open_dataset(path_main)
+# ds
+# # %%
+# ds
+# ds1 = ds.drop_dims('time')
+# ds1
+# %%
+# ds.lat
+# ds_out = regrid_xesmf(ds, area)
+# for t in time_list:
+#     # path_wrfout = path_main+'YSU_'+t+'/'
+#     # ds = gu.get_upar(path_wrfout)
+#     flnm = 'YSU_'+t
+#     path_in = path_main+flnm+'_rain.nc'
+#     ds = xr.open_dataset(path_in)
+#     ds_out = regrid_xesmf(ds, area)
+
+
+
+
+
+
+
+
 # %%
 # flnm = ''
 flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GFS/YSU_GFS_rain.nc'
