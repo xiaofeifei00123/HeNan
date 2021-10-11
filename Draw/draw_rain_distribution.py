@@ -2,13 +2,14 @@
 # -*- encoding: utf-8 -*-
 '''
 Description:
-实况降水图
+降水分布图
+实况降水，站点插值出
+模式降水，原始的wrfout网格点(未插值)
 -----------------------------------------
 Time             :2021/09/27 15:45:32
 Author           :Forxd
 Version          :1.0
 '''
-
 
 # %%
 import sys,os
@@ -114,31 +115,6 @@ class GetData():
         dd = self.get_sum_rain(da_rain)
         return dd 
 
-# gd = GetData()
-# da = gd.get_rain_wrf()
-# ds
-# %%
-# da.max()
-# da.max()
-# flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/ERA5/YSU_1800_rain.nc'
-# ds = xr.open_dataset(flnm)
-# ds
-# ds['RAINNC'].max()
-# %%
-# dc = dda.rename({'XTIME':'time'})
-# dc.swap_dims({'Time':'time'})
-# da = dc.isel(time=)
-
-
-
-# da = gd.get_rain_ec()
-# da
-# da = gd.get_rain_obs()
-# da
-
-# %%
-
-# %%
 
 class Draw(object):
 
@@ -150,7 +126,7 @@ class Draw(object):
         self.picture_path = '/mnt/zfm_18T/fengxiang/Asses_PBL/Rain/picture'
         # self.levels = np.arange(0,400,40)
         # self.levels=[0.1,10.0,25.0,50.0,100.0,250.0,500.0]#雨量等级
-        self.levels=[0, 0.1,10.0,25.0,50.0,100.0,250.0,400.0, 600]#雨量等级
+        # self.levels=[0, 0.1,10.0,25.0,50.0,100.0,250.0,400.0, 600]#雨量等级
 
     def draw_station(self, ax):
         pass
@@ -180,7 +156,7 @@ class Draw(object):
                    transform=ccrs.PlateCarree(),
                    alpha=1.,
                    linewidth=5,
-                   s=30,
+                   s=35,
                    )
         # 给站点加注释
         # for i in range(len(x)):
@@ -261,7 +237,7 @@ class Draw(object):
         # levels_rain = [0, 10, 25, 50, 100, 150, 200, 250, 300, 350, 400]
         # levels_rain = np.arange(0,400,40)
         # colorlevel=[0.1,10.0,25.0,50.0,100.0,250.0,500.0]#雨量等级
-        colorlevel=[0, 0.1,10.0,25.0,50.0,100.0,250.0,400.0, 600]#雨量等级
+        colorlevel=[0, 0.1,10.0,25.0,50.0,100.0,250.0,400.0, 700]#雨量等级
         colordict=['#F0F0F0','#A6F28F','#3DBA3D','#61BBFF','#0000FF','#FA00FA','#800040', '#EE0000']#颜色列表
         x = data.lon
         y = data.lat
@@ -318,12 +294,14 @@ class Draw(object):
         ax.set_title(picture_dic['type'], fontsize=30,loc='right')
         cf = self.draw_contourf_single(da, ax, dic)
         # ax.contourf(da.lon, da.lat, da)
+        colorticks = [0.1,10.0,25.0,50.0,100.0,250.0,400.0]#雨量等级
         
         cb = fig.colorbar(
             cf,
             # cax=ax6,
             orientation='horizontal',
-            ticks=self.levels,
+            # ticks=self.levels,
+            ticks=colorticks,
             # label='Precipitation mm',
             # shrink=0.5, # 按比例缩放colorbar的大小
             fraction = 0.05,  # 色标大小,相对于原图的大小

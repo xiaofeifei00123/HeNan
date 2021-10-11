@@ -2,9 +2,10 @@
 # -*- encoding: utf-8 -*-
 '''
 Description:
-读取站点降水，并插值
-插值的数据，
-未插值的数据
+读取观测站点降水，并插值
+保存：
+    插值的数据，
+    未插值的数据
 -----------------------------------------
 Time             :2021/09/28 20:39:34
 Author           :Forxd
@@ -24,7 +25,8 @@ class rain_station_grid():
     def read_one_station(self,flnm):
         station = meb.read_stadata_from_micaps3(flnm)
         # grid1 = meb.grid([90,130,0.25],[28,50,0.25])
-        grid1 = meb.grid([90,130,0.25],[10,50,0.25])
+        # grid1 = meb.grid([90,130,0.25],[10,50,0.25])
+        grid1 = meb.grid([110-1,116+1,0.125],[32-1,37+1,0.125],)
         grd2 = meb.interp_sg_idw(station, grid1)
         da_return = grd2.astype('float32')
         ## 转换为世界时
@@ -104,6 +106,6 @@ def get_max_dataframe(df_station):
 # %%
 if __name__ == '__main__':
     pass
-    # save_rain_grid()
-    # save_rain_station()
+    save_rain_grid()
+    save_rain_station()
     

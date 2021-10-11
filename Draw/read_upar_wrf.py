@@ -2,6 +2,10 @@
 # -*- encoding: utf-8 -*-
 '''
 Description:
+读取聚合wrf高空数据
+保存
+原始网格数据
+插值成latlon网格数据
 combine:
     从原始的wrfout数据中，
     读取需要的变量

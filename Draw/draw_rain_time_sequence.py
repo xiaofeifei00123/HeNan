@@ -83,8 +83,8 @@ class GetDataMax():
         rain_list = []
         for tt in t:
             cc = df_station[df_station['time']==tt]
-            # rain_max = cc[(cc['lat']>32)&(cc['lat']<37)&(cc['lon']>110)&(cc['lon']<116)]['data0'].max()
-            rain_max = cc[(cc['lat']>32)&(cc['lat']<37)&(cc['lon']>110)&(cc['lon']<116)]['data0'].mean()
+            rain_max = cc[(cc['lat']>32)&(cc['lat']<37)&(cc['lon']>110)&(cc['lon']<116)]['data0'].max()
+            # rain_max = cc[(cc['lat']>32)&(cc['lat']<37)&(cc['lon']>110)&(cc['lon']<116)]['data0'].mean()
             rain_list.append(rain_max)
         rain_list
         ps = pd.Series(rain_list, index=t)
@@ -102,8 +102,8 @@ class GetDataMax():
         r_list = []
         for t in tt:
             daa = ds.sel(time=t)
-            # r_max = daa.max().values
-            r_max = daa.mean().values
+            r_max = daa.max().values
+            # r_max = daa.mean().values
             r_list.append(r_max)
 
         ps = pd.Series(r_list, index=tt.values)
@@ -121,8 +121,8 @@ class GetDataMax():
         for t in tt:
             daa = ds.sel(time=t)
             print(daa)
-            # r_max = daa.max().values
-            r_max = daa.mean().values
+            r_max = daa.max().values
+            # r_max = daa.mean().values
             r_list.append(r_max)
 
         ps = pd.Series(r_list, index=tt.values)
@@ -199,17 +199,17 @@ class Draw():
         # print(x)
 
 
-        ccolor = ['black','red', 'blue', 'blue', 'blue', 'blue', 'green','green','green','green'  ]
-        # ccolor = ['black','red', 'cyan', 'green', 'blue', 'orange', ]
-        lline_style = ['-', '-', '-', '--', '-.', ':','-', '--', '-.', ':']
-        # mmarker = ['o', '^', '^', '*', '*', '+']
+        ccolor = ['black','m', 'green', 'cyan', 'blue', 'red', 'green','cyan','blue','red'  ]
+        # ccolor = ['black','red', 'blue', 'blue', 'blue', 'blue', 'green','green','green','green'  ]
+        # lline_style = ['-', '-', '-', '--', '-.', ':','-', '--', '-.', ':']
+        lline_style = ['-', '-', '--', '--', '--', '--',':', ':', ':', ':']
         mmarker = ['o', 'o', 'o', 'o', 'o', 'o', 'o', 'o', 'o', 'o']
         custom_cycler = (
             cycler(color=ccolor) +
-            cycler(linestyle=lline_style)+           
+            cycler(linestyle=lline_style)           
             # cycler(label=module_list)
-            cycler(marker=mmarker))
-                        # )
+            # cycler(marker=mmarker))
+                        )
         
         j = 0
         ax.set_prop_cycle(custom_cycler)
@@ -221,13 +221,13 @@ class Draw():
             # ax.plot(x_label, y, label=i, lw=4)
             if i == 'obs':
                 i = 'OBS'
-            ax.plot(x_label, y, label=i, lw=2, markersize=5)
+            ax.plot(x_label, y, label=i, lw=2.5, markersize=5)
             j +=1 
 
         # ax.set_xticks(x_label[::24])  # 这个是选择哪几个坐标画上来的了,都有只是显不显示
         ax.set_xticks(x_label[::2])  # 这个是选择哪几个坐标画上来的了,都有只是显不显示
-        # ax.set_yticks(np.arange(0, 230, 20))
-        ax.set_yticks(np.arange(0, 20.1, 1))
+        ax.set_yticks(np.arange(0, 230, 20))
+        # ax.set_yticks(np.arange(0, 20.1, 1))
         # ax.xaxis.set_tick_params(labelsize=15)
         # ax.xaxis.set_tick_params(labelsize=self.fontsize*1.8, rotation=45)
         ax.xaxis.set_tick_params(labelsize=self.fontsize*2.0)
@@ -253,7 +253,7 @@ class Draw():
             rain ([DataArray]): 一个模式的降水
         """
         fig = plt.figure(figsize=(12, 8), dpi=200)  # 创建页面
-        ax = fig.add_axes([0.12, 0.2, 0.86, 0.7])
+        ax = fig.add_axes([0.12, 0.2, 0.83, 0.7])
 
         self.draw_time_sequence(ax, rain)
             
@@ -280,6 +280,6 @@ if __name__ == '__main__':
     
     ds_all = get_data()
     dr = Draw()
-    dr.draw_single(ds_all, 'mean_rain')
+    dr.draw_single(ds_all, 'max_rain')
 
 
