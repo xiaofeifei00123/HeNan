@@ -483,6 +483,7 @@ def draw_quiver(u,v, ax):
     # Q = ax.quiver(x, y, u.values,v.values,units='inches',scale=25,pivot='middle', transform=ccrs.PlateCarree())  # 绘制风矢
     # qk = ax.quiverkey(Q, X=0.55, Y=0.15, U=10, label=r'$(\overrightarrow{qv_f}-\overrightarrow{qv_o}, 100\ g/kg \cdot m/s)$', labelpos='E',coordinates='figure',  fontproperties={'size':25})   # 设置参考风矢
     # qk = ax.quiverkey(Q, X=0.55, Y=0.12, U=10, label=r'($10 ,g \cdot cm^{-1} \cdot hPa^{-1} \cdot s^{-1}$)', labelpos='E',coordinates='figure',  fontproperties={'size':22})   # 设置参考风矢
+    # qk = ax.quiverkey(Q, X=0.75, Y=0.12, U=10, label=r'($10 m/s$)', labelpos='E',coordinates='figure',  fontproperties={'size':22})   # 设置参考风矢
     qk = ax.quiverkey(Q, X=0.75, Y=0.12, U=10, label=r'($10 m/s$)', labelpos='E',coordinates='figure',  fontproperties={'size':22})   # 设置参考风矢
     # qk = ax.quiverkey(Q, X=1.55, Y=0.05, U=10, label=r'$(\overrightarrow{qv_f}-\overrightarrow{qv_o}, 100\ g/kg \cdot m/s)$', labelpos='E',coordinates='figure',  fontproperties={'size':25})   # 设置参考风矢
 

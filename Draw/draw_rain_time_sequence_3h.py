@@ -46,6 +46,39 @@ plt.rcParams['font.sans-serif'] = ['SimHei']
 plt.rcParams['axes.unicode_minus'] = False
 
 # %%
+def get_rain_3h():
+    """EC细网格的降水是3小时的
+
+    Returns:
+        ds_return: 各模式的3小时降水聚合Dataset
+    """
+    flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/rain_all.nc'
+    ds = xr.open_dataset(flnm)
+    ds = ds.sel(time=slice('2021-07-18 00', '2021-07-21 12'))
+    ## 先取EC的时间
+    tt = ds['EC'].dropna(dim='time').time.values
+    ## 再去除nan数据,方便计算
+    ds1 = ds.fillna(0)
+    r_list = []
+    for t in tt:
+        # print(t)
+        t2 = t-pd.Timedelta('2H')
+        t1 = t-pd.Timedelta('1H')
+        r0 = ds1.sel(time=t)
+        r1 = ds1.sel(time=t1)
+        r2 = ds1.sel(time=t2)
+        rr = r1+r2+r0  # 加法，去最后一个数的时间
+        r_list.append(rr)
+        # t_list.append(rr.time)
+        print(rr.time.values)
+    # rr
+    ds_return = xr.concat(r_list, dim='time')
+    return ds_return
+
+
+
+
+# %%
 def get_data_mean():
     flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/rain_all.nc'
     ds = xr.open_dataset(flnm)
@@ -86,7 +119,7 @@ class GetDataMax():
         df_station = pd.read_csv('/mnt/zfm_18T/fengxiang/HeNan/Data/OBS/rain_station.csv')
         # df_station = get_max_dataframe(aa)
         df_station['time']= pd.to_datetime(df_station['time'])
-        t = pd.date_range(start='2021-07-18 00', end='2021-07-22 00', freq='1H')
+        t = pd.date_range(start='2021-07-20 00', end='2021-07-21 00', freq='1H')
         rain_list = []
         for tt in t:
             cc = df_station[df_station['time']==tt]
@@ -180,7 +213,7 @@ class Draw():
         self.fontsize = 10
         self.path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_rain/'   # 这里要改
         # self.module_list = ['obs', 'gfs']
-        self.module_list = ['OBS', 'GFS', 
+        self.module_list = ['OBS', 'GFS', 'EC',
                             'ERA51800',
                             'ERA51812',
                             'ERA51900',
@@ -213,15 +246,14 @@ class Draw():
         # print(x)
 
 
-        # ccolor = ['black','m', 'green', 'cyan', 'blue', 'red', 'green','cyan','blue','red'  ]
-        ccolor = ['black','gray', 'green', 'darkorange', 'blue', 'red', 'green','darkorange','blue','red'  ]
+        ccolor = ['black','m', 'orange','green', 'cyan', 'blue', 'red', 'green','cyan','blue','red'  ]
         # ccolor = ['black','red', 'blue', 'blue', 'blue', 'blue', 'green','green','green','green'  ]
         # lline_style = ['-', '-', '-', '--', '-.', ':','-', '--', '-.', ':']
         # lline_style = ['-', '-', '--', '--', '--', '--',':', ':', ':', ':']
         # lline_style = ['-', '-', '--', '--', '--', '--',':', ':', ':', ':']
         # lline_style = ['-', '-', '--', '--', '--', '--','-.', '-.', '-.', '-.']
-        lline_style = ['-', '-', '-', '-', '-', '-','-.', '-.', '-.', '-.']
-        mmarker = ['o', 'o', '^', '^', '^', '^', '*', '*', '*', '*']
+        lline_style = ['-', '-', '-','-', '-', '-', '-','-.', '-.', '-.', '-.']
+        mmarker = ['o', 'o', 'o','^', '^', '^', '^', '*', '*', '*', '*']
         custom_cycler = (
             cycler(color=ccolor) +
             cycler(linestyle=lline_style)           
@@ -243,7 +275,8 @@ class Draw():
             j +=1 
 
         # ax.set_xticks(x_label[::24])  # 这个是选择哪几个坐标画上来的了,都有只是显不显示
-        ax.set_xticks(x_label[::1])  # 这个是选择哪几个坐标画上来的了,都有只是显不显示
+        # ax.set_xticks(x_label[::2])  # 这个是选择哪几个坐标画上来的了,都有只是显不显示
+        ax.set_xticks(x_label[::2])  # 这个是选择哪几个坐标画上来的了,都有只是显不显示
         # ax.set_yticks(np.arange(0, 230, 20))
         # ax.set_yticks(pic_dic['yticks'])
         
@@ -273,14 +306,13 @@ class Draw():
         Args:
             rain ([DataArray]): 一个模式的降水
         """
-        # fig = plt.figure(figsize=(12, 8), dpi=200)  # 创建页面
-        fig = plt.figure(figsize=(16, 8), dpi=200)  # 创建页面
-        ax = fig.add_axes([0.12, 0.25, 0.83, 0.7])
+        fig = plt.figure(figsize=(12, 8), dpi=200)  # 创建页面
+        ax = fig.add_axes([0.15, 0.25, 0.8, 0.7])
         y_max = pic_dic['yticks'].max()
         y_min = pic_dic['yticks'].min()
         ax.set_ylim(y_min, y_max)
         self.draw_time_sequence(ax, rain, pic_dic)
-        ax.legend(ncol=5 ,bbox_to_anchor=(0.5,-0.3) ,loc='lower center',fontsize=self.fontsize*2.0, edgecolor='white')
+        ax.legend(ncol=5 ,bbox_to_anchor=(0.43,-0.4) ,loc='lower center',fontsize=self.fontsize*2.0, edgecolor='white')
         title = str(pic_dic['title'])
         print(pic_dic['title'])
         ax.set_title(title, fontsize=30)
@@ -302,20 +334,22 @@ if __name__ == '__main__':
     # main()
     dr = Draw()
 
-    ## 区域最大降水
-    pic_dic_max = {
-        'title':'max_rain',
-        'yticks':np.arange(0,230,20),
+    ### 3h的最大降水
+    pic_dic_max3 = {
+        'title':'max_rain_3h',
+        'yticks':np.arange(0,450,20),
     }
-    ds_max = get_data_max()
-    dr.draw_single(ds_max, pic_dic_max)
+    ds_3h = get_rain_3h()
+    ds_max_3 = ds_3h.max(dim=['lat', 'lon'])
+    # ds_3h
+    dr.draw_single(ds_max_3, pic_dic_max3)
 
-    ### 区域平均降水
-    pic_dic_mean = {
-        'title':'mean_rain',
-        'yticks':np.arange(0,4.1,0.5),
+    ### 3h的平均降水
+    pic_dic_max3 = {
+        'title':'mean_rain_3h',
+        'yticks':np.arange(0,10.1,1),
     }
-    ds_mean = get_data_mean()
-    dr.draw_single(ds_mean, pic_dic_mean)
-
-
+    ds_3h = get_rain_3h()
+    ds_max_3 = ds_3h.mean(dim=['lat', 'lon'])
+    # ds_3h
+    dr.draw_single(ds_max_3, pic_dic_max3)

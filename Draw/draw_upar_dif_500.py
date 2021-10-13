@@ -437,8 +437,8 @@ def draw(hgt_list, tmp_list, ddf, dict_dif, dic):
     )
     cb.ax.tick_params(labelsize=24)  # 设置色标标注的大小
     ## 风场差
-    # draw_quiver(dict_dif['udif'], dict_dif['vdif'], ax)
-    draw_quiver(dict_dif['uobs'], dict_dif['vobs'], ax)
+    draw_quiver(dict_dif['udif'], dict_dif['vdif'], ax)
+    # draw_quiver(dict_dif['uobs'], dict_dif['vobs'], ax)
     
 
     
