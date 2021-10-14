@@ -8,6 +8,8 @@ Time             :2021/10/12 10:50:16
 Author           :Forxd
 Version          :1.0
 '''
+
+
 # %%
 # import metdig
 # import datetime
@@ -24,27 +26,6 @@ import matplotlib.pyplot as plt
 from cycler import cycler
 from global_variable import station_dic
 import seaborn as sns
-# plt.rcParams['font.sans-serif'] = 'STHupo'
-# plt.rcParams['font.family'] = ['sans-serif']
-# plt.rcParams['font.sans-serif'] = ['SimHei']  # 指定默认字体为黑体
-# plt.rcParams['font.sans-serif'] = ['SimSun']  # 指定默认字体为黑体
-# plt.rcParams['font.sans-serif'] = ['Times New Roman']  # 指定默认字体为黑体
-# plt.rcParams['font.sans-serif'] = ['Helvetica']  # 指定默认字体为黑体
-# %%
-# from matplotlib import font_manager
- 
-# for font in font_manager.fontManager.ttflist:
-#     # 查看字体名以及对应的字体文件名
-#     # print(font.name, '-', font.fname)
-#     print(font.name,)
-
-
-
-# %%
-flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/rain_all.nc'
-ds = xr.open_dataset(flnm)
-ds
-
 
 
 
@@ -97,10 +78,10 @@ class Caculate():
             rain_obs = rain['OBS'].values
             rain_model = rain[model].values
             # print(rain_model.max())
-            # print("计算 %s" %model)
+            print("计算 %s" %model)
             hfmc = mem.hfmc(rain_obs, rain_model, grade_list=[threshold])   # 这里算的都是平均值的评分, 我想要的是评分的平均值, 也就是要算每个时次的评分
-            ETS[model] = mem.ets_hfmc(hfmc) 
-            # TS[model] = mem.ts_hfmc(hfmc) 
+            # ETS[model] = mem.ets_hfmc(hfmc) 
+            TS[model] = mem.ts_hfmc(hfmc) 
             Accuracy[model] = mem.pc_hfmc(hfmc)
             # POFD[model] = mem.pofd_hfmc(hfmc)
             # POFD[model] = mem.far_hfmc(hfmc)
@@ -110,10 +91,10 @@ class Caculate():
 
         # grade_list = [Accuracy, ETS, TS, POFD, HK, ODR, BIAS]
         # grade_list_name = ['Accuracy', 'ETS', 'TS', 'POFD', 'HK', 'ODR', 'BIAS']
-        # grade_list = [Accuracy, TS,  BIAS]
-        grade_list = [Accuracy, ETS,  BIAS]
-        # grade_list_name = ['Accuracy', 'TS', 'BIAS']
-        grade_list_name = ['Accuracy', 'ETS', 'BIAS']
+        grade_list = [Accuracy, TS,  BIAS]
+        # grade_list = [Accuracy, ETS,  BIAS]
+        grade_list_name = ['Accuracy', 'TS', 'BIAS']
+        # grade_list_name = ['Accuracy', 'ETS', 'BIAS']
 
         b = []
         for i in grade_list:
@@ -230,15 +211,12 @@ def get_ts():
     ds = ds.drop_vars('EC')
     dds = ds.sel(time=slice('2021-07-20 0000', '2021-07-20 1200')).sum(dim='time')
     ca = Caculate(dds)
-    # threshold_list = [0.1, 5, 15, 30, 70, 140]
-    # rain_list = ['小雨', '中雨', '大雨', '暴雨', '大暴雨', '特大暴雨']
-    threshold_list = [15, 30, 70, 140]
-    rain_list = ['大雨', '暴雨', '大暴雨', '特大暴雨']
+    threshold_list = [0.1, 5, 15, 30, 70, 140]
+    rain_list = ['小雨', '中雨', '大雨', '暴雨', '大暴雨', '特大暴雨']
     ts_list = []
     for threshold in threshold_list:
         df = ca.get_two_scale(threshold).T
-        print(df)
-        ddf = df['ETS']
+        ddf = df['TS']
         ddf.index.name = 'model'
         da = xr.DataArray.from_series(ddf)
         # da = get_ts(threshold)
@@ -255,8 +233,7 @@ def draw_bar(ts):
     # labels = list(threshold_list.astype('str').values)
     # rain_list = ['小雨', '中雨', '大雨', '暴雨', '大暴雨', '特大暴雨']
     # threshold_list = [0.1, 5, 15, 30, 70, 140]
-    # rain_list = ['小雨≥0.1', '中雨≥5', '大雨≥15', '暴雨≥30', '大暴雨≥70', '特大暴雨≥140']
-    rain_list = ['大雨≥15', '暴雨≥30', '大暴雨≥70', '特大暴雨≥140']
+    rain_list = ['小雨≥0.1', '中雨≥5', '大雨≥15', '暴雨≥30', '大暴雨≥70', '特大暴雨≥140']
     labels = rain_list
     x = np.arange(len(labels))
     ds = ts
@@ -264,29 +241,28 @@ def draw_bar(ts):
 
     model_list = ['ERA51800','ERA51812','ERA51900','ERA51912','GDAS1800','GDAS1812','GDAS1900','GDAS1912',]
     # color_list = ['green', 'blue','orange', 'red',  'green', 'blue','orange', 'red', ]
+    # color_list = ['darkgreen', 'darkblue','darkorange', 'darkred',  'green', 'cornflowerblue', 'orange', 'red',]
     color_list = ['green', 'blue','orange', 'red',  'darkgreen', 'darkblue', 'darkorange', 'darkred',]
-    hatch_list = ['.','.','.','.','x','x','x','x',]
+    # hatch_list = ['.','.','.','.','x','x','x','x',]
     width = 0.10
-    fig = plt.figure(figsize=(12, 6), dpi=300)  # 创建页面
-    ax = fig.add_axes([0.05,0.1, 0.93,0.8])
+    fig = plt.figure(figsize=(12, 5), dpi=300)  # 创建页面
+    ax = fig.add_axes([0.05,0.1, 0.92,0.8])
     i = -3
     j = 0
     for model in model_list:
         # rects = ax.bar(x+width*i, ds[model], width, label=model, facecolor='white', edgecolor=color_list[j], hatch=hatch_list[j])
+        # rects = ax.bar(x+width*i, ds[model], width, label=model, color=color_list[j], hatch=hatch_list[j])
         rects = ax.bar(x+width*i, ds[model], width, label=model, color=color_list[j])
         i += 1
         j += 1
     ax.set_xticks(x)
     ax.set_xticklabels(labels, fontsize=18)
     ax.set_yticks(np.arange(0,1.1,0.1))
-    ax.set_ylim(-0.0,0.5)
     # ax.set_yticklabels(fontsize=24)
     ax.tick_params(axis='both', labelsize=19, direction='out')
-    # ax.legend(fontsize=20, edgecolor='white', loc='upper right', ncol=2)
-    # ax.legend(fontsize=20, edgecolor='white', loc='upper right', ncol=1, bbox_to_anchor=(0.7, 0.2, 0.5, 0.5))
-    ax.legend(fontsize=18, edgecolor='white', loc='upper right', ncol=1)
-    ax.set_title('ETS', fontsize=24)
-    fig.savefig('/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_rain/ets_score.png')
+    ax.legend(fontsize=20, edgecolor='white', loc='upper right')
+    ax.set_title('TS', fontsize=24)
+    fig.savefig('/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_rain/ts_score.png')
 if __name__ == '__main__':
     pass
     ts = get_ts()

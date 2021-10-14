@@ -2,53 +2,98 @@
 # -*- encoding: utf-8 -*-
 '''
 Description:
-画高空模式和观测的差值填色图
-并添加高空观测数据的形势场
-500hPa, 作位势高度场的差
+绘制的要素:
+    850hPa
+    水汽通量(填色)
+    风场(矢量)
+    850形势场(等值线)
+使用的数据：
+    观测插值的格点数据
+    模式预报插值的格点数据
+    高空观测数据的形势场(Manual)
 -----------------------------------------
-Time             :2021/10/03 14:33:01
+Time             :2021/10/14 
 Author           :Forxd
-Version          :1.0
+Version          :1.1
 '''
 
 
 # %%
-# from time import strftime
-# from cartopy.crs import Projection
+from time import strftime
+from cartopy.crs import Projection
 from cartopy.mpl.ticker import LongitudeFormatter, LatitudeFormatter
-# import cartopy.feature as cfeature
+import cartopy.feature as cfeature
 from cartopy.io.shapereader import Reader
 import xarray as xr
 import meteva.base as meb
 import numpy as np
-# import os
+import os
 import pandas as pd
 from nmc_met_io.read_micaps import read_micaps_1, read_micaps_2, read_micaps_14
 import meteva.base as meb
 from nmc_met_graphics.plot import mapview
 import matplotlib.pyplot as plt
+import matplotlib as mpl
 import cartopy.crs as ccrs
 import cmaps
 from wrf import get_cartopy, smooth2d, getvar
+import metpy.calc as ca
+import metpy
+from metpy.units import units
+
 # from metdig.io.cassandra import get_obs_station
 
+
+### 测试
 # %%
 
 def test():
     flnm_obs = '/mnt/zfm_18T/fengxiang/HeNan/Data/OBS/obs_upar_latlon1.nc' 
-    # flnm_wrf = '/mnt/zfm_18T/fengxiang/HeNan/Data/GDAS/YSU_1900_upar_d02_latlon.nc'
-    ds = xr.open_dataset(flnm_obs)
-    da = ds['height'].sel(time='2021-07-18 12').sel(pressure=500)
-    da.plot()
-    # ds.time
-# test()
+    flnm_wrf = '/mnt/zfm_18T/fengxiang/HeNan/Data/GDAS/YSU_1900_upar_d02_latlon.nc'
+    ds_obs = xr.open_dataset(flnm_obs)
+    ds_wrf = xr.open_dataset(flnm_wrf)
+    da1 = ds_obs['q'].sel(time='2021-07-20 00').sel(pressure=850)
+    da2 = ds_obs['q'].sel(time='2021-07-20 00').sel(pressure=500)
+    da3 = ds_obs['q'].sel(time='2021-07-20 00').sel(pressure=200)
+    # da2 = ds_wrf['q'].sel(time='2021-07-20 00').sel(pressure=850)
 
-
-
+    da4 = ds_wrf['q'].sel(time='2021-07-20 00').sel(pressure=850)
 
 # %%
-def get_dif(dic):
-    """获得模式和观测的差值, 200,500,850各不相同
+def caculate_data(dds):
+    """ 抽取并计算出需要的数据
+    u, v, qu, qv
+
+    Args:
+        dds ([type]): [description]
+
+    Returns:
+        [type]: [description]
+    """
+    dict = {}
+    # u = dds.metpy.parse_cf('u')
+    # v = dds.metpy.parse_cf('v')
+    # q = dds.metpy.parse_cf('q')*10**3/9.8
+    u = dds['u']
+    v = dds['v']
+    q = dds['q']*10**3
+    qu = q*u/9.8
+    qv = q*v/9.8
+    dict['q'] = q
+    dict['qu'] = qu
+    dict['qv'] = qv
+    dict['qf'] = xr.ufuncs.sqrt(qu**2+qv**2)
+    dict['u'] = u
+    dict['v'] = v
+    # div = ca.divergence(u,v)
+    # div_q = ca.divergence(qu, qv)
+    # dict['div'] = div
+    # dict['div_q'] = div_q
+    return dict
+
+def get_data(dic):
+    """获得模式和观测
+    水汽和风场数据
 
     Args:
         dic ([dict]): 时间和层次信息
@@ -64,101 +109,34 @@ def get_dif(dic):
     # ds_wrf.time
     t = dic['time']
     level = dic['level']
-    # t = pd.Timestamp('2021-07-19 00')
     ds1 = ds_obs.sel(time=t, pressure=level)
     ds2 = ds_wrf.sel(time=t, pressure=level)
-    h1 = ds1['height']
-    h2 =ds2['height']/9.806/10
-    hdif = h2-h1
-
-    
-    u1 = ds1['u'] 
-    v1 = ds1['v']
-    u2 = ds2['u']
-    v2 = ds2['v']
-    udif = u2-u1
-    vdif = v2-v1
+    dic1 = caculate_data(ds1)
+    dic2 = caculate_data(ds2)
+    qf_dif = dic2['qf'] - dic1['qf']  # 水汽通量大小差
+    qu_dif = dic2['qu'] - dic1['qu']  # 水汽通量矢量差
+    qv_dif = dic2['qv'] - dic1['qv']
+    u_dif = dic2['u'] - dic1['u']  # 风场差
+    v_dif = dic2['v'] - dic1['v']
 
     dic_return = {
-        'hdif':hdif,
-        'hobs':h1,
-        'hfo':h2, 
-        'udif':udif,
-        'vdif':vdif,
-        'uobs':u1,
-        'vobs':v1,
-        'ufo':u2,
-        'vfo':v2,
+        'u_obs':dic1['u'],
+        'v_obs':dic1['v'],
+        'u_model':dic2['u'],
+        'v_model':dic2['v'],
+        'qf_obs':dic1['qf'],
+        'qf_model':dic2['qf'],
+        'qf_dif':qf_dif,
+        'qu_dif':qu_dif,
+        'qv_dif':qv_dif,
+        'v_dif':v_dif,
+        'u_dif':u_dif,
     }
-    
-    # return hdif, h1, h2  # 插值， 观测，模拟
-    return dic_return
 
-# level = 500
-# t = pd.Timestamp('2021-07-19 0800')
-# dic_v = {
-#     'var':'height',
-#     'level':level,
-#     'time':t-pd.Timedelta('8H'),
-#     'flnm':'/mnt/zfm_18T/fengxiang/HeNan/Data/ERA5/YSU_1800_upar_d02_latlon.nc'
-# }
-# dict_dif = get_dif(dic_v)
-# # # bb
-# # # %%
-# cc.max()
-# %%
-# dict_dif['hdif'].plot()
-# fig = plt.figure()
-# ax = fig.add_axes([0.1,0.1,0.8, 0.8])
-# u = dict_dif['udif']
-# v = dict_dif['udif']
-# ax.quiver(u.lon, u.lat, u, v)
-# aa.values.T
-# (da.lon, da.lat, da)
-
-# # aa.min()
-# # bb.plot()
-# # cc.plot()
-# aa.plot()
-# da.T
-# bb.plot()
-# %%
-# flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/ERA5/YSU_1800_upar_d02.nc'
-# flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/ERA5/ERA5_202107.nc'
-# ds = xr.open_dataset(flnm)
-# %%
-# %%
-# da = ds['z'].sel(level=500)
-# bb = da/98
-# bb.max()
-# da.sel(level=500)
-# ds['longitude']
-# ds['latitude']
-# da.max()
-# da = ds['geopt'].sel(pressure=500)/100
-# da.max()
-# da
+    return dic_return 
 
 
 
-
-
-# ds1['q'].sel(pressure=200)
-# ds.time
-# %%
-# wd, wo, wf = get_dif()
-# wf.max()
-
-# wo.max()
-# wd.max()
-
-# %%
-
-
-
-
-
-# def get_analaysis(dic):
 def get_analysis(dic={'var':'height', 'level':'500', 'time':pd.Timestamp('2021-07-20 0800') }):
     """读micaps 14类数据
 
@@ -196,16 +174,6 @@ def get_analysis(dic={'var':'height', 'level':'500', 'time':pd.Timestamp('2021-0
         line_list.append(df1)
     return line_list
 
-# dic = {
-#     'var':'temp',
-#     'level':'500',
-#     'time':pd.Timestamp('2021-07-20 0800')
-# }
-        
-# aa = get_analysis(dic)
-
-
-# %%
 def get_plot(dic):
     """读取micaps 2类数据，高空填图数据"""
     path = '/mnt/zfm_18T/fengxiang/HeNan/Data/OBS/Micaps/high/PLOT/'
@@ -217,6 +185,7 @@ def get_plot(dic):
                 'wind_angle', 'wind_speed', 'time', 'level'])
 
     return sta
+
 def draw_station(ax):
     pass
     # station = station_dic
@@ -300,29 +269,37 @@ def draw_contourf(ax, da):
     # levels = [205, 210, 215, 220, 225, 235, 245]  # 需要画出的等值线
     # contour_levels = np.arange(30,61,5)
     # contour_levels = np.arange(-24,24+1,6)
-    # contour_levels = [-24, -18, -12,-6,-3, 3, 6, 12, 18, 24]
+    # contour_levels = [-30, -24, -18, -12,-6,-3, 3, 6, 12, 18, 24, 30]
+    # contour_levels = [-30,-22,-18, -14, -10,-6, -2, 2,  6, 10, 14, 18, 22, 30]
+    # contour_levels = [-30,-22,-18, -14, -10,-6, -2, 2,  6, 10, 14, 18, 22, 30]
+    # contour_levels = [-15,-11,-9, -7, -5,-3, -1, 1,  3, 5, 7, 9,11,15]
     # contour_levels = [-16, -12, -8, -6, -4,-2,-1, 1, 2, 4, 6, 8, 12, 16]
-    # contour_levels = [-16, -15, -14, -13, -12, -11]
-    # contour_levels = [-25, -20, -15, -10, -5, -0, 5, 10, 15]
-    # contour_levels = [-5, -4, -3, -2, -1,-0.5, 0.5,  1, 2, 3, 4, 5]
-    # contour_levels = [-3, -2.4, -1.8, -1.2, -0.6, -0.3, 0.3, 0.6, 1.2, 1.8, 2.4, 3]
-    # contour_levels = [-3, -2.4, -1.8, -1.2, -0.6, -0.1, 0.1, 0.6, 1.2, 1.8, 2.4, 3]
-    contour_levels = [-3, -2, -1, -0.5, 0.5, 1, 2, 3]
+    # contour_levels = [-0.020, -0.016, -0.012, -0.008, -0.004, -0.002, 0.002, 0.004, 0.008, 0.012, 0.016, 0.020]
+    # contour_levels = [-50, -25, -16, -8, -4, 4, 16, 20, 25, 50]
+    # contour_levels = [0, 10, 12, 14, 16, 18, 20, 22, 24, 30, 100]
+    contour_levels = [0, 10, 12, 14, 16, 18, 20, 22,24,30, 100]
+    # contour_levels = np.arange(0, 17, 1)
+    color_li = ['white', '#6CA6CD', '#436EEE', '#66CD00', '#7FFF00','#cdfd02', 'yellow','#fdaa48','#EE7600','red']
+    # color_li = ['white', '#436EEE', '#66CD00', '#7FFF00','#cdfd02', 'yellow','#fdaa48','red']
     
-    # contour_levels = [560, 564, 568, 572, 576, 580, 582, 584, 586, 588, 592, 596]
-
+    # contour_levels = [2, 4, 6, 8, 10, 12, 14, 16]
+    # contour_levels = np.arange(0, 17, 1)
+    
     # colormap = cmaps.precip3_16lev
-    colormap = cmaps.ViBlGrWhYeOrRe
+    # colormap = cmaps.ViBlGrWhYeOrRe
     # colormap = cmaps.precip3_16lev_r  # 反转色标
     crx = ax.contourf(x,
                         y,
                         da,
-                        cmap=colormap,
+                        # cmap=colormap,
+                        colors=color_li,
                     #   norm=norm,
                     #   extend='both',
                     #   extend='max',
                         levels=contour_levels,
                         transform=ccrs.PlateCarree())
+    # crx.cmap.set_over('red')
+    # crx.cmap.set_under('white')
     return crx
 
 def draw_contour(ax, da, **kw):
@@ -330,23 +307,22 @@ def draw_contour(ax, da, **kw):
     """
     x = da.lon
     y = da.lat
-    # level_contour = np.arange(10, 36, 4)
-    da = smooth2d(field=da, passes=4)
-    # contour_levels = [560,566,  570, 574, 578, 580, 582, 584, 586, 588, 590,592, 594, 596]
-    contour_levels = [560, 564, 568, 572, 576, 580, 582, 584, 586, 588, 592, 596]
-    # contour_levels = [560, 564, 568, 572, 576, 580, 584, 588, 592, 596]
+    # level_contour = np.arange(0, 12.1, 0.5)
+    # level_contour = [2, 3, 4, 5, 6, 7, 8, 9, 10]
+    # level_contour = [5, 7, 9, 11, 13]
+    level_contour = [6, 8, 10, 12, 14, 16] 
+    # da = smooth2d(field=da, passes=8)
     
+    da = smooth2d(field=da, passes=2)
     crx = ax.contour(x,
                         y,
                         da,
-                        colors = 'blue',
-                        levels=contour_levels,
-                        linestyles = 'solid',
-                        transform=ccrs.PlateCarree(),
-                        linewidth = 0.5,
-                        alpha=0.8)
+                        colors = 'red',
+                        levels=level_contour,
+                        linestyles = 'dashed',
+                        transform=ccrs.PlateCarree())
 
-    ax.clabel(crx,inline=1, fontsize=20, colors='blue') # 等值线的标注
+    ax.clabel(crx,inline=1, fontsize=20, colors='red') # 等值线的标注
     return crx
 
 # def draw_contour(ax, da):
@@ -355,8 +331,6 @@ def draw_quiver(u,v, ax):
     '''
     绘制风矢图
     '''
-    # u = u[::3,::3]
-    # v = v[::3,::3]
     u = u[::2,::2]
     v = v[::2,::2]
     # y = u.coords['lat']
@@ -371,12 +345,15 @@ def draw_quiver(u,v, ax):
     # ax = self.ax
     # Q = ax.quiver(x,y,u,v,units='inches',scale=18,pivot='middle')  # 绘制风矢
     # Q = ax.quiver(x, y, u,v,units='inches',scale=18,pivot='middle', transform=ccrs.PlateCarree())  # 绘制风矢
-    Q = ax.quiver(x, y, u.values,v.values,units='inches',scale=25,pivot='middle', transform=ccrs.PlateCarree())  # 绘制风矢
-    qk = ax.quiverkey(Q, X=0.67, Y=0.07, U=10, label=r'$(v, 10 m/s)$', labelpos='E',coordinates='figure',  fontproperties={'size':25})   # 设置参考风矢
-    # Q = ax.quiver(x, y, u.values,v.values,units='inches',scale=20,pivot='middle', transform=ccrs.PlateCarree())  # 绘制风矢
-    # qk = ax.quiverkey(Q, X=0.67, Y=0.07, U=10, label=r'$(v, 10 m/s)$', labelpos='E',coordinates='figure',  fontproperties={'size':25})   # 设置参考风矢
+    Q = ax.quiver(x, y, u.values,v.values,units='inches',scale=20,pivot='middle', transform=ccrs.PlateCarree())  # 绘制风矢
+    # Q = ax.quiver(x, y, u.values,v.values,units='inches',scale=25,pivot='middle', transform=ccrs.PlateCarree())  # 绘制风矢
+    # qk = ax.quiverkey(Q, X=0.55, Y=0.15, U=10, label=r'$(\overrightarrow{qv_f}-\overrightarrow{qv_o}, 100\ g/kg \cdot m/s)$', labelpos='E',coordinates='figure',  fontproperties={'size':25})   # 设置参考风矢
+    # qk = ax.quiverkey(Q, X=0.55, Y=0.12, U=10, label=r'($10 ,g \cdot cm^{-1} \cdot hPa^{-1} \cdot s^{-1}$)', labelpos='E',coordinates='figure',  fontproperties={'size':22})   # 设置参考风矢
+    # qk = ax.quiverkey(Q, X=0.75, Y=0.12, U=10, label=r'($10 m/s$)', labelpos='E',coordinates='figure',  fontproperties={'size':22})   # 设置参考风矢
+    qk = ax.quiverkey(Q, X=0.75, Y=0.12, U=10, label=r'($10 m/s$)', labelpos='E',coordinates='figure',  fontproperties={'size':22})   # 设置参考风矢
+    # qk = ax.quiverkey(Q, X=1.55, Y=0.05, U=10, label=r'$(\overrightarrow{qv_f}-\overrightarrow{qv_o}, 100\ g/kg \cdot m/s)$', labelpos='E',coordinates='figure',  fontproperties={'size':25})   # 设置参考风矢
 
-def draw(hgt_list, tmp_list, ddf, dict_dif, dic):
+def draw(hgt_list, tmp_list, ddf, qdif, qu,qv, dic):
     """画
 
     Args:
@@ -386,7 +363,7 @@ def draw(hgt_list, tmp_list, ddf, dict_dif, dic):
         dic ([type]): [description]
     """
     fig = plt.figure(figsize=[10,8])
-    ax = fig.add_axes([0.12,0.03,0.8,0.97], projection=ccrs.PlateCarree())
+    ax = fig.add_axes([0.15,0.05,0.8,0.9], projection=ccrs.PlateCarree())
     mb = mapview.BaseMap()
     # mb.set_extent('中国陆地')
     mb.drawcoastlines(linewidths=0.8, alpha=0.5)
@@ -402,14 +379,14 @@ def draw(hgt_list, tmp_list, ddf, dict_dif, dic):
     mb.set_extent([107, 135, 20,40])
     # mb.southsea(zoom=0.3, loc='left_bottom')
 
-    # for df in hgt_list:
-    #     # print(df)
-    #     y = df['label_lat'][0]
-    #     x = df['label_lon'][0]
-    #     if x>107 and x<135 and y>20 and y<40:
-    #         if df['height'][0] in ['140', '144', '148',  '584', '588', '1240', '1248', '1256', '1264']:
-    #             ax.text(df['label_lon'][0], df['label_lat'][0], df['height'][0], fontsize=15,color='blue', transform=ccrs.PlateCarree())
-    #     c = ax.plot(df['lon'], df['lat'].values,transform=ccrs.PlateCarree(), color='blue')
+    for df in hgt_list:
+        # print(df)
+        y = df['label_lat'][0]
+        x = df['label_lon'][0]
+        if x>107 and x<135 and y>20 and y<40:
+            if df['height'][0] in ['140', '144', '148',  '584', '588', '1240', '1248', '1256', '1264']:
+                ax.text(df['label_lon'][0], df['label_lat'][0], df['height'][0], fontsize=15,color='blue', transform=ccrs.PlateCarree())
+        c = ax.plot(df['lon'], df['lat'].values,transform=ccrs.PlateCarree(), color='blue')
         
     # for df in tmp_list:
     #     # print(df)
@@ -420,29 +397,44 @@ def draw(hgt_list, tmp_list, ddf, dict_dif, dic):
     #     c = ax.plot(df['lon'], df['lat'].values,transform=ccrs.PlateCarree(), color='red', linewidth=0.8, alpha=0.8)
 
     # wdif, wobs, wf = get_dif(dic)
-    # tick = [-3, -2.4, -1.8, -1.2, -0.6, -0.3, 0.3, 0.6, 1.2, 1.8, 2.4, 3]
-    ####  画差值
-    ## 位势高度差
-    # tick = [-3, -2.4, -1.8, -1.2, -0.6, -0.1, 0.1, 0.6, 1.2, 1.8, 2.4, 3]
-    # cs = draw_contourf(ax,dict_dif['hdif'])
-    cs = draw_contourf(ax,dict_dif['hdif'])
-    draw_contour(ax,dict_dif['hobs'])
+
+    
+
+    cs = draw_contourf(ax,qdif)
+    # # contour_levels = [-0.020, -0.016, -0.012, -0.008, -0.004, -0.002, 0.002, 0.004, 0.008, 0.012, 0.016, 0.020]
+    # contour_levels = [10, 12, 14, 16, 18, 20, 22, 24, 30]
+    # contour_levels = [-50, -25, -16, -8, -4, 4, 16, 20, 25, 50]
+    # # contour_levels = [-20, -16, -12, -8, -4, -2, 2, 4, 8, 12, 16, 20]
+    contour_levels = [10, 12, 14, 16, 18, 20, 22, 24, 30]
+    # contour_levels = np.arange(0, 17, 1)
+    # contour_levels = [-16, -12, -8, -6, -4,-2,-1, 1, 2, 4, 6, 8, 12, 16]
+    # contour_levels = [-24, -18, -12,-6,-3, 3, 6, 12, 18, 24]
+    # contour_levels = [-22,-18, -14, -10,-6, -2, 2,  6, 10, 14, 18, 22]
     cb = fig.colorbar(
         cs,
-        # orientation='horizontal',
-        orientation='vertical',
-        fraction=0.035,  # 色标大小
-        pad=0.02,  # colorbar和图之间的距离
-        # ticks = tick
+        orientation='horizontal',
+        fraction=0.05,  # 色标大小
+        pad=0.12,  # colorbar和图之间的距离
+        ticks=contour_levels,
+
     )
+    # cmp = cmaps.precip3_16lev
+    # norm = mpl.colors.BoundaryNorm([0, 2, 4, 6, 8, 12, 14, 16, 20 , 30], cmp.N)
+    # # norm = mpl.colors.Normalize(vmin=2, vmax=16)
+    # cax, _ = mpl.colorbar.make_axes(ax, location='right')
+    # cb3 = mpl.colorbar.ColorbarBase(
+    #     norm = norm,
+    #     cmap = cmp,
+    #     ax = cax,
+    # )
+    # font = {'size':18}
+    # cb.set_label(r'$q_{fo}-q_{obs}$  $(g \cdot cm^{-1} \cdot s^{-1})$', fontdict=font)
     cb.ax.tick_params(labelsize=24)  # 设置色标标注的大小
-    ## 风场差
-    draw_quiver(dict_dif['udif'], dict_dif['vdif'], ax)
-    # draw_quiver(dict_dif['uobs'], dict_dif['vobs'], ax)
-    
-
-    
-
+    # cb.ax.ticks(contour_levels)
+    # cb.ax.set_xticks(contour_levels)
+    # draw_contour(ax, wobs)
+    # ax.contourf(u.lon, u.lat, u)
+    # gl = mb.gridlines(font_size=25, alpha=0)
     add_ticks(ax)
     draw_station(ax)
 
@@ -452,12 +444,15 @@ def draw(hgt_list, tmp_list, ddf, dict_dif, dic):
     # v = -1*np.cos(ddf['wind_angle']/180*np.pi)*ddf['wind_speed']
     # ax.barbs(x,y,u,v)
     # Q = ax.quiver(x, y, u,v,units='inches',scale=30,pivot='tip',width=0.04, transform=ccrs.PlateCarree())  # 绘制风矢
-    # Q = ax.quiver(x, y, u,v,headwidth=3, headlength=4,width=0.03, units='inches',scale=30,pivot='tip', transform=ccrs.PlateCarree())  # 绘制风矢
-    # qk = ax.quiverkey(Q, X=0.8, Y=0.21, U=10, label=r'$10\ m/s$', labelpos='E',coordinates='figure', fontproperties={'size':25})   # 设置参考风矢
+    draw_quiver(qu,qv,ax)
+    # x = qu.lon
+    # y = qu.lat
+    # Q = ax.quiver(x, y, qu,qv, headwidth=3, headlength=4,width=0.03, units='inches',scale=30,pivot='tip', transform=ccrs.PlateCarree())  # 绘制风矢
+    # qk = ax.quiverkey(Q, X=0.8, Y=0.27, U=10, label=r'$10\ m/s$', labelpos='E',coordinates='figure', fontproperties={'size':25})   # 设置参考风矢
     # mb.southsea(zoom=0.3, loc='left_bottom')
     # draw_south_sea(fig)
-    fig_path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_upar_dif/500/'
-    fig_name = str(fig_path)+str(dic['model'])+'_'+str(dic['level'])+'_'+(dic['time']).strftime('%Y%m%d%H')+'dif'
+    fig_path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_upar/850/'
+    fig_name = str(fig_path)+str(dic['model'])+'_'+str(dic['level'])+'_'+(dic['time']).strftime('%Y%m%d%H')
     # fig.savefig('test.png')
     fig.savefig(fig_name)
 
@@ -495,22 +490,31 @@ def draw_all(dic_model):
     hgt_list = get_analysis(dic_h)  # 人工分析高度场
     tmp_list = get_analysis(dic_t)  # 人工分析温度场
     ddf = get_plot(dic_h)  # 高空填图信息
+    # wdif, wobs, wf = get_dif(dic_v)  # 模式和观测的风速差
+    # draw(hgt_list, tmp_list, ddf, wdif, wobs, dic_t)
     dic_model['time'] = dic_model['time']-pd.Timedelta('8H')
-    dict_dif = get_dif(dic_model)  # 模式和观测的风速差
-    draw(hgt_list, tmp_list, ddf, dict_dif, dic_model)
+    dic_data = get_data(dic_model)
+    qdif = dic_data['qf_obs']
+    qu = dic_data['u_obs']
+    qv = dic_data['v_obs']
+    draw(hgt_list, tmp_list, ddf, qdif, qu, qv, dic_model)
 
 def draw_one_model(dic_model):
     pass
     if dic_model['model'][-4:] == '1800':
         ## 这里写北京时的目的是为了考虑到观测的分析场(high/Analysis)是北京时
+        # ttt = pd.date_range(start='2021-07-18 08', end='2021-07-20 20', freq='12H')
         ttt = pd.DatetimeIndex(['2021-07-18 08', '2021-07-20 08'])
     if dic_model['model'][-4:] == '1812':
+        # ttt = pd.date_range(start='2021-07-18 20', end='2021-07-20 20', freq='12H')
         ttt = pd.DatetimeIndex(['2021-07-18 20', '2021-07-20 08'])
     if dic_model['model'][-4:] == '1900':
+        # ttt = pd.date_range(start='2021-07-19 08', end='2021-07-20 20', freq='12H')
         ttt = pd.DatetimeIndex(['2021-07-19 08', '2021-07-20 08'])
     if dic_model['model'][-4:] == '1912':
+        # ttt = pd.date_range(start='2021-07-19 20', end='2021-07-20 20', freq='12H')
         ttt = pd.DatetimeIndex(['2021-07-19 20', '2021-07-20 08'])
-    for level in [500]:
+    for level in [850]:
         for t in ttt:
             print("画 [%s] 时 [%s] 的图"%(t.strftime('%Y-%m-%d %H'), dic_model['model']))
             dic_model['time'] = t
@@ -518,6 +522,8 @@ def draw_one_model(dic_model):
             draw_all(dic_model)
 
 def draw_model():
+    """画所有模式的数据
+    """
     time_list = ['1800', '1812', '1900', '1912']
     initial_file_list = ['ERA5', 'GDAS']
     for f in initial_file_list:
@@ -530,12 +536,39 @@ def draw_model():
             # print(dic_model['flnm'])
             draw_one_model(dic_model)
 
-# ### 单个时次，单个层次测试
-# dic_model = {'model': f+t, 'flnm':path_out}
+def draw_obs():
+    pass
+    time_list = ['1800', '1812', '1900', '1912']
+    path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/OBS/obs_upar_latlon1.nc'
+    # for t in time_list:
+        # flnm = 'YSU_'+t
+    path_out = path_main
+        # print(path_out)
+    dic_model = {'model': 'OBS', 'flnm':path_out}
+    # draw_one_model(dic_model)
+    ttt = pd.date_range(start='2021-07-18 08', end='2021-07-20 20', freq='12H')
+    for t in ttt:
+        print("画 [%s] 时 [%s] 的图"%(t.strftime('%Y-%m-%d %H'), 'OBS'))
+        dic_model['time'] = t
+        dic_model['level'] = 850
+        draw_all(dic_model)
+
+
+
+
+
+
+### 单个时次，单个层次测试
 # t = pd.Timestamp('2021-07-19 0800')
-# draw_all(t, 500)
+# draw_all(t, 850)
+
 ### 测试结束
 # %%
 if __name__ == '__main__':
     pass
     draw_model()
+    draw_obs()
+
+
+
+# %%

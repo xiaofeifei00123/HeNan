@@ -2,9 +2,7 @@
 # -*- encoding: utf-8 -*-
 '''
 Description:
-画高空模式和观测的差值填色图
-并添加高空观测数据的形势场
-500hPa, 作位势高度场的差
+画高空500hPa位势高度填色图和风场
 -----------------------------------------
 Time             :2021/10/03 14:33:01
 Author           :Forxd
@@ -91,74 +89,9 @@ def get_dif(dic):
         'vfo':v2,
     }
     
-    # return hdif, h1, h2  # 插值， 观测，模拟
     return dic_return
 
-# level = 500
-# t = pd.Timestamp('2021-07-19 0800')
-# dic_v = {
-#     'var':'height',
-#     'level':level,
-#     'time':t-pd.Timedelta('8H'),
-#     'flnm':'/mnt/zfm_18T/fengxiang/HeNan/Data/ERA5/YSU_1800_upar_d02_latlon.nc'
-# }
-# dict_dif = get_dif(dic_v)
-# # # bb
-# # # %%
-# cc.max()
-# %%
-# dict_dif['hdif'].plot()
-# fig = plt.figure()
-# ax = fig.add_axes([0.1,0.1,0.8, 0.8])
-# u = dict_dif['udif']
-# v = dict_dif['udif']
-# ax.quiver(u.lon, u.lat, u, v)
-# aa.values.T
-# (da.lon, da.lat, da)
 
-# # aa.min()
-# # bb.plot()
-# # cc.plot()
-# aa.plot()
-# da.T
-# bb.plot()
-# %%
-# flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/ERA5/YSU_1800_upar_d02.nc'
-# flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/ERA5/ERA5_202107.nc'
-# ds = xr.open_dataset(flnm)
-# %%
-# %%
-# da = ds['z'].sel(level=500)
-# bb = da/98
-# bb.max()
-# da.sel(level=500)
-# ds['longitude']
-# ds['latitude']
-# da.max()
-# da = ds['geopt'].sel(pressure=500)/100
-# da.max()
-# da
-
-
-
-
-
-# ds1['q'].sel(pressure=200)
-# ds.time
-# %%
-# wd, wo, wf = get_dif()
-# wf.max()
-
-# wo.max()
-# wd.max()
-
-# %%
-
-
-
-
-
-# def get_analaysis(dic):
 def get_analysis(dic={'var':'height', 'level':'500', 'time':pd.Timestamp('2021-07-20 0800') }):
     """读micaps 14类数据
 
@@ -196,16 +129,7 @@ def get_analysis(dic={'var':'height', 'level':'500', 'time':pd.Timestamp('2021-0
         line_list.append(df1)
     return line_list
 
-# dic = {
-#     'var':'temp',
-#     'level':'500',
-#     'time':pd.Timestamp('2021-07-20 0800')
-# }
-        
-# aa = get_analysis(dic)
 
-
-# %%
 def get_plot(dic):
     """读取micaps 2类数据，高空填图数据"""
     path = '/mnt/zfm_18T/fengxiang/HeNan/Data/OBS/Micaps/high/PLOT/'
@@ -217,6 +141,7 @@ def get_plot(dic):
                 'wind_angle', 'wind_speed', 'time', 'level'])
 
     return sta
+
 def draw_station(ax):
     pass
     # station = station_dic
@@ -307,12 +232,12 @@ def draw_contourf(ax, da):
     # contour_levels = [-5, -4, -3, -2, -1,-0.5, 0.5,  1, 2, 3, 4, 5]
     # contour_levels = [-3, -2.4, -1.8, -1.2, -0.6, -0.3, 0.3, 0.6, 1.2, 1.8, 2.4, 3]
     # contour_levels = [-3, -2.4, -1.8, -1.2, -0.6, -0.1, 0.1, 0.6, 1.2, 1.8, 2.4, 3]
-    contour_levels = [-3, -2, -1, -0.5, 0.5, 1, 2, 3]
+    # contour_levels = [-3, -2, -1, -0.5, 0.5, 1, 2, 3]
     
-    # contour_levels = [560, 564, 568, 572, 576, 580, 582, 584, 586, 588, 592, 596]
+    contour_levels = [560, 564, 568, 572, 576, 580, 582, 584, 586, 588, 592, 596]
 
-    # colormap = cmaps.precip3_16lev
-    colormap = cmaps.ViBlGrWhYeOrRe
+    colormap = cmaps.precip3_16lev
+    # colormap = cmaps.ViBlGrWhYeOrRe
     # colormap = cmaps.precip3_16lev_r  # 反转色标
     crx = ax.contourf(x,
                         y,
@@ -425,7 +350,7 @@ def draw(hgt_list, tmp_list, ddf, dict_dif, dic):
     ## 位势高度差
     # tick = [-3, -2.4, -1.8, -1.2, -0.6, -0.1, 0.1, 0.6, 1.2, 1.8, 2.4, 3]
     # cs = draw_contourf(ax,dict_dif['hdif'])
-    cs = draw_contourf(ax,dict_dif['hdif'])
+    cs = draw_contourf(ax,dict_dif['hobs'])
     draw_contour(ax,dict_dif['hobs'])
     cb = fig.colorbar(
         cs,
@@ -437,8 +362,8 @@ def draw(hgt_list, tmp_list, ddf, dict_dif, dic):
     )
     cb.ax.tick_params(labelsize=24)  # 设置色标标注的大小
     ## 风场差
-    draw_quiver(dict_dif['udif'], dict_dif['vdif'], ax)
-    # draw_quiver(dict_dif['uobs'], dict_dif['vobs'], ax)
+    # draw_quiver(dict_dif['udif'], dict_dif['vdif'], ax)
+    draw_quiver(dict_dif['uobs'], dict_dif['vobs'], ax)
     
 
     
@@ -456,8 +381,8 @@ def draw(hgt_list, tmp_list, ddf, dict_dif, dic):
     # qk = ax.quiverkey(Q, X=0.8, Y=0.21, U=10, label=r'$10\ m/s$', labelpos='E',coordinates='figure', fontproperties={'size':25})   # 设置参考风矢
     # mb.southsea(zoom=0.3, loc='left_bottom')
     # draw_south_sea(fig)
-    fig_path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_upar_dif/500/'
-    fig_name = str(fig_path)+str(dic['model'])+'_'+str(dic['level'])+'_'+(dic['time']).strftime('%Y%m%d%H')+'dif'
+    fig_path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_upar/500/'
+    fig_name = str(fig_path)+str(dic['model'])+'_'+str(dic['level'])+'_'+(dic['time']).strftime('%Y%m%d%H')
     # fig.savefig('test.png')
     fig.savefig(fig_name)
 
@@ -496,7 +421,7 @@ def draw_all(dic_model):
     tmp_list = get_analysis(dic_t)  # 人工分析温度场
     ddf = get_plot(dic_h)  # 高空填图信息
     dic_model['time'] = dic_model['time']-pd.Timedelta('8H')
-    dict_dif = get_dif(dic_model)  # 模式和观测的风速差
+    dict_dif = get_dif(dic_model)  # 
     draw(hgt_list, tmp_list, ddf, dict_dif, dic_model)
 
 def draw_one_model(dic_model):
@@ -525,10 +450,25 @@ def draw_model():
         for t in time_list:
             flnm = 'YSU_'+t
             path_out = path_main+flnm+'_upar_d02_latlon.nc'
-            # print(path_out)
             dic_model = {'model': f+t, 'flnm':path_out}
-            # print(dic_model['flnm'])
             draw_one_model(dic_model)
+            
+def draw_obs():
+    pass
+    time_list = ['1800', '1812', '1900', '1912']
+    path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/OBS/obs_upar_latlon1.nc'
+    # for t in time_list:
+        # flnm = 'YSU_'+t
+    path_out = path_main
+        # print(path_out)
+    dic_model = {'model': 'OBS', 'flnm':path_out}
+    # draw_one_model(dic_model)
+    ttt = pd.date_range(start='2021-07-18 08', end='2021-07-20 20', freq='12H')
+    for t in ttt:
+        print("画 [%s] 时 [%s] 的图"%(t.strftime('%Y-%m-%d %H'), 'OBS'))
+        dic_model['time'] = t
+        dic_model['level'] = 500
+        draw_all(dic_model)
 
 # ### 单个时次，单个层次测试
 # dic_model = {'model': f+t, 'flnm':path_out}
@@ -538,4 +478,9 @@ def draw_model():
 # %%
 if __name__ == '__main__':
     pass
-    draw_model()
+    # draw_model()
+    draw_obs()
+
+
+
+# %%

@@ -2,14 +2,9 @@
 # -*- encoding: utf-8 -*-
 '''
 Description:
-200hPa的急流
+单纯使用micaps资料画高空形势场图
+使用再分析资料画形势场的图
 形势场图， 风场、等高线、等温线
-
-
-
-处理了一个问题是， 图片是不是多张合成一张
-
-画单个图，还是多个图
 -----------------------------------------
 Time             :2021/09/13 11:39:04
 Author           :Forxd
@@ -425,7 +420,7 @@ class Figure():
         font = {'size':30}
         cb.set_label('wind speed (m/s)', fontdict=font)
         cb.ax.tick_params(labelsize=25)  # 设置色标标注的大小
-        figpath = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_upar_OBS/'
+        figpath = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_upar_reanalysis'
         fig_name = str(tt.dt.strftime('%Y-%m-%d_%H').values)+"_"+pressure+'_ERA5_'
         fig.savefig(figpath+fig_name)
 

@@ -55,100 +55,18 @@ def test():
     # (da1-da2).plot()
     # da1.max()
     # da2.max()
-# %%
-# da.min()
-# da3.mean()
-# ds_obs['height'].isel(time=0).sel(pressure=200).mean()
-# ds_obs['height'].isel(time=0).sel(pressure=500).mean()
-# ds_obs['height'].isel(time=0).sel(pressure=850).mean()
 
 # %%
+def caculate_data(dds):
+    """ 抽取并计算出需要的数据
+    u, v, qu, qv
 
-# %%
-# da1.mean()
-# da.mean()
-# ds_obs['q'].mean()
-# ds_wrf['q'].mean()
-# da1.plot()
-# da2.plot()
-# da2.mean()
-# flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/OBS/obs_upar_latlon1.nc'
-# flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/ERA5/YSU_1800_upar_d02.nc'
-# ds = xr.open_dataset(flnm)
-# ds
-# %%
-# ds['q']
-# da = ds['q'].sel(pressure=850, time='2021-07-20 00')
-# da.min()
-# da.plot()
-# da.min()
-# da.plot()
-# da2.min()
-# da1.max()
-# ds_wrf['u']
-# da2.plot()
-# da.max()
+    Args:
+        dds ([type]): [description]
 
-
-
-
-
-
-# %%
-# da1.max()
-# ds_obs['u'].min()
-# ds_wrf['u'].min()
-# da.min()
-# da1.min()
-# da2.max()
-# da2.min()
-# da.min()
-# da.max()
-# da.plot()
-# da.plot()
-# ds_obs['q'].lat
-# %%
-# ds_obs['u']
-# ds_wrf.sel(lat=20.25)
-# da_obs = ds_obs['height'].sel(time='2021-07-20 00').sel(pressure=500)
-# da_wrf = ds_wrf['height'].sel(time='2021-07-20 00').sel(pressure=500)
-# %%
-# da_wrf.shape
-# da_obs.shape
-# cc = da_wrf-da_obs
-# cc.plot()
-# ll = ds_obs.lat
-# for i in ll:
-    # print(i.values)
-# dda = da_wrf.rename({'geopt':'height'})
-# da_wrf
-# da_obs+da_wrf
-
-# da_obs - dda
-
-
-
-# ds_w['ua']
-# ds_w.lat
-# ds_wrf.sel(lat=20.250)
-# ll = ds_wrf.lat
-# ll
-# %%
-# for i in ll:
-    # print(i.values)
-# for i in ll:
-#     print(i.values.round(2))
-# # lon
-# ds_wrf.sel(lat=lat)
-# ds_wrf['q'].max()
-# ds.time
-# test()
-
-
-
-
-# %%
-def get_div_q(dds):
+    Returns:
+        [type]: [description]
+    """
     dict = {}
     # u = dds.metpy.parse_cf('u')
     # v = dds.metpy.parse_cf('v')
@@ -191,71 +109,24 @@ def get_dif(dic):
     ds1 = ds_obs.sel(time=t, pressure=level)
     ds2 = ds_wrf.sel(time=t, pressure=level)
     # ds2 = ds2.rename({'ua':'u', 'va':'v'})
-    dic1 = get_div_q(ds1)
-    dic2 = get_div_q(ds2)
-    # qf_dif = dic2['qf']-dic1['qf']
-    # qu = dic2['qu']-dic1['qu']
-    # qv = dic2['qv']-dic1['qv']
-    # qu = dic1['qu']
-    # qv = dic1['qv']
-    ## 水汽通量插值， qu, qv
-    # u = dic2['u'] - dic1['u']
-    # v = dic2['v'] - dic1['v']
-    # u = dic2['u'] - dic1['u']
-    # v = dic2['v'] - dic1['v']
-    # u = dic1['u']
-    # v = dic1['v']
+    dic1 = caculate_data(ds1)
+    dic2 = caculate_data(ds2)
+
     qf_dif = dic2['qf'] - dic1['qf']
     qu_dif = dic2['qu'] - dic1['qu']
     qv_dif = dic2['qv'] - dic1['qv']
     u_dif = dic2['u'] - dic1['u']
     v_dif = dic2['v'] - dic1['v']
+
+    dic_return = {
+        'qf_dif':qf_dif,
+        'qu_dif':qu_dif,
+        'qv_dif':qv_dif,
+        'v_dif':v_dif,
+        'u_dif':u_dif,
+    }
     
-    # return dic1['qf'], dic1['qu'], dic1['qv']
-    return qf_dif, u_dif, v_dif
-    # h1 = ds1['q']*10**3  # 改变单位为g/kg
-    # h2 =ds2['q']*10**3
-    # hdif = h2-h1
-    # return hdif, h1, h2  # 插值， 观测，模拟
-
-# %%
-# level = 850
-# t = pd.Timestamp('2021-07-19 0800')
-# dic_v = {
-#     'var':'height',
-#     'level':level,
-#     'time':t-pd.Timedelta('8H'),
-#     'flnm':'/mnt/zfm_18T/fengxiang/HeNan/Data/ERA5/YSU_1800_upar_d02.nc',
-# }
-# aa, bb, cc = get_dif(dic_v)
-# # aa
-# # %%
-# # aa['qf'].values
-# # aa.max()
-# # aa.max()
-# # bb
-# aa
-# bb
-# aa, bb, cc = get_dif(dic_v)
-# # bb
-# # %%
-# aa.plot()
-# # bb.plot()
-# # %%
-
-
-
-
-# ds1['q'].sel(pressure=200)
-# ds.time
-# %%
-# wd, wo, wf = get_dif()
-# wf.max()
-
-# wo.max()
-# wd.max()
-
-# %%
+    return dic_return
 
 
 
@@ -269,7 +140,7 @@ def get_analysis(dic={'var':'height', 'level':'500', 'time':pd.Timestamp('2021-0
         [type]: [description]
     """
     # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/OBS/Micaps/high/ANALYSIS/HGT/500/20210720080000.000'
-    print(dic['time'].strftime('%Y-%m-%d %H%M'), dic['level'])
+    # print(dic['time'].strftime('%Y-%m-%d %H%M'), dic['level'])
     # path = '/mnt/zfm_18T/fengxiang/HeNan/Data/OBS/Micaps/high/MANUAL_ANALYSIS/'
     path = '/mnt/zfm_18T/fengxiang/HeNan/Data/OBS/Micaps/high/ANALYSIS/'
     if dic['var'] == 'height':
@@ -299,16 +170,6 @@ def get_analysis(dic={'var':'height', 'level':'500', 'time':pd.Timestamp('2021-0
         line_list.append(df1)
     return line_list
 
-# dic = {
-#     'var':'temp',
-#     'level':'500',
-#     'time':pd.Timestamp('2021-07-20 0800')
-# }
-        
-# aa = get_analysis(dic)
-
-
-# %%
 def get_plot(dic):
     """读取micaps 2类数据，高空填图数据"""
     path = '/mnt/zfm_18T/fengxiang/HeNan/Data/OBS/Micaps/high/PLOT/'
@@ -585,7 +446,7 @@ def draw(hgt_list, tmp_list, ddf, qdif, qu,qv, dic):
     # qk = ax.quiverkey(Q, X=0.8, Y=0.27, U=10, label=r'$10\ m/s$', labelpos='E',coordinates='figure', fontproperties={'size':25})   # 设置参考风矢
     # mb.southsea(zoom=0.3, loc='left_bottom')
     # draw_south_sea(fig)
-    fig_path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_upar_micaps/'
+    fig_path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_upar_dif/850/'
     fig_name = str(fig_path)+str(dic['model'])+'_'+str(dic['level'])+'_'+(dic['time']).strftime('%Y%m%d%H')+'dif'
     # fig.savefig('test.png')
     fig.savefig(fig_name)
@@ -627,21 +488,30 @@ def draw_all(dic_model):
     # wdif, wobs, wf = get_dif(dic_v)  # 模式和观测的风速差
     # draw(hgt_list, tmp_list, ddf, wdif, wobs, dic_t)
     dic_model['time'] = dic_model['time']-pd.Timedelta('8H')
-    qdif, qu, qv = get_dif(dic_model)  # 模式和观测的风速差
-    draw(hgt_list, tmp_list, ddf, qdif, qu, qv, dic_model)
+    dic_data = get_dif(dic_model)  # 模式和观测的风速差
+    qfdif = dic_data['qf_dif']
+    udif = dic_data['u_dif']
+    vdif = dic_data['v_dif']
+    # qdif, qu, qv = get_dif(dic_model)  # 模式和观测的风速差
+    draw(hgt_list, tmp_list, ddf, qfdif, udif, vdif, dic_model)
 
 def draw_one_model(dic_model):
     pass
     if dic_model['model'][-4:] == '1800':
-        ttt = pd.date_range(start='2021-07-18 08', end='2021-07-20 20', freq='12H')
+        # ttt = pd.date_range(start='2021-07-18 08', end='2021-07-20 20', freq='12H')
+        ttt = pd.DatetimeIndex(['2021-07-18 08', '2021-07-20 08'])
     if dic_model['model'][-4:] == '1812':
-        ttt = pd.date_range(start='2021-07-18 20', end='2021-07-20 20', freq='12H')
+        # ttt = pd.date_range(start='2021-07-18 20', end='2021-07-20 20', freq='12H')
+        ttt = pd.DatetimeIndex(['2021-07-18 20', '2021-07-20 08'])
     if dic_model['model'][-4:] == '1900':
-        ttt = pd.date_range(start='2021-07-19 08', end='2021-07-20 20', freq='12H')
+        # ttt = pd.date_range(start='2021-07-19 08', end='2021-07-20 20', freq='12H')
+        ttt = pd.DatetimeIndex(['2021-07-19 08', '2021-07-20 08'])
     if dic_model['model'][-4:] == '1912':
-        ttt = pd.date_range(start='2021-07-19 20', end='2021-07-20 20', freq='12H')
+        # ttt = pd.date_range(start='2021-07-19 20', end='2021-07-20 20', freq='12H')
+        ttt = pd.DatetimeIndex(['2021-07-19 20', '2021-07-20 08'])
     for level in [850]:
         for t in ttt:
+            print("画 [%s] 时 [%s] 的图"%(t.strftime('%Y-%m-%d %H'), dic_model['model']))
             dic_model['time'] = t
             dic_model['level'] = level
             draw_all(dic_model)
