@@ -494,9 +494,12 @@ def draw_all(dic_model):
     # draw(hgt_list, tmp_list, ddf, wdif, wobs, dic_t)
     dic_model['time'] = dic_model['time']-pd.Timedelta('8H')
     dic_data = get_data(dic_model)
-    qdif = dic_data['qf_obs']
-    qu = dic_data['u_obs']
-    qv = dic_data['v_obs']
+    # qdif = dic_data['qf_obs']
+    # qu = dic_data['u_obs']
+    # qv = dic_data['v_obs']
+    qdif = dic_data['qf_model']
+    qu = dic_data['u_model']
+    qv = dic_data['v_model']
     draw(hgt_list, tmp_list, ddf, qdif, qu, qv, dic_model)
 
 def draw_one_model(dic_model):
@@ -567,7 +570,7 @@ def draw_obs():
 if __name__ == '__main__':
     pass
     draw_model()
-    draw_obs()
+    # draw_obs()
 
 
 

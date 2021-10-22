@@ -350,8 +350,9 @@ def draw(hgt_list, tmp_list, ddf, dict_dif, dic):
     ## 位势高度差
     # tick = [-3, -2.4, -1.8, -1.2, -0.6, -0.1, 0.1, 0.6, 1.2, 1.8, 2.4, 3]
     # cs = draw_contourf(ax,dict_dif['hdif'])
-    cs = draw_contourf(ax,dict_dif['hobs'])
-    draw_contour(ax,dict_dif['hobs'])
+    # cs = draw_contourf(ax,dict_dif['hobs'])
+    cs = draw_contourf(ax,dict_dif['hfo'])
+    draw_contour(ax,dict_dif['hfo'])
     cb = fig.colorbar(
         cs,
         # orientation='horizontal',
@@ -363,7 +364,8 @@ def draw(hgt_list, tmp_list, ddf, dict_dif, dic):
     cb.ax.tick_params(labelsize=24)  # 设置色标标注的大小
     ## 风场差
     # draw_quiver(dict_dif['udif'], dict_dif['vdif'], ax)
-    draw_quiver(dict_dif['uobs'], dict_dif['vobs'], ax)
+    # draw_quiver(dict_dif['uobs'], dict_dif['vobs'], ax)
+    draw_quiver(dict_dif['ufo'], dict_dif['vfo'], ax)
     
 
     
@@ -421,6 +423,7 @@ def draw_all(dic_model):
     tmp_list = get_analysis(dic_t)  # 人工分析温度场
     ddf = get_plot(dic_h)  # 高空填图信息
     dic_model['time'] = dic_model['time']-pd.Timedelta('8H')
+    # print(dic_model)
     dict_dif = get_dif(dic_model)  # 
     draw(hgt_list, tmp_list, ddf, dict_dif, dic_model)
 
@@ -478,8 +481,8 @@ def draw_obs():
 # %%
 if __name__ == '__main__':
     pass
-    # draw_model()
-    draw_obs()
+    draw_model()
+    # draw_obs()
 
 
 

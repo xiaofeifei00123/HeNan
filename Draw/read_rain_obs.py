@@ -21,11 +21,14 @@ import os
 import pandas as pd
 # %%
 class rain_station_grid():
+    """格点数据
+
+    Returns:
+        [type]: [description]
+    """
     pass
     def read_one_station(self,flnm):
         station = meb.read_stadata_from_micaps3(flnm)
-        # grid1 = meb.grid([90,130,0.25],[28,50,0.25])
-        # grid1 = meb.grid([90,130,0.25],[10,50,0.25])
         grid1 = meb.grid([110-1,116+1,0.125],[32-1,37+1,0.125],)
         grd2 = meb.interp_sg_idw(station, grid1)
         da_return = grd2.astype('float32')
@@ -48,6 +51,7 @@ class rain_station_grid():
 
 
 class rain_station():
+    """站点数据"""
     pass
     def read_one_station(self,flnm):
         station = meb.read_stadata_from_micaps3(flnm)
@@ -108,5 +112,5 @@ def get_max_dataframe(df_station):
 if __name__ == '__main__':
     pass
     save_rain_grid()
-    save_rain_station()
+    # save_rain_station()
     

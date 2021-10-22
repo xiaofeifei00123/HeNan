@@ -41,13 +41,15 @@ def get_analysis(dic={'var':'height', 'level':'500', 'time':pd.Timestamp('2021-0
     """
     # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/OBS/Micaps/high/ANALYSIS/HGT/500/20210720080000.000'
     print(dic['time'].strftime('%Y-%m-%d %H%M'), dic['level'])
-    # path = '/mnt/zfm_18T/fengxiang/HeNan/Data/OBS/Micaps/high/MANUAL_ANALYSIS/'
-    path = '/mnt/zfm_18T/fengxiang/HeNan/Data/OBS/Micaps/high/ANALYSIS/'
+    path = '/mnt/zfm_18T/fengxiang/HeNan/Data/OBS/Micaps/high/MANUAL_ANALYSIS/'
+    # path = '/mnt/zfm_18T/fengxiang/HeNan/Data/OBS/Micaps/high/ANALYSIS/'
     if dic['var'] == 'height':
         flnm = path+'HGT/'+dic['level']+'/'+dic['time'].strftime('%Y%m%d%H%M%S.000')
+        # print(flnm)
     elif dic['var'] == 'temp':
         flnm = path+'TMP/'+dic['level']+'/'+dic['time'].strftime('%Y%m%d%H%M%S.000')
 
+    # print(flnm)
     df = read_micaps_14(flnm)
     dc = df['lines']
     loc = dc['line_xyz']
@@ -219,8 +221,10 @@ def draw_station(ax):
 
 def add_ticks(ax,):
     """添加坐标标签"""
-    ax.set_yticks(np.arange(10, 60 + 1, 10))
-    ax.set_xticks(np.arange(70, 140 + 1, 10))
+    # ax.set_yticks(np.arange(10, 60 + 1, 10))
+    # ax.set_xticks(np.arange(70, 140 + 1, 10))
+    ax.set_yticks(np.arange(10, 70 + 1, 10))
+    ax.set_xticks(np.arange(60, 140 + 1, 10))
     ax.xaxis.set_major_formatter(LongitudeFormatter())
     ax.xaxis.set_minor_locator(plt.MultipleLocator(5))
     ax.yaxis.set_major_formatter(LatitudeFormatter())
@@ -232,7 +236,8 @@ def add_ticks(ax,):
 def draw_south_sea(fig,):
     pass
     ax2 = fig.add_axes([0.102, 0.145, 0.2, 0.2],projection=ccrs.PlateCarree())
-    ax2.set_extent([105.8, 122,0,25])
+    # ax2.set_extent([105.8, 122,0,25])
+    ax2.set_extent([90, 130,0,55])
     # ax2.add_feature(cfeature.LAKES.with_scale('50m'))
     ax2.add_geometries(Reader('/mnt/zfm_18T/fengxiang/DATA/SHP/Map/cn_shp/Province_9/Province_9.shp').geometries(),ccrs.PlateCarree(),facecolor='none',edgecolor='black',linewidth=0.8)
     # ax2.add_geometries(Reader(r'F:/Rpython/lp27/data/china1.shp').geometries(),ccrs.PlateCarree(),facecolor='none',edgecolor='k',linewidth=0.2)
@@ -320,7 +325,8 @@ def draw_all(t, level='500'):
 if __name__ == '__main__':
     pass
     ttt = pd.date_range(start='2021-07-18 08', end='2021-07-20 20', freq='12H')
-    for level in ['200', '500', '850']:
+    # for level in ['200', '500', '850']:
+    for level in ['500', '850']:
         for t in ttt:
             draw_all(t, level)
     

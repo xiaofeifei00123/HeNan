@@ -264,7 +264,8 @@ def draw_bar(ts):
 
     model_list = ['ERA51800','ERA51812','ERA51900','ERA51912','GDAS1800','GDAS1812','GDAS1900','GDAS1912',]
     # color_list = ['green', 'blue','orange', 'red',  'green', 'blue','orange', 'red', ]
-    color_list = ['green', 'blue','orange', 'red',  'darkgreen', 'darkblue', 'darkorange', 'darkred',]
+    # color_list = ['green', 'blue','orange', 'red',  'darkgreen', 'darkblue', 'darkorange', 'darkred',]
+    color_list = ['#7cfc00', '#3366cc','#F4A460', '#DC143C',  '#32cd32', '#0000cc', '#FF8C00', '#ff0000',]
     hatch_list = ['.','.','.','.','x','x','x','x',]
     width = 0.10
     fig = plt.figure(figsize=(12, 6), dpi=300)  # 创建页面
