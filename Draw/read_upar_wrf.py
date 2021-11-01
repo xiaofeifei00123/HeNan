@@ -41,7 +41,8 @@ class GetUpar():
     """
     def get_upar_one(self, fl):
         # dds_list = []
-        pre_level = [1000, 850, 700, 500, 200]
+        # pre_level = [1000, 925, 850, 700, 500, 200]
+        pre_level = [1000, 975, 950, 925, 900, 850, 800, 700, 600, 500,400, 300, 200, 100, 50]
         # pre_level = np.arange(1000, 90, -20)  # 对d03使用垂直方向10度的分辨率
         # pre_level = np.arange(1000, 90, -50)  # 对d02使用垂直方向100度的分辨率
         dds = xr.Dataset()
@@ -95,7 +96,7 @@ class GetUpar():
     def get_upar(self, path):
         pass
         # path = '/mnt/zfm_18T/fengxiang/HeNan/Data/ERA5/YSU_1912/'
-        fl_list = os.popen('ls {}/wrfout_d02*'.format(path))  # 打开一个管道
+        fl_list = os.popen('ls {}/wrfout_d04*'.format(path))  # 打开一个管道
         fl_list = fl_list.read().split()
         # fl_list = fl_list[0:2]
         dds = self.get_upar_multi(fl_list)
@@ -113,8 +114,6 @@ def combine():
     time_list = ['1800', '1812', '1900', '1912']
     initial_file_list = ['ERA5', 'GDAS']
     for f in initial_file_list:
-        # time_list = ['1800']
-        # path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/ERA5/'
         path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/'+f+'/'
         gu = GetUpar()
         for t in time_list:
@@ -124,6 +123,30 @@ def combine():
             path_save = path_main+flnm+'_upar_d02.nc'
             print(path_save)
             ds.to_netcdf(path_save)
+
+def combine_one():
+    """
+    将wrfout数据中需要的变量聚合成一个文件，并进行相关的垂直插值, 和诊断量的计算
+    处理两种模式，不同时次的数据
+    """
+    # time_list = ['1800', '1812', '1900', '1912']
+    # initial_file_list = ['ERA5', 'GDAS']
+    # for f in initial_file_list:
+        # time_list = ['1800']
+        # path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/ERA5/'
+    path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/'
+    gu = GetUpar()
+    # for t in time_list:
+    # path_wrfout = path_main+'1km_1912'
+    path_wrfout = path_main+'1km_1912_hgt'
+    ds = gu.get_upar(path_wrfout)
+    # flnm = '1km_1912_upar_d04.nc'
+    flnm = '1km_1912_hgt_upar_d04.nc'
+    path_save = path_main+flnm
+    print(path_save)
+    ds.to_netcdf(path_save)
+
+        
 
 def regrid():
     """
@@ -156,10 +179,43 @@ def regrid():
             ds_out.to_netcdf(path_out)
 
             
+def regrid_one():
+    """
+    将combine得到的数据，插值到latlon格点上
+    将二维的latlon坐标水平插值到一维的latlon坐标上
+    """
+    # ax2.set_extent([110, 116, 32, 37], crs=ccrs.PlateCarree())
+    area = {
+        'lon1':110-1,
+        'lon2':116+1,
+        'lat1':32-1,
+        'lat2':36+1,
+        'interval':0.1,
+    }
+    # area = {
+    #     'lon1':107-1,
+    #     'lon2':135+1,
+    #     'lat1':20-1,
+    #     'lat2':40+1,
+    #     'interval':0.5,
+    # }
+    path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/'
+    # flnm = '1km_1912_upar_d04.nc'
+    flnm = '1km_1912_hgt_upar_d04.nc'
+    # path_in = path_main+flnm+'_upar_d02.nc'
+    path_in = path_main+flnm
+    ds = xr.open_dataset(path_in)
+    ds_out = regrid_xesmf(ds, area)
+    # path_out = path_main+'1km_1912_upar_d04_latlon.nc'
+    path_out = path_main+'1km_1912_hgt_upar_d04_latlon.nc'
+    ds_out = ds_out.rename({'ua':'u', 'va':'v', 'geopt':'height'})
+    ds_out.to_netcdf(path_out)
 
 
 # %%
 if __name__ == '__main__':
     ### combine和regrid一般不同时进行
+    combine_one()
+    regrid_one()
     # combine() 
-    regrid()
+    # regrid()

@@ -30,7 +30,7 @@ class rain_station_grid():
     def read_one_station(self,flnm):
         station = meb.read_stadata_from_micaps3(flnm)
         grid1 = meb.grid([110-1,116+1,0.125],[32-1,37+1,0.125],)
-        grd2 = meb.interp_sg_idw(station, grid1)
+        grd2 = meb.interp_sg_idw(station, grid1, effectR=60, nearNum=5)
         da_return = grd2.astype('float32')
         ## 转换为世界时
         da_return['time'] = da_return.time+pd.Timedelta('-8H')

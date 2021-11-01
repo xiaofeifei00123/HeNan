@@ -32,6 +32,40 @@ import cmaps
 from get_cmap import get_cmap_rain2
 from multiprocessing import Pool
 
+from baobao.map import Map
+
+
+# %%
+
+def test():
+    flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/YYX/wrfout_d02_2021-07-19_12:00:00'
+    ds = xr.open_dataset(flnm)
+    da_rain = ds['RAINNC']
+    dda = da_rain.rename({'XLAT':'lat', 'XLONG':'lon', 'XTIME':'time'})
+    dc = dda.swap_dims({'Time':'time'})
+    rain_list = []
+    tt = dc.time
+    # i = 0
+    r = 0
+    for t in tt:
+        rr = dc.sel(time=t)  # 时间t时刻的累计降水
+        rain = rr-r
+        r = rr.values
+        print(rain)
+        rain_list.append(rain.squeeze())
+    # rain_list[1]
+    # ddd = rain_list[0]
+
+    # rain_all = xr.concat(rain_list, pd.Index(tt.values, name='time'))
+    # da_rain = rain_all.sel(time=slice('2021-07-20 00', '2021-07-20 12'))  # 24小时逐小时降水
+    # da_rain
+    # dd = self.get_sum_rain(da_rain)
+    # return dd
+
+
+
+
+
 # %%
 class GetData():
     def get_rain_obs(self,):
@@ -101,8 +135,9 @@ class GetData():
         dd = self.get_sum_rain(da)
         return dd 
 
-    def get_rain_wrf(self, flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/ERA5/YSU_1912_rain.nc'):
+    def get_rain_wrf(self, flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/HighResolution/YSU_rain_1km.nc'):
         """
+        特定试验的降水数据
         使用ERA5和GDAS数据， 不同起报时间，转出的wrf降水数据
 
         Returns:
@@ -116,116 +151,42 @@ class GetData():
         return dd 
 
 
+    def get_rain_yyx(self,):
+        flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/YYX/wrfout_d02_2021-07-19_12:00:00'
+        ds = xr.open_dataset(flnm)
+        da_rain = ds['RAINNC']
+        dda = da_rain.rename({'XLAT':'lat', 'XLONG':'lon', 'XTIME':'time'})
+        dc = dda.swap_dims({'Time':'time'})
+        rain_list = []
+        tt = dc.time
+        # i = 0
+        r = 0
+        for t in tt:
+            rr = dc.sel(time=t)  # 时间t时刻的累计降水
+            rain = rr-r
+            r = rr.values
+            rain_list.append(rain.squeeze())
+        rain_all = xr.concat(rain_list, pd.Index(tt.values, name='time'))
+
+        da_rain = rain_all.sel(time=slice('2021-07-20 00', '2021-07-20 12'))  # 24小时逐小时降水
+        dd = self.get_sum_rain(da_rain)
+        return dd
+
 class Draw(object):
 
     def __init__(self) -> None:
         super().__init__()
-        self.path_province = '/mnt/zfm_18T/fengxiang/DATA/SHP/Map/cn_shp/Province_9/Province_9.shp'
-        self.path_city = '/mnt/zfm_18T/fengxiang/DATA/SHP/Map/cn_shp/City_9/City_9.shp'
+        # self.path_province = '/mnt/zfm_18T/fengxiang/DATA/SHP/Map/cn_shp/Province_9/Province_9.shp'
+        self.path_province = '/mnt/zfm_18T/fengxiang/DATA/SHP/Province_shp/henan.shp'
+        self.path_henan = '/mnt/zfm_18T/fengxiang/DATA/SHP/shp_henan/henan.shp'
+        # self.path_city = '/mnt/zfm_18T/fengxiang/DATA/SHP/Map/cn_shp/City_9/City_9.shp'
+        self.path_city = '/mnt/zfm_18T/fengxiang/DATA/SHP/shp_henan/zhenzhou/zhenzhou_max.shp'
         self.path_tibet = '/mnt/zfm_18T/fengxiang/DATA/SHP/shp_tp/Tibet.shp'
         self.picture_path = '/mnt/zfm_18T/fengxiang/Asses_PBL/Rain/picture'
         # self.levels = np.arange(0,400,40)
         # self.levels=[0.1,10.0,25.0,50.0,100.0,250.0,500.0]#雨量等级
         # self.levels=[0, 0.1,10.0,25.0,50.0,100.0,250.0,400.0, 600]#雨量等级
 
-    def draw_station(self, ax):
-        pass
-        # station = station_dic
-        station = {
-            'ZhengZhou': {
-                'abbreviation':'郑州',
-                'lat': 34.75,
-                'lon': 113.62
-            },
-        }
-        values = station.values()
-        station_name = list(station.keys())
-        station_name = []
-        x = []
-        y = []
-        for i in values:
-            y.append(float(i['lat']))
-            x.append(float(i['lon']))
-            station_name.append(i['abbreviation'])
-
-        # 标记出站点
-        ax.scatter(x,
-                   y,
-                #    color='black',
-                   color='black',
-                   transform=ccrs.PlateCarree(),
-                   alpha=1.,
-                   linewidth=5,
-                   s=35,
-                   )
-        # 给站点加注释
-        # for i in range(len(x)):
-        #     # print(x[i])
-        #     ax.text(x[i]-0.2,
-        #             y[i] + 0.2,
-        #             station_name[i],
-        #             transform=ccrs.PlateCarree(),
-        #             alpha=1.,
-        #             fontdict={
-        #             'size': 28,
-        #     })
-
-
-    def create_map(self, ax):
-        """创建地图对象
-        ax 需要添加底图的画图对象
-
-        Returns:
-            ax: 添加完底图信息的坐标子图对象
-        """
-        # proj = ccrs.PlateCarree()
-        proj = ccrs.PlateCarree()
-        # --设置地图属性
-        # 画省界
-        provinces = cfeat.ShapelyFeature(
-            Reader(self.path_province).geometries(),
-            proj,
-            edgecolor='k',
-            facecolor='none')
-        # path_HeNan = '/mnt/zfm_18T/fengxiang/DATA/SHP/Province_shp/henan.shp'
-        # path_HeNan = '/mnt/zfm_18T/fengxiang/DATA/SHP/Province_shp/henan_xianjie.shp'
-        # HeNan = cfeat.ShapelyFeature(
-        #     Reader(path_HeNan).geometries(),
-        #     proj,
-        #     edgecolor='k',
-        #     facecolor='none')
-        
-        # city = cfeat.ShapelyFeature(
-        #     Reader(self.path_city).geometries(),
-        #     proj,
-        #     edgecolor='k',
-        #     facecolor='none')
-
-
-        # ax.set_extent([108, 118, 30, 40], crs=proj)
-        # ax.add_feature(provinces, linewidth=1, zorder=2)  # 添加青藏高原区域
-        # ax.add_feature(city, linewidth=0.6, zorder=2)  # 添加青藏高原区域
-
-        # --设置图像刻度
-        # ax.set_xticks(np.arange(105, 120 + 2, 1))
-        
-        ax.add_feature(provinces, linewidth=1, zorder=2)
-        # ax.gridlines(draw_labels=True, dms=True)
-        # ax.add_feature(provinces, linewidth=2, zorder=10)
-        # ax.add_feature(city, linewidth=1, zorder=2)  # 添加青藏高原区域
-        ax.set_yticks(np.arange(32, 37 + 1, 1))
-        ax.set_xticks(np.arange(110, 116 + 1, 1))
-        ax.xaxis.set_major_formatter(LongitudeFormatter())
-        ax.xaxis.set_minor_locator(plt.MultipleLocator(1))
-        ax.yaxis.set_major_formatter(LatitudeFormatter())
-        ax.yaxis.set_minor_locator(plt.MultipleLocator(1))
-        ax.tick_params(which='major',length=10,width=2.0) # 控制标签大小 
-        ax.tick_params(which='minor',length=5,width=1.0)  #,colors='b')
-        ax.yaxis.set_minor_locator(plt.MultipleLocator(1))
-        ax.tick_params(axis='both', labelsize=30, direction='out')
-        # -- 设置图像范围
-        # ax.set_extent([78, 98, 26, 38], crs=ccrs.PlateCarree())
-        return ax
 
     def draw_contourf_single(self, data, ax, dic):
         """画填色图
@@ -237,8 +198,12 @@ class Draw(object):
         # levels_rain = [0, 10, 25, 50, 100, 150, 200, 250, 300, 350, 400]
         # levels_rain = np.arange(0,400,40)
         # colorlevel=[0.1,10.0,25.0,50.0,100.0,250.0,500.0]#雨量等级
-        colorlevel=[0, 0.1,10.0,25.0,50.0,100.0,250.0,400.0, 700]#雨量等级
+        # colorlevel=[0, 0.1,10.0,25.0,50.0,100.0,250.0,400.0, 700]#雨量等级
+        colorlevel=[0, 0.1, 5, 15.0, 30, 70, 140, 400.0, 700]#雨量等级
+        # colorlevel=[0, 0.1, 5, 15.0, 30, 70, 140, 700]#雨量等级
+        # colorlevel=[0, 0.1,5,15,30.0,70,140,250,2000]#雨量等级
         colordict=['#F0F0F0','#A6F28F','#3DBA3D','#61BBFF','#0000FF','#FA00FA','#800040', '#EE0000']#颜色列表
+        # colordict=['#F0F0F0','#A6F28F','#3DBA3D','#61BBFF','#0000FF','#FA00FA','#800040']#颜色列表
         x = data.lon
         y = data.lat
         # print(x.max())
@@ -269,7 +234,7 @@ class Draw(object):
         # # ax.set_title(title[1], loc='right',  fontsize=12)
         # # ax.set_tilte(title[1], loc='right')
         # # ax.text(78,26.2,title[0], fontsize=12)
-        self.draw_station(ax)
+        # self.draw_station(ax)
         return crx
 
     def draw_single(self, da, picture_dic):
@@ -288,13 +253,39 @@ class Draw(object):
                'cmap':cmaps.precip3_16lev,
             #    'cmap':get_cmap_rain2(),
                'time':str(date)}
-        ax = self.create_map(ax)
+
+               
+
+        # ax = self.create_map(ax)
+        mp = Map()
+        map_dic = {
+            'proj':ccrs.PlateCarree(),
+            'extent':[110, 117, 31, 37],
+            'extent_interval_lat':1,
+            'extent_interval_lon':1,
+        }
+        ax = mp.create_map(ax, map_dic)
+
+        station = {
+            'ZhengZhou': {
+                'abbreviation':'ZZ',
+                'lat': 34.76,
+                'lon': 113.65
+            },
+        }
+        mp.add_station(ax, station, justice=True)
+        
+        
+
         ax.set_title(date, fontsize=35,)
         ax.set_title(picture_dic['initial_time'], fontsize=30,loc='left')
         ax.set_title(picture_dic['type'], fontsize=30,loc='right')
         cf = self.draw_contourf_single(da, ax, dic)
         # ax.contourf(da.lon, da.lat, da)
-        colorticks = [0.1,10.0,25.0,50.0,100.0,250.0,400.0]#雨量等级
+        # colorticks = [0.1,10.0,25.0,50.0,100.0,250.0,400.0]#雨量等级
+        # colorticks=[0.1, 5, 15.0, 30, 70, 140, 250.0]#雨量等级
+        # colorticks=[0.1, 5, 15.0, 30, 70, 140]#雨量等级
+        colorticks=[0.1,5,15,30.0,70,140,250]#雨量等级
         
         cb = fig.colorbar(
             cf,
@@ -328,14 +319,14 @@ def draw_obs():
     dr.draw_single(da, picture_dic)
 
     ## ec
-    da = gd.get_rain_ec()
-    picture_dic = {'date':'2000_2012', 'type':'EC', 'initial_time':''}
-    dr.draw_single(da, picture_dic)
+    # da = gd.get_rain_ec()
+    # picture_dic = {'date':'2000_2012', 'type':'EC', 'initial_time':''}
+    # dr.draw_single(da, picture_dic)
 
     ## gfs
-    da = gd.get_rain_wrf_gfs()
-    picture_dic = {'date':'2000_2012', 'type':'GFS', 'initial_time':''}
-    dr.draw_single(da, picture_dic)
+    # da = gd.get_rain_wrf_gfs()
+    # picture_dic = {'date':'2000_2012', 'type':'GFS', 'initial_time':''}
+    # dr.draw_single(da, picture_dic)
 
 def draw_forecast():
     pass
@@ -354,18 +345,55 @@ def draw_forecast():
             picture_dic = {'date':'2000_2012', 'type':type, 'initial_time':t}
             dr.draw_single(da, picture_dic)
 
+def draw_one():
+    pass
+    # type_list = ['ERA5', 'GDAS']
+    # time_list = ['1800', '1812', '1900', '1912']
+    # path = '/mnt/zfm_18T/fengxiang/HeNan/Data/'
+
+    dr = Draw()
+    gd = GetData()
+    # path = '/mnt/zfm_18T/fengxiang/HeNan/Data/ERA5/YSU_1800_rain.nc'
+    # for type in type_list:
+        # for t in time_list:
+
+    ## lambert数据
+    # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/HighResolution/YSU_rain_1km.nc'
+    # da = gd.get_rain_wrf(flnm)
+
+    ### 对于latlon数据使用这个方法
+    flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/1km_1912_hgt/YSU_rain_1km_hight_hgt.nc'
+    # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/1km_1912/YSU_rain_1km.nc'
+    # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/1km_1900_hgt/rain_1km_hgt.nc'
+    # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/1km_1900_hgt_mphysics/rain_1km_hgt.nc'
+    ds = xr.open_dataset(flnm)
+    da = ds['RAINNC'].sum(dim='time')
+    ### latlon数据结束
+    
+
+    t = '1912'
+    picture_dic = {'date':'2021-07-20 00-12', 'type':'90m', 'initial_time':t}
+    dr.draw_single(da, picture_dic)
 
 
+def draw_yyx():
+    dr = Draw()
+    gd = GetData()
+    da = gd.get_rain_yyx()
+    t = ''
+    picture_dic = {'date':'2000_2012', 'type':'YYX', 'initial_time':t}
+    dr.draw_single(da, picture_dic)
 
-
-# %%
 if __name__ == '__main__':
 
-    draw_obs()
-    draw_forecast()
+    # draw_yyx()
+    draw_one()
+    # draw_obs()
+    # draw_forecast()
     # gd = GetData()
     # dd = gd.get_rain_obs()
     # gd = GetData()
     # da = gd.get_rain_wrf()
     # dr = Draw()
     # dr.draw_single(da, '2000_2012')
+# %%

@@ -224,7 +224,8 @@ def add_ticks(ax,):
     # ax.set_yticks(np.arange(10, 60 + 1, 10))
     # ax.set_xticks(np.arange(70, 140 + 1, 10))
     ax.set_yticks(np.arange(10, 70 + 1, 10))
-    ax.set_xticks(np.arange(60, 140 + 1, 10))
+    # ax.set_xticks(np.arange(60, 140 + 1, 10))
+    ax.set_xticks(np.arange(60, 150 + 1, 20))
     ax.xaxis.set_major_formatter(LongitudeFormatter())
     ax.xaxis.set_minor_locator(plt.MultipleLocator(5))
     ax.yaxis.set_major_formatter(LatitudeFormatter())
@@ -235,9 +236,9 @@ def add_ticks(ax,):
 
 def draw_south_sea(fig,):
     pass
-    ax2 = fig.add_axes([0.102, 0.145, 0.2, 0.2],projection=ccrs.PlateCarree())
-    # ax2.set_extent([105.8, 122,0,25])
-    ax2.set_extent([90, 130,0,55])
+    ax2 = fig.add_axes([0.102, 0.138, 0.2, 0.2],projection=ccrs.PlateCarree())
+    ax2.set_extent([105.8, 122,0,25])
+    # ax2.set_extent([60, 130,0,75])
     # ax2.add_feature(cfeature.LAKES.with_scale('50m'))
     ax2.add_geometries(Reader('/mnt/zfm_18T/fengxiang/DATA/SHP/Map/cn_shp/Province_9/Province_9.shp').geometries(),ccrs.PlateCarree(),facecolor='none',edgecolor='black',linewidth=0.8)
     # ax2.add_geometries(Reader(r'F:/Rpython/lp27/data/china1.shp').geometries(),ccrs.PlateCarree(),facecolor='none',edgecolor='k',linewidth=0.2)
@@ -254,7 +255,8 @@ def draw(hgt_list, tmp_list, ddf, dic):
     fig = plt.figure(figsize=[10,8])
     ax = fig.add_axes([0.15,0.05,0.8,0.9], projection=ccrs.PlateCarree())
     mb = mapview.BaseMap()
-    # mb.set_extent('中国陆地')
+    # mb.set_extent('中国陆地及周边')
+    ax.set_extent([60, 150,10,70])
     mb.drawcoastlines(linewidths=0.8, alpha=0.5)
 
     tt = (dic['time']+pd.Timedelta('-8H')).strftime('%Y-%m-%d %H%M')
@@ -262,7 +264,7 @@ def draw(hgt_list, tmp_list, ddf, dic):
     ax.set_title(str(dic['level'])+'hPa', loc='right', fontsize=25)
 
     mb.drawstates(linewidths=0.8, alpha=0.5) # 省界
-    mb.set_extent('中国陆地')
+    # mb.set_extent('中国陆地')
     # mb.southsea(zoom=0.3, loc='left_bottom')
 
     for df in hgt_list:
@@ -291,7 +293,7 @@ def draw(hgt_list, tmp_list, ddf, dic):
     v = -1*np.cos(ddf['wind_angle']/180*np.pi)*ddf['wind_speed']
     # ax.barbs(x,y,u,v)
     # Q = ax.quiver(x, y, u,v,units='inches',scale=30,pivot='tip',width=0.04, transform=ccrs.PlateCarree())  # 绘制风矢
-    Q = ax.quiver(x, y, u,v,headwidth=3, headlength=4,width=0.03, units='inches',scale=30,pivot='tip', transform=ccrs.PlateCarree())  # 绘制风矢
+    Q = ax.quiver(x, y, u,v,headwidth=3, headlength=4,width=0.03, units='inches',scale=20, pivot='tip', transform=ccrs.PlateCarree())  # 绘制风矢
     qk = ax.quiverkey(Q, X=0.8, Y=0.05, U=10, label=r'$10\ m/s$', labelpos='E',coordinates='figure', fontproperties={'size':25})   # 设置参考风矢
     # mb.southsea(zoom=0.3, loc='left_bottom')
     draw_south_sea(fig)
@@ -326,7 +328,7 @@ if __name__ == '__main__':
     pass
     ttt = pd.date_range(start='2021-07-18 08', end='2021-07-20 20', freq='12H')
     # for level in ['200', '500', '850']:
-    for level in ['500', '850']:
+    for level in ['500', '700', '850']:   # 人工分析的只有这几个高度的
         for t in ttt:
             draw_all(t, level)
     

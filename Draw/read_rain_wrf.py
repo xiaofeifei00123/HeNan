@@ -21,7 +21,7 @@ from read_global import caculate_diagnostic, regrid_xesmf
 # %%
 def get_rain(path):
     # path = '/mnt/zfm_18T/fengxiang/HeNan/Data/ERA5/YSU_1900/'
-    fl_list = os.popen('ls {}/wrfout_d03*'.format(path))  # 打开一个管道
+    fl_list = os.popen('ls {}/wrfout_d04*'.format(path))  # 打开一个管道
     fl_list = fl_list.read().split()
     dds_list = []
     r = 0
@@ -46,59 +46,31 @@ def get_rain(path):
 
 def get_ERAI():
     pass
-    path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/ERA5/'
-    # time_list = ['1800', '1812', '1900', '1912']
-    time_list = ['1900', '1912']
-    for t in time_list:
-        path_wrfout = path_main+'YSU_'+t+'_ERAI/'
-        ds = get_rain(path_wrfout)
-        print(ds.max())
-        flnm = 'YSU_'+t
-        path_save = path_main+flnm+'_rain_ERAI.nc'
-        ds.to_netcdf(path_save)
-
-def get_ERA5():
-    pass
-    path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/ERA5/'
-    time_list = ['1800', '1812', '1900', '1912']
-    # time_list = ['1900', '1912']
-    for t in time_list:
-        print(t)
-        path_wrfout = path_main+'YSU_'+t
-        ds = get_rain(path_wrfout)
-        # print(ds.max())
-        print("小时最大降水是%s"%str(ds.max().values))
-        flnm = 'YSU_'+t
-        path_save = path_main+flnm+'_rain.nc'
-        ds.to_netcdf(path_save)
-
-def get_GDAS():
-    pass
-    path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/GDAS/'
-    time_list = ['1800', '1812', '1900', '1912']
-    # time_list = ['1900', '1912']
-    for t in time_list:
-        # print(t)
-        path_wrfout = path_main+'YSU_'+t
-        ds = get_rain(path_wrfout)
-        print("小时最大降水是%s"%str(ds.max().values))
-        flnm = 'YSU_'+t
-        path_save = path_main+flnm+'_rain.nc'
-        ds.to_netcdf(path_save)
-
-
-def get_GFS():
-    pass
-    path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/GFS/'
+    path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/HighResolution/'
     # time_list = ['1800', '1812', '1900', '1912']
     # time_list = ['1900', '1912']
     # for t in time_list:
-        # print(t)
-    path_wrfout = path_main+'YSU_GFS'
+    # path_wrfout = path_main+'YSU_'+t+'_ERAI/'
+    path_wrfout = path_main
     ds = get_rain(path_wrfout)
-    print("小时最大降水是%s"%str(ds.max().values))
-    flnm = 'YSU_GFS'
-    path_save = path_main+flnm+'_rain.nc'
+    print(ds.max())
+    flnm = 'YSU'
+    path_save = path_main+flnm+'_rain_1km.nc'
+    ds.to_netcdf(path_save)
+
+def get_high_hgt():
+    pass
+    # path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/1km_1900_hgt/'
+    path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/1km_1900_hgt_mphysics/'
+    # time_list = ['1800', '1812', '1900', '1912']
+    # time_list = ['1900', '1912']
+    # for t in time_list:
+    # path_wrfout = path_main+'YSU_'+t+'_ERAI/'
+    path_wrfout = path_main
+    ds = get_rain(path_wrfout)
+    print(ds.max())
+    # flnm = 'WSM6'
+    path_save = path_main+'rain_1km_hgt.nc'
     ds.to_netcdf(path_save)
 
 def regrid():
@@ -110,30 +82,30 @@ def regrid():
     initial_file_list = ['ERA5', 'GDAS']
     interval = 0.125
     area = {
-        'lon1':110-1-interval/2,
-        'lon2':116+1,
+        'lon1':111-1-interval/2,
+        'lon2':115+1,
         'lat1':32-1-interval/2,
-        'lat2':37+1,
+        'lat2':36+1,
         'interval':interval,
     }
-    ## wrf的插值
-    for f in initial_file_list:
-        path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/'+f+'/'
-        for t in time_list:
-            # path_wrfout = path_main+'YSU_'+t+'/'
-            # ds = gu.get_upar(path_wrfout)
-            flnm = 'YSU_'+t
-            path_in = path_main+flnm+'_rain.nc'
-            ds = xr.open_dataset(path_in)
-            ds_out = regrid_xesmf(ds, area)
-            path_out = path_main+flnm+'_rain_latlon.nc'
-            # ds_out = ds_out.rename({'ua':'u', 'va':'v', 'geopt':'height'})
-            ds_out.to_netcdf(path_out)
+    # ## wrf的插值
+    # for f in initial_file_list:
+    #     path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/'+f+'/'
+    #     for t in time_list:
+    #         # path_wrfout = path_main+'YSU_'+t+'/'
+    #         # ds = gu.get_upar(path_wrfout)
+    #         flnm = 'YSU_'+t
+    #         path_in = path_main+flnm+'_rain.nc'
+    #         ds = xr.open_dataset(path_in)
+    #         ds_out = regrid_xesmf(ds, area)
+    #         path_out = path_main+flnm+'_rain_latlon.nc'
+    #         # ds_out = ds_out.rename({'ua':'u', 'va':'v', 'geopt':'height'})
+    #         ds_out.to_netcdf(path_out)
     ## GFS的插值
-    path_GFS_in = '/mnt/zfm_18T/fengxiang/HeNan/Data/GFS/YSU_GFS_rain.nc'
-    ds = xr.open_dataset(path_GFS_in)
+    path_high_in = '/mnt/zfm_18T/fengxiang/HeNan/Data/HighResolution/YSU_rain_1km.nc'
+    ds = xr.open_dataset(path_high_in)
     ds_out = regrid_xesmf(ds, area)
-    path_GFS_out = '/mnt/zfm_18T/fengxiang/HeNan/Data/GFS/YSU_GFS_rain_latlon.nc'
+    path_GFS_out = '/mnt/zfm_18T/fengxiang/HeNan/Data/HighResolution/YSU_rain_1km_latlon.nc'
     ds_out.to_netcdf(path_GFS_out)
     
 # %%
@@ -147,10 +119,8 @@ def test():
 if __name__ == '__main__':
 
     pass
+    get_high_hgt()
     # get_ERAI()
-    # get_ERA5()
-    # get_GFS()
-    # get_GDAS()
-    regrid()
+    # regrid()
 
 

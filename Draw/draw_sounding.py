@@ -61,7 +61,7 @@ def get_data_wrf(ds, pic_dic):
         [type]: [description]
     """
 
-    ds = ds.rename({'ua':'u', 'va':'v',})
+    # ds = ds.rename({'ua':'u', 'va':'v',})
     t = pic_dic['time']
     # da = ds.sel(time=t)
     da = ds.sel(time=t, lat=34.71, lon=113.66, method='nearest')
@@ -122,7 +122,8 @@ def draw_skewt(ds, pic_dic):
     skew = SkewT(fig, rotation=30)
     skew.plot(p, T, 'r', linewidth=1.5)  # 画温度层节曲线
     skew.plot(p, Td, 'g', linewidth=1.5)  # 露点层节曲线
-    skew.plot_barbs(p[::5], u[::5], v[::5], length = 7)  # 画风
+    # skew.plot_barbs(p[::5], u[::5], v[::5], length = 7)  # 画风
+    skew.plot_barbs(p, u, v, length = 7)  # 画风
 
     ## 设置范围
     skew.ax.set_ylim(1000,100)
@@ -230,6 +231,19 @@ def draw_wrf_all():
             # dic2[f+t] = diag
     return ds2
 
+def draw_1km():
+    pass
+    ds2 = xr.Dataset()
+    path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/'
+    fl_list = ['1km_1912_hgt_upar_d04_latlon.nc', '1km_1912_upar_d04_latlon.nc']
+    # gu = GetUpar()
+    type_list = ['1km_hgt', '1km']
+    for fl, type in zip(fl_list, type_list):
+        dic_model = {'initial_time':'1912', 'file_type':type}
+        path_in = path_main+fl
+        diag = draw_wrf(path_in, dic_model)
+
+
 def test():
     flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/ERA5/YSU_1800_upar_d03_latlon.nc'
     ds = xr.open_dataset(flnm)  # 所有时次探空的集合
@@ -273,7 +287,8 @@ def get_diag():
 if __name__ == '__main__':
     pass
     #### 
+    draw_1km()
     # draw_wrf_all()
     # draw_micaps()
     ## 需要决定是否注释117行的return, 不注释了则运行快一些，否则会慢一些
-    get_diag() ## 如果要计算的话，draw里面的return 位置要放在上面
+    # get_diag() ## 如果要计算的话，draw里面的return 位置要放在上面
