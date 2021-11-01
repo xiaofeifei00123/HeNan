@@ -3,9 +3,12 @@
 '''
 Description:
 读取观测站点降水，并插值
+观测站降水为0时，该时次观测站数据没有显示
+需要对这些数据进行添加
 保存：
     插值的数据，nc搁谁
     未插值的数据, csv
+# TODO, 格点插值的程序未做完
 -----------------------------------------
 Time             :2021/09/28 20:39:34
 Author           :Forxd
@@ -19,6 +22,45 @@ import meteva.base as meb
 import numpy as np
 import os
 import pandas as pd
+# %%
+
+
+def read_one_station(flnm):
+    station = meb.read_stadata_from_micaps3(flnm)
+    ## 转换为世界时
+    station['time'] = station['time']+pd.Timedelta('-8H')
+
+    df = station
+    da = xr.DataArray(
+        df['data0'].values,
+        coords={
+            'id':df['id'],
+            'lat':('id',df['lat']),
+            'lon':('id',df['lon']),
+            'time':df['time'].values[0],
+        },
+        dims=['id',]
+    )
+    return da
+
+def get_rain_station():
+    path='/mnt/zfm_18T/fengxiang/HeNan/Data/OBS/obs_station'
+    fl_list = os.popen('ls {}/2021*.000'.format(path))  # 打开一个管道
+    fl_list = fl_list.read().split()
+    dds_list = []
+    for fl in fl_list:
+        da = read_one_station(fl)
+        dds_list.append(da)
+
+    ## 针对micaps数据的各个站点数据进行聚合
+    da_concat = xr.concat(dds_list, dim='time')
+    lat = da_concat['lat'].mean(dim='time')  # 将多列数据，变成一列
+    lon = da_concat['lon'].mean(dim='time')
+    dda = da_concat.drop_vars(['lat', 'lon'])
+    daa = dda.assign_coords({'lat':('id',lat.values), 'lon':('id',lon.values)})
+    dc = daa.fillna(0)
+
+
 # %%
 class rain_station_grid():
     """格点数据
@@ -53,11 +95,26 @@ class rain_station_grid():
 class rain_station():
     """站点数据"""
     pass
-    def read_one_station(self,flnm):
+        
+    def read_one_station(self, flnm):
         station = meb.read_stadata_from_micaps3(flnm)
         ## 转换为世界时
         station['time'] = station['time']+pd.Timedelta('-8H')
-        return station
+
+        df = station
+
+        ## 将一个站点的数据，变为DataArray
+        da = xr.DataArray(
+            df['data0'].values,
+            coords={
+                'id':df['id'],
+                'lat':('id',df['lat']),
+                'lon':('id',df['lon']),
+                'time':df['time'].values[0],
+            },
+            dims=['id',]
+        )
+        return da
 
     def get_rain_station(self,):
         path='/mnt/zfm_18T/fengxiang/HeNan/Data/OBS/obs_station'
@@ -65,12 +122,32 @@ class rain_station():
         fl_list = fl_list.read().split()
         dds_list = []
         for fl in fl_list:
-            da = self.read_one_station(fl)
+            da = read_one_station(fl)
             dds_list.append(da)
-        df_concat = pd.concat(dds_list, axis=0)
-        # dds_concate = xr.concat(dds_list, dim='time')
-        # dds_concate
-        return df_concat
+
+        ## 针对micaps数据的各个站点数据进行聚合
+        da_concat = xr.concat(dds_list, dim='time')
+        lat = da_concat['lat'].mean(dim='time')  # 将多列数据，变成一列
+        lon = da_concat['lon'].mean(dim='time')
+        dda = da_concat.drop_vars(['lat', 'lon'])
+        daa = dda.assign_coords({'lat':('id',lat.values), 'lon':('id',lon.values)})
+        dc = daa.fillna(0)
+        
+    def save_rain_station(self,):
+        ## 保存成micaps3格式, 保存站点数据
+        # rs = rain_station()
+        rain_st = self.get_rain_station()
+        rain_st.to_netcdf('/mnt/zfm_18T/fengxiang/HeNan/Data/OBS/rain_station.nc')
+        
+        
+        
+        
+        
+        
+        
+        
+        
+
 
 
 def save_rain_grid():
@@ -86,7 +163,7 @@ def save_rain_station():
     rain_st.to_csv('/mnt/zfm_18T/fengxiang/HeNan/Data/OBS/rain_station.csv')
 
 def get_max_dataframe(df_station):
-    """读取csv格式的站点数据
+    """读取csv格式的站点数据, 求最大的观测数据
 
     Args:
         df_station (DataFrame): 输入csv格式站点数据

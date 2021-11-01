@@ -1,9 +1,22 @@
 # %%
+import numpy as np
 import xarray as xr
-
-flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/HighResolution/YSU_rain_1km_latlon.nc'
-# flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/HighResolution/YSU_rain_1km.nc'
-ds = xr.open_dataset(flnm)
-ds
+import pandas as pd
 # %%
-ds.isel(time=4).max()
+aa = np.array([[1,np.nan], 
+               [2,2], 
+               [3, 3],
+               [np.nan, 4]])
+aa
+# cc = pd.DataFrame(aa)
+# cc
+dd = xr.DataArray(aa,
+                  coords={
+                      'type':['lat','lon'],
+                      'id':[0,1, 2, 3 ],
+                  },
+                  dims=['id', 'type'])
+dd
+# %%
+dd.mean(dim='type')
+# d
