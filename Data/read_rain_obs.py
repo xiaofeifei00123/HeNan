@@ -24,7 +24,8 @@ import os
 import pandas as pd
 from metpy.interpolate import inverse_distance_to_grid
 from metpy.interpolate import interpolate_to_grid
-from baobao.quick_draw import quick_contourf,quick_contourf_station
+# from baobao.quick_draw import quick_contourf,quick_contourf_station
+from baobao.interp import rain_station2grid
 # %%
 
 
@@ -91,30 +92,14 @@ class RainGrid():
         Returns:
             [type]: [description]
         """
-        lon_grid = np.arange(110-1, 116+1, 0.125)
-        lat_grid = np.arange(32-1, 37+1, 0.125)
-        lon_gridmesh, lat_gridmesh = np.meshgrid(lon_grid, lat_grid)
-        lon_gridmesh
-
-        grid_list = []
-        tt = da.time
-
-        for i in tt:
-            print('插值%s'%(i.dt.strftime('%Y-%m-%d %H').values))
-            da_hour = da.sel(time=i)
-            hour_grid = inverse_distance_to_grid(da.lon.values, da.lat.values, da_hour.values, lon_gridmesh, lat_gridmesh, 
-                                                 r=0.5, min_neighbors=3,
-                                                 )
-
-            da_hour_grid = xr.DataArray(hour_grid.round(1),
-                                        coords={
-                                            'lon':lon_grid,
-                                            'lat':lat_grid,
-                                            'time':i
-                                        },
-                                        dims=['lat', 'lon'])
-            grid_list.append(da_hour_grid)
-        ddc = xr.concat(grid_list,dim='time')
+        area = {
+            'lon1':110,
+            'lon2':116,
+            'lat1':31,
+            'lat2':37,
+            'interval':0.125,
+        }
+        ddc = rain_station2grid(da, area)
         return ddc
 
     def save_rain_grid(self,):
@@ -131,14 +116,6 @@ def save_rain():
     rg.save_rain_grid()
             
         
-        
-        
-
-# %%
-
-
-
-
 
 # %%
 if __name__ == '__main__':

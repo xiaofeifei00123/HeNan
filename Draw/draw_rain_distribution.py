@@ -17,7 +17,7 @@ import xarray as xr
 import numpy as np
 import pandas as pd
 
-import salem  # 插值
+# import salem  # 插值
 import cartopy.crs as ccrs
 import cartopy.feature as cfeat
 from cartopy.mpl.ticker import LongitudeFormatter, LatitudeFormatter
@@ -74,7 +74,7 @@ class GetData():
         Returns:
             [type]: [description]
         """
-        flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/OBS/rain_station.nc'
+        flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/OBS/rain_grid.nc'
         da_rain_all = xr.open_dataarray(flnm)
         da_rain = da_rain_all.sel(time=slice('2021-07-20 00', '2021-07-20 12'))  # 24小时逐小时降水
         dd = da_rain.sum(dim='time')
@@ -199,9 +199,10 @@ class Draw(object):
         # levels_rain = np.arange(0,400,40)
         # colorlevel=[0.1,10.0,25.0,50.0,100.0,250.0,500.0]#雨量等级
         # colorlevel=[0, 0.1,10.0,25.0,50.0,100.0,250.0,400.0, 700]#雨量等级
-        colorlevel=[0, 0.1, 5, 15.0, 30, 70, 140, 400.0, 700]#雨量等级
+        # colorlevel=[0, 0.1, 5, 15.0, 30, 70, 140, 400.0, 700]#雨量等级
+        # colorlevel=[0, 0.1, 5, 15.0, 30, 70, 140, 250.0, 700]#雨量等级
+        colorlevel=[0, 0.1, 5, 15.0, 30, 70, 140,  700]#雨量等级
         # colorlevel=[0, 0.1, 5, 15.0, 30, 70, 140, 700]#雨量等级
-        # colorlevel=[0, 0.1,5,15,30.0,70,140,250,2000]#雨量等级
         colordict=['#F0F0F0','#A6F28F','#3DBA3D','#61BBFF','#0000FF','#FA00FA','#800040', '#EE0000']#颜色列表
         # colordict=['#F0F0F0','#A6F28F','#3DBA3D','#61BBFF','#0000FF','#FA00FA','#800040']#颜色列表
         x = data.lon
@@ -248,7 +249,7 @@ class Draw(object):
         ax = fig.add_axes([0.1,0.1,0.85,0.85], projection=proj)
         # ax.set_extent([])
         date = picture_dic['date']
-        ax.set_extent([110, 116, 32, 37], crs=ccrs.PlateCarree())
+        # ax.set_extent([110, 116, 32, 37], crs=ccrs.PlateCarree())
         dic = {'name':'HeNan',
                'cmap':cmaps.precip3_16lev,
             #    'cmap':get_cmap_rain2(),
@@ -260,7 +261,7 @@ class Draw(object):
         mp = Map()
         map_dic = {
             'proj':ccrs.PlateCarree(),
-            'extent':[110, 117, 31, 37],
+            'extent':[110, 116, 32, 37],
             'extent_interval_lat':1,
             'extent_interval_lon':1,
         }
@@ -285,7 +286,8 @@ class Draw(object):
         # colorticks = [0.1,10.0,25.0,50.0,100.0,250.0,400.0]#雨量等级
         # colorticks=[0.1, 5, 15.0, 30, 70, 140, 250.0]#雨量等级
         # colorticks=[0.1, 5, 15.0, 30, 70, 140]#雨量等级
-        colorticks=[0.1,5,15,30.0,70,140,250]#雨量等级
+        # colorticks=[0.1,5,15,30.0,70,140,250]#雨量等级
+        colorticks=[0.1,5,15,30.0,70,140]#雨量等级
         
         cb = fig.colorbar(
             cf,
@@ -347,31 +349,16 @@ def draw_forecast():
 
 def draw_one():
     pass
-    # type_list = ['ERA5', 'GDAS']
-    # time_list = ['1800', '1812', '1900', '1912']
-    # path = '/mnt/zfm_18T/fengxiang/HeNan/Data/'
 
     dr = Draw()
-    gd = GetData()
-    # path = '/mnt/zfm_18T/fengxiang/HeNan/Data/ERA5/YSU_1800_rain.nc'
-    # for type in type_list:
-        # for t in time_list:
-
-    ## lambert数据
-    # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/HighResolution/YSU_rain_1km.nc'
-    # da = gd.get_rain_wrf(flnm)
-
-    ### 对于latlon数据使用这个方法
-    flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/1km_1912_hgt/YSU_rain_1km_hight_hgt.nc'
-    # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/1km_1912/YSU_rain_1km.nc'
-    # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/1km_1900_hgt/rain_1km_hgt.nc'
-    # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/1km_1900_hgt_mphysics/rain_1km_hgt.nc'
+    # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/1km_1912_hgt/'
+    flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/1km_1900_hgt/rain_1km_hgt_latlon.nc'
     ds = xr.open_dataset(flnm)
     da = ds['RAINNC'].sum(dim='time')
     ### latlon数据结束
     
 
-    t = '1912'
+    t = '1900'
     picture_dic = {'date':'2021-07-20 00-12', 'type':'90m', 'initial_time':t}
     dr.draw_single(da, picture_dic)
 

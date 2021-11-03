@@ -60,16 +60,10 @@ def get_ERAI():
 
 def get_high_hgt():
     pass
-    # path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/1km_1900_hgt/'
     path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/1km_1900_hgt_mphysics/'
-    # time_list = ['1800', '1812', '1900', '1912']
-    # time_list = ['1900', '1912']
-    # for t in time_list:
-    # path_wrfout = path_main+'YSU_'+t+'_ERAI/'
     path_wrfout = path_main
     ds = get_rain(path_wrfout)
     print(ds.max())
-    # flnm = 'WSM6'
     path_save = path_main+'rain_1km_hgt.nc'
     ds.to_netcdf(path_save)
 
@@ -78,8 +72,8 @@ def regrid():
     将combine得到的数据，插值到latlon格点上
     将二维的latlon坐标水平插值到一维的latlon坐标上
     """
-    time_list = ['1800', '1812', '1900', '1912']
-    initial_file_list = ['ERA5', 'GDAS']
+    # time_list = ['1800', '1812', '1900', '1912']
+    # initial_file_list = ['ERA5', 'GDAS']
     interval = 0.125
     area = {
         'lon1':111-1-interval/2,
@@ -88,25 +82,13 @@ def regrid():
         'lat2':36+1,
         'interval':interval,
     }
-    # ## wrf的插值
-    # for f in initial_file_list:
-    #     path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/'+f+'/'
-    #     for t in time_list:
-    #         # path_wrfout = path_main+'YSU_'+t+'/'
-    #         # ds = gu.get_upar(path_wrfout)
-    #         flnm = 'YSU_'+t
-    #         path_in = path_main+flnm+'_rain.nc'
-    #         ds = xr.open_dataset(path_in)
-    #         ds_out = regrid_xesmf(ds, area)
-    #         path_out = path_main+flnm+'_rain_latlon.nc'
-    #         # ds_out = ds_out.rename({'ua':'u', 'va':'v', 'geopt':'height'})
-    #         ds_out.to_netcdf(path_out)
-    ## GFS的插值
-    path_high_in = '/mnt/zfm_18T/fengxiang/HeNan/Data/HighResolution/YSU_rain_1km.nc'
-    ds = xr.open_dataset(path_high_in)
+    path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/1km_1900_hgt/'
+    path_in = path_main+'rain_1km_hgt.nc'
+    # path_high_in = '/mnt/zfm_18T/fengxiang/HeNan/Data/HighResolution/YSU_rain_1km.nc'
+    ds = xr.open_dataset(path_in)
     ds_out = regrid_xesmf(ds, area)
-    path_GFS_out = '/mnt/zfm_18T/fengxiang/HeNan/Data/HighResolution/YSU_rain_1km_latlon.nc'
-    ds_out.to_netcdf(path_GFS_out)
+    path_out = path_main+'rain_1km_hgt_latlon.nc'
+    ds_out.to_netcdf(path_out)
     
 # %%
 ### 测试开始
@@ -119,8 +101,8 @@ def test():
 if __name__ == '__main__':
 
     pass
-    get_high_hgt()
+    # get_high_hgt()
     # get_ERAI()
-    # regrid()
+    regrid()
 
 
