@@ -3,6 +3,7 @@
 '''
 Description:
 郑州站逐小时降水变化柱状图
+画累积降水的柱状图
 -----------------------------------------
 Time             :2021/06/04 14:32:20
 Author          :Forxd
@@ -21,14 +22,14 @@ import xarray as xr
 import numpy as np
 import pandas as pd
 
-# import salem  # 插值
-# import cartopy.crs as ccrs
-# import cartopy.feature as cfeat
-# from cartopy.mpl.ticker import LongitudeFormatter, LatitudeFormatter
-# from cartopy.io.shapereader import Reader, natural_earth
-# import matplotlib as mpl
-# from matplotlib.path import Path
-# import seaborn as sns
+import salem  # 插值
+import cartopy.crs as ccrs
+import cartopy.feature as cfeat
+from cartopy.mpl.ticker import LongitudeFormatter, LatitudeFormatter
+from cartopy.io.shapereader import Reader, natural_earth
+import matplotlib as mpl
+from matplotlib.path import Path
+import seaborn as sns
 # import matplotlib.patches as patches
 import matplotlib.pyplot as plt
 import geopandas
@@ -44,11 +45,21 @@ plt.rcParams['axes.unicode_minus'] = False
 # %%
 
 def get_rain_zhenzhou():
-    flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/OBS/rain_station.nc'
-    ds = xr.open_dataset(flnm)
-    da = ds.to_array().squeeze()
-    da_return = da.sel(id=57083)
-    return da_return
+    df_station = pd.read_csv('/mnt/zfm_18T/fengxiang/HeNan/Data/OBS/rain_station.csv')
+    df = df_station
+    df1 = df[(df['id']==57083)]
+    df2 = pd.DataFrame(df1, columns=['time','lon', 'lat', 'data0'])
+    df2['time'] = pd.to_datetime(df2['time'])
+    da = xr.DataArray(
+        df2['data0'].values,
+        coords={
+            'time':df2['time'].values,
+            'lon':df2['lon'].values[0],
+            'lat':df2['lat'].values[0],
+        },
+        dims=['time'],
+    )
+    return da
 
 def draw_bar(dazz, damax):
     # da = da.sel(time=slice('2021-07-19 12', '2021-07-21 12'))
@@ -59,8 +70,8 @@ def draw_bar(dazz, damax):
     # import datetime
     tt = da.time.dt.strftime('%d/%H')
     x_label = tt
-    ax.bar(tt, da, label='郑州站降水')
-    ax.plot(tt, damax, color='red',lw=1.5,  label='最大站点降水')
+    ax.bar(tt, da, label='郑州')
+    ax.plot(tt, damax, color='red',lw=1.5,  label='最大降水站点')
     # ax.hlines(y=30, xmin=tt[0], xmax=tt[-1])
     ax.axhline(y=30, color='black')
     ax.set_xlim(tt[0], tt[-1])
@@ -93,10 +104,21 @@ def get_max_station():
     Returns:
         [DataArray]: 小时雨强最大值
     """
-    flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/OBS/rain_station.nc'
-    ds = xr.open_dataset(flnm)
-    da = ds.to_array().squeeze()
-    rain_obs_max = da.max(dim='id')
+    ## 才读的数据，它的时间格式是object
+    df_station = pd.read_csv('/mnt/zfm_18T/fengxiang/HeNan/Data/OBS/rain_station.csv')
+    # df_station = get_max_dataframe(aa)
+    df_station['time']= pd.to_datetime(df_station['time'])
+    t = pd.date_range(start='2021-07-18 00', end='2021-07-21 12', freq='1H')
+    rain_list = []
+    for tt in t:
+        cc = df_station[df_station['time']==tt]
+        rain_max = cc[(cc['lat']>32)&(cc['lat']<37)&(cc['lon']>110)&(cc['lon']<116)]['data0'].max()
+        # rain_max = cc[(cc['lat']>32)&(cc['lat']<37)&(cc['lon']>110)&(cc['lon']<116)]['data0'].mean()
+        rain_list.append(rain_max)
+    rain_list
+    ps = pd.Series(rain_list, index=t)
+    da = xr.DataArray.from_series(ps)
+    rain_obs_max = da.rename({'index':'time'})
     return rain_obs_max
 
 def get_rain():
@@ -106,17 +128,16 @@ def get_rain():
         [type]: [description]
     """
     dazz = get_rain_zhenzhou()
-    dazz = dazz.sel(time=slice('2021-07-19 12', '2021-07-21 00'))
+    dazz = dazz.sel(time=slice('2021-07-19 00', '2021-07-21 08'))
     damax = get_max_station()
-    damax = damax.sel(time=slice('2021-07-19 12', '2021-07-21 00'))
+    damax = damax.sel(time=slice('2021-07-19 00', '2021-07-21 08'))
     ## 因为郑州站有部分时次的值是0，没有在列表中
-    # t1 = dazz.time
-    # t2 = damax.time
+    t1 = dazz.time
+    t2 = damax.time
     rain = xr.Dataset()
     rain = xr.concat([damax, dazz], pd.Index(['max', 'zz'], name='model'))
-    # da_rain = rain.fillna(0)
-    # ds_rain = da_rain.to_dataset(dim='model')
-    ds_rain = rain.to_dataset(dim='model')
+    da_rain = rain.fillna(0)
+    ds_rain = da_rain.to_dataset(dim='model')
     return ds_rain
 
 

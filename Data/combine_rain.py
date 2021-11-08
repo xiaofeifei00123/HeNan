@@ -3,59 +3,50 @@
 '''
 Description:
 将不同模式和观测的latlon降水聚合成一个文件
+station降水聚合成一个文件
 这样聚合成的文件有部分时次，部分模式是没有降水的
 -----------------------------------------
 Time             :2021/10/11 22:16:30
 Author           :Forxd
 Version          :1.0
 '''
-
 # %%
 import xarray as xr
 
 
+
+
 # %%
-# def get_data_mean():
-def get_rain_obs():
-    flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/OBS/rain_grid.nc'
-    da = xr.open_dataarray(flnm)
-    # ds = xr.open_dataset(flnm)
-    # ds = ds.drop_vars(['member', 'level', 'dtime'])
-    lat=slice(32,37)
-    lon=slice(110, 116)
-    da = da.sel(lon=lon, lat=lat)
-    # da = dds['data0']
-    return da
-
-
-def get_rain_wrf(flnm):
-
-    # model_list = ['1900_90m', '1912_900m', '1912_90m', 'YJF']
-    # for model in model_list:
-        # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/'+model+'/rain_latlon.nc'
-    ds = xr.open_dataset(flnm)
-    lat=slice(32,37)
-    lon=slice(110, 116)
-    dds = ds.sel(lon=lon, lat=lat)
-    da = dds['RAINNC']
-    return da
-
-
-def main():
-    # type_list = ['ERA5', 'GDAS']
-    # time_list = ['1800', '1812', '1900', '1912']
-    # path = '/mnt/zfm_18T/fengxiang/HeNan/Data/'
+def combine_latlon():
     ds = xr.Dataset()
     model_list = ['1900_90m', '1912_900m', '1912_90m', 'YJF']
     for model in model_list:
         flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/'+model+'/rain_latlon.nc'
-        da = get_rain_wrf(flnm)
+        da = xr.open_dataarray(flnm)
         ds[model] = da
-        # print(type+t)
-    ds['OBS'] = get_rain_obs()
-    return ds
+
+    flnm_obs = '/mnt/zfm_18T/fengxiang/HeNan/Data/OBS/rain_latlon.nc'
+    da_obs = xr.open_dataarray(flnm_obs)
+    ds['OBS'] = da_obs
+    ds.to_netcdf('/mnt/zfm_18T/fengxiang/HeNan/Data/Rain/rain_all_latlon.nc')
+    # return ds
+
+def combine_station():
+    ds = xr.Dataset()
+    model_list = ['1900_90m', '1912_900m', '1912_90m', 'YJF']
+    for model in model_list:
+        flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/'+model+'/rain_station.nc'
+        da = xr.open_dataarray(flnm)
+        ds[model] = da
+    flnm_obs = '/mnt/zfm_18T/fengxiang/HeNan/Data/OBS/rain_station.nc'
+    da_obs = xr.open_dataarray(flnm_obs)
+    ds['OBS'] = da_obs.rename({'id':'sta'})
+    # ds['OBS'] = xr.open_dataarray(flnm_obs)
+    ds.to_netcdf('/mnt/zfm_18T/fengxiang/HeNan/Data/Rain/rain_all_station.nc')
+    # return ds
+
+
 if __name__ == '__main__':
     
-    dds = main()
-    dds.to_netcdf('/mnt/zfm_18T/fengxiang/HeNan/Data/Rain/rain_all.nc')
-    print(dds)
+    combine_latlon()
+    combine_station()

@@ -51,7 +51,8 @@ class Caculate():
         # self.area = area
         self.rain = rain
         # self.threshold = threshold
-        self.model_list = ['ERA51800','ERA51812','ERA51900','ERA51912','GDAS1800','GDAS1812','GDAS1900','GDAS1912',]
+        # self.model_list = ['ERA51800','ERA51812','ERA51900','ERA51912','GDAS1800','GDAS1812','GDAS1900','GDAS1912',]
+        self.model_list = ['1900_90m', '1912_90m', '1912_900m']
 
     def get_two_scale(self, threshold):
         # flag = 'all'
@@ -147,7 +148,8 @@ class Caculate():
         # rain = rd.get_rain_total()
         # rain = rd.get_rain_times()
         # print(rain)
-        model_list = ['ACM2', 'YSU', 'QNSE', 'QNSE_EDMF', 'TEMF']
+        # model_list = ['ACM2', 'YSU', 'QNSE', 'QNSE_EDMF', 'TEMF']
+        model_list = ['1900_90m', '1912_90m', '1912_900m']
 
         MAE = {} # 平均绝对误差
         RMSE = {} # 均方根误差
@@ -194,6 +196,7 @@ def draw_taylor(dds):
     ob = dds['OBS'].values
     fo = da.drop_sel(model=['OBS', 'GFS'])
     fo = fo.values
+    # model_list = ['ERA51800','ERA51812','ERA51900','ERA51912','GDAS1800','GDAS1812','GDAS1900','GDAS1912',]
     model_list = ['ERA51800','ERA51812','ERA51900','ERA51912','GDAS1800','GDAS1812','GDAS1900','GDAS1912',]
     grade_list=[50, ]
     fo_name_list = model_list
@@ -206,9 +209,10 @@ def draw_taylor(dds):
 def get_ts():
     """获取不同阈值的ts评分
     """
-    flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/rain_all.nc'
+    # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/rain_all.nc'
+    flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/Rain/rain_all_station.nc'
     ds = xr.open_dataset(flnm)
-    ds = ds.drop_vars('EC')
+    ds = ds.drop_vars('YJF')
     dds = ds.sel(time=slice('2021-07-20 0000', '2021-07-20 1200')).sum(dim='time')
     ca = Caculate(dds)
     threshold_list = [0.1, 5, 15, 30, 70, 140]
@@ -239,15 +243,16 @@ def draw_bar(ts):
     ds = ts
     ds = ts.to_dataset(dim='model')
 
-    model_list = ['ERA51800','ERA51812','ERA51900','ERA51912','GDAS1800','GDAS1812','GDAS1900','GDAS1912',]
+    # model_list = ['ERA51800','ERA51812','ERA51900','ERA51912','GDAS1800','GDAS1812','GDAS1900','GDAS1912',]
+    model_list = ['1900_90m','1912_90m','1912_900m']
     # color_list = ['green', 'blue','orange', 'red',  'green', 'blue','orange', 'red', ]
     # color_list = ['darkgreen', 'darkblue','darkorange', 'darkred',  'green', 'cornflowerblue', 'orange', 'red',]
     color_list = ['green', 'blue','orange', 'red',  'darkgreen', 'darkblue', 'darkorange', 'darkred',]
     # hatch_list = ['.','.','.','.','x','x','x','x',]
-    width = 0.10
-    fig = plt.figure(figsize=(12, 5), dpi=300)  # 创建页面
+    width = 0.20
+    fig = plt.figure(figsize=(12, 8), dpi=300)  # 创建页面
     ax = fig.add_axes([0.05,0.1, 0.92,0.8])
-    i = -3
+    i = -1
     j = 0
     for model in model_list:
         # rects = ax.bar(x+width*i, ds[model], width, label=model, facecolor='white', edgecolor=color_list[j], hatch=hatch_list[j])

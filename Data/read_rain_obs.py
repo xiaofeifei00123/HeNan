@@ -8,7 +8,6 @@ Description:
 保存：
     插值的数据，nc搁谁
     未插值的数据, csv
-# TODO, 格点插值的程序未做完
 -----------------------------------------
 Time             :2021/09/28 20:39:34
 Author           :Forxd
@@ -16,6 +15,7 @@ Version          :1.0
 '''
 
 # %%
+
 # from HeNan.Draw.read_ERA5 import get_rain_station
 import xarray as xr
 import meteva.base as meb
@@ -68,13 +68,29 @@ class RainStation():
         dda = da_concat.drop_vars(['lat', 'lon'])
         daa = dda.assign_coords({'lat':('id',lat.values), 'lon':('id',lon.values)})
         dc = daa.fillna(0)
+        
         return dc
+        
         
     def save_rain_station(self,):
         ## 保存成micaps3格式, 保存站点数据
         # rs = rain_station()
         rain_st = self.get_rain_station()
-        rain_st.to_netcdf('/mnt/zfm_18T/fengxiang/HeNan/Data/OBS/rain_station.nc')
+        ## 保存所有站点的数据
+        rain_st.to_netcdf('/mnt/zfm_18T/fengxiang/HeNan/Data/OBS/rain.nc') # 所有站点
+
+        ## 筛选出河南范围内的站点数据
+        area = {
+            'lon1':110.5,
+            'lon2':116,
+            'lat1':32,
+            'lat2':36.5,
+            'interval':0.125,
+        }
+        da = rain_st
+        index = ((da.lat<=area['lat2']) & (da.lat>=area['lat1']) & (da.lon>=area['lon1']) & (da.lon<=area['lon2']))
+        da_obs = da.loc[:,index]  # 这里时间维度在前
+        da_obs.to_netcdf('/mnt/zfm_18T/fengxiang/HeNan/Data/OBS/rain_station.nc') # 所有站点
         
 class RainGrid():
     """格点数据
@@ -104,14 +120,14 @@ class RainGrid():
 
     def save_rain_grid(self,):
         ## 读取存储好的站点数据
-        da = xr.open_dataarray('/mnt/zfm_18T/fengxiang/HeNan/Data/OBS/rain_station.nc')
+        da = xr.open_dataarray('/mnt/zfm_18T/fengxiang/HeNan/Data/OBS/rain.nc')
         ## 插值为格点数据
         da_grid = self.rain_station2grid(da)
-        da_grid.to_netcdf('/mnt/zfm_18T/fengxiang/HeNan/Data/OBS/rain_grid.nc')
+        da_grid.to_netcdf('/mnt/zfm_18T/fengxiang/HeNan/Data/OBS/rain_latlon.nc')
 
 def save_rain():
-    # rs = RainStation()
-    # rs.save_rain_station()
+    rs = RainStation()
+    rs.save_rain_station()
     rg = RainGrid()
     rg.save_rain_grid()
             
@@ -121,6 +137,4 @@ def save_rain():
 if __name__ == '__main__':
     pass
     save_rain()
-    # save_rain_grid()
-    # save_rain_station()
     

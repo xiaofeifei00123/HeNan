@@ -132,14 +132,15 @@ class GetMicaps():
         var_list = list(da.coords['variable'].values)
         # print(var_list)
         # pressure_level = np.arange(800,100,-1)
-        pressure_level = np.arange(1000,10,-10)
+        pressure_level = np.arange(990,190,-10)
         var_list_process = []
         vards = xr.Dataset()
         for var in var_list:
             dda = da.sel(variable=var)
             dc = dda.dropna(dim='pressure')
             # print(var)
-            ddc = dc.interp(pressure=pressure_level, kwargs={'fill_value':'extrapolate'})
+            # ddc = dc.interp(pressure=pressure_level, kwargs={'fill_value':'extrapolate'})
+            ddc = dc.interp(pressure=pressure_level)
             vards[var] = ddc
         # print("返回")
         # print(dc)
@@ -163,32 +164,11 @@ class GetMicaps():
         # print(aa)
 
         
-        # aa = os.listdir(self.path_micaps)  # 文件名列表
         aa.sort()  # 排一下顺序，这个是对列表本身进行操作
         da_time = []  # 每个时次变量的列表
         ttt = []  # 时间序列列表
 
-        ## 测试开始
-        # flnm = '/mnt/zfm_18T/fengxiang/DATA/UPAR/202107_upar/20210720200000.000'
-        # # flnm = '/mnt/zfm_18T/fengxiang/DATA/UPAR/202107_upar/20210720140000.000'
-        # # # # # flnm = '/mnt/zfm_18T/fengxiang/DATA/UPAR/Upar_2016/16050108.000'
-        # data_file = self.read_data_once(flnm)
-        # da = self.transpose_data_once(data_file)
-        # ds_interp = self.interp_data(da)
-
-        # # # print("111")
-        # # # print(ds_interp)
-        # # # print(da)
-        # # # print(da)
-        # # # print(data_file)
-        # return ds_interp
-        # # return da
-        ## 测试结束
-
-
-
         for flnm in aa:
-
             pass
             fl_time = flnm[-18:-8]
             tt = pd.to_datetime(fl_time, format='%Y%m%d%H')
@@ -207,9 +187,8 @@ class GetMicaps():
             # print(ttt)
             da = self.transpose_data_once(data_file)
             ds_interp = self.interp_data(da)
-            # print(ds_interp['height'].sel(pressure=500))
 
-            da_time.append(ds_interp)  # 很多时次都是到595hPa才有值, 气压和高度的对应关系会随着时间发展而变化, 气压坐标和高度坐标不能通用
+            da_time.append(ds_interp)  
         ds_return = xr.concat(da_time, pd.Index(ttt, name='time'))
         return ds_return
 
@@ -223,7 +202,6 @@ def get_one_station():
     ds = ds.rename({'height':'geopt'})
     ds.to_netcdf('/mnt/zfm_18T/fengxiang/HeNan/Data/upar_zhenzhou.nc')
     return ds
-aa = get_one_station()
 
 # %%
 # aa.time
@@ -232,6 +210,7 @@ aa = get_one_station()
 # %%
 if __name__ == '__main__':
     pass
+    aa = get_one_station()
     # %%
     ##### 单进程
     # ds_nc = xr.Dataset()

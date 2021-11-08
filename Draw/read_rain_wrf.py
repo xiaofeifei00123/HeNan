@@ -4,19 +4,26 @@
 Description:
 读取wrfout数据中的降水
 将wrfout数据中的降水集合成一个文件
+添加格点插值到站点程序
 -----------------------------------------
 Time             :2021/09/09 10:53:08
 Author           :Forxd
 Version          :1.0
 '''
-
-
 # %%
 import xarray as xr
 import os
 import xesmf as xe
 import numpy as np
 from read_global import caculate_diagnostic, regrid_xesmf
+
+def test():
+    pass
+
+'/mnt/zfm_18T/fe'
+'../../../fengxiang/'
+
+
 
 # %%
 def get_rain(path):
@@ -92,10 +99,14 @@ def regrid():
     
 # %%
 ### 测试开始
-def test():
-    path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/ERA5/YSU_1912'
-    ds = get_rain(path_main)
-    ds.max()
+# def test():
+
+flnm_obs = '/mnt/zfm_18T/fengxiang/HeNan/Data/OBS/rain_station.nc'
+flnm_wrf = '/mnt/zfm_18T/fengxiang/HeNan/Data/'
+da = xr.open_dataarray(flnm)
+cc = ((da.lat<=37) & (da.lat>=32) & (da.lon>=111) & (da.lon<=116))
+dd = da.loc[:,cc]
+dd
 ### 测试结束
 # %%
 if __name__ == '__main__':

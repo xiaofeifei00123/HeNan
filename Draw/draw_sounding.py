@@ -39,8 +39,10 @@ def get_data_micaps(ds, pic_dic):
     p = da.pressure.values * units.hPa
     T = da.temp.values * units.degC
     Td = da.td.values * units.degC
-    u = da.U.values * units('m/s')*2.5
-    v = da.V.values * units('m/s')*2.5
+    # u = da.U.values * units('m/s')*2.5
+    # v = da.V.values * units('m/s')*2.5
+    u = da.u.values * units('m/s')*2.5
+    v = da.v.values * units('m/s')*2.5
     dic = {
         'p':p,
         'T':T,
@@ -61,7 +63,7 @@ def get_data_wrf(ds, pic_dic):
         [type]: [description]
     """
 
-    # ds = ds.rename({'ua':'u', 'va':'v',})
+    ds = ds.rename({'ua':'u', 'va':'v',})
     t = pic_dic['time']
     # da = ds.sel(time=t)
     da = ds.sel(time=t, lat=34.71, lon=113.66, method='nearest')
@@ -116,7 +118,7 @@ def draw_skewt(ds, pic_dic):
     )
     # return da
 
-    fig = plt.figure(figsize=(10,10), dpi=300)
+    fig = plt.figure(figsize=(10,10), dpi=400)
     # ax = fig.add_axes([0.1,0.1,0.8,0.8])
 
     skew = SkewT(fig, rotation=30)
@@ -126,8 +128,9 @@ def draw_skewt(ds, pic_dic):
     skew.plot_barbs(p, u, v, length = 7)  # 画风
 
     ## 设置范围
-    skew.ax.set_ylim(1000,100)
-    skew.ax.set_xlim(-40,30)
+    # skew.ax.set_ylim(1000,200)
+    skew.ax.set_ylim(990,200)
+    skew.ax.set_xlim(-30,30)
 
     # Plot LCL temperature as black dot, 画LCL
     skew.plot(lcl_pressure, lcl_temperature, 'o', markerfacecolor='black',linewidth=20)
@@ -161,6 +164,7 @@ def draw_skewt(ds, pic_dic):
     skew.ax.set_title(pic_dic['type'], loc='left', size=20)
     skew.ax.set_ylabel('Pressure (hPa)', size=24)
     skew.ax.set_xlabel('Temperature (℃)', size=24)
+    skew.ax.set_yticks([990, 925,  850, 800, 700, 600, 500, 400, 300, 200])
 
     path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_sounding/'
     fig_name = pic_dic['type']+'_'+pic_dic['time'].strftime('%Y%m%d_%H')
@@ -173,6 +177,7 @@ def draw_micaps():
     flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/upar_zhenzhou.nc'
     ds = xr.open_dataset(flnm)  # 所有时次探空的集合
     # t = pd.Timestamp('2021-07-20 00')
+    # tt = pd.date_range('2021-07-19 00', '2021-07-19 14', freq='6H')
     tt = pd.date_range('2021-07-20 00', '2021-07-20 14', freq='6H')
     tt_list = []
     for t in tt:
@@ -211,25 +216,20 @@ def draw_wrf(flnm, dic_model):
 
 def draw_wrf_all():
     pass
-    time_list = ['1800', '1812', '1900', '1912']
-    initial_file_list = ['ERA5', 'GDAS']
-    # dic2 = {}
-    ds2 = xr.Dataset()
-    for f in initial_file_list:
-        # time_list = ['1800']
-        # path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/ERA5/'
-        path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/'+f+'/'
-        # gu = GetUpar()
-        for t in time_list:
-            # path_wrfout = path_main+'YSU_'+t+'/'
-            # ds = gu.get_upar(path_wrfout)
-            dic_model = {'initial_time':t, 'file_type':f}
-            flnm = 'YSU_'+t
-            path_in = path_main+flnm+'_upar_d03_latlon.nc'
-            diag = draw_wrf(path_in, dic_model)
-            ds2[f+t] = diag
-            # dic2[f+t] = diag
-    return ds2
+    # time_list = ['1800', '1812', '1900', '1912']
+    # initial_file_list = ['ERA5', 'GDAS']
+
+    model_list = ['1900_90m', '1912_900m', '1912_90m']
+    for model in model_list:
+        path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/'+model+'/'
+        dic_model = {'initial_time':'', 'file_type':model}
+        # flnm = 'YSU_'+t
+        flnm = 'upar.nc'
+        path_in = path_main+flnm
+        diag = draw_wrf(path_in, dic_model)
+    #     # ds2[f+t] = diag
+    #     # dic2[f+t] = diag
+    # return ds2
 
 def draw_1km():
     pass
@@ -287,8 +287,8 @@ def get_diag():
 if __name__ == '__main__':
     pass
     #### 
-    draw_1km()
-    # draw_wrf_all()
+    # draw_1km()
     # draw_micaps()
+    draw_wrf_all()
     ## 需要决定是否注释117行的return, 不注释了则运行快一些，否则会慢一些
     # get_diag() ## 如果要计算的话，draw里面的return 位置要放在上面

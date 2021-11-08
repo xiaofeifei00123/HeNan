@@ -2,7 +2,14 @@
 # -*- encoding: utf-8 -*-
 '''
 Description:
-读取聚合wrf高空数据
+
+其实很简单，先插值到一个站点
+然后再插值到垂直层
+读取单个和多个站的wrf逐层数据
+目的是为了多插值几层
+
+
+
 保存
 原始网格数据
 插值成latlon网格数据
@@ -153,58 +160,6 @@ def combine():
 
         
 
-def regrid():
-    """
-    将combine得到的数据，插值到latlon格点上
-    将二维的latlon坐标水平插值到一维的latlon坐标上
-    """
-    time_list = ['1800', '1812', '1900', '1912']
-    initial_file_list = ['ERA5', 'GDAS']
-    for f in initial_file_list:
-        # time_list = ['1800']
-        # path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/ERA5/'
-        path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/'+f+'/'
-        # gu = GetUpar()
-        area = {
-            'lon1':107-1,
-            'lon2':135+1,
-            'lat1':20-1,
-            'lat2':40+1,
-            'interval':0.5,
-        }
-        for t in time_list:
-            # path_wrfout = path_main+'YSU_'+t+'/'
-            # ds = gu.get_upar(path_wrfout)
-            flnm = 'YSU_'+t
-            path_in = path_main+flnm+'_upar_d02.nc'
-            ds = xr.open_dataset(path_in)
-            ds_out = regrid_xesmf(ds, area)
-            path_out = path_main+flnm+'_upar_d02_latlon.nc'
-            ds_out = ds_out.rename({'ua':'u', 'va':'v', 'geopt':'height'})
-            ds_out.to_netcdf(path_out)
-
-            
-def regrid_one():
-    """
-    将combine得到的数据，插值到latlon格点上
-    将二维的latlon坐标水平插值到一维的latlon坐标上
-    """
-    # ax2.set_extent([110, 116, 32, 37], crs=ccrs.PlateCarree())
-    area = {
-        'lon1':110-1,
-        'lon2':116+1,
-        'lat1':32-1,
-        'lat2':36+1,
-        'interval':0.125,
-    }
-    path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/'
-    flnm = 'upar.nc'
-    path_in = path_main+flnm
-    ds = xr.open_dataset(path_in)
-    ds_out = regrid_xesmf(ds, area)
-    path_out = path_main+'upar_latlon.nc'
-    ds_out = ds_out.rename({'ua':'u', 'va':'v', 'geopt':'height'})
-    ds_out.to_netcdf(path_out)
 
 
 # %%
