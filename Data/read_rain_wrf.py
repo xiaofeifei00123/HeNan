@@ -16,11 +16,13 @@ import xarray as xr
 import os
 import xesmf as xe
 import numpy as np
+import wrf
+import netCDF4 as nc
 from baobao.interp import regrid_xesmf
-from baobao.coord_transform import xy_ll
+# from baobao.coord_transform import xy_ll
 # import wrf
 
-
+# %%
 
 # %%
 def combine_rain(path):
@@ -45,62 +47,93 @@ def combine_rain(path):
         print(fl[-18:])
         ds = xr.open_dataset(fl)
         da = ds['RAINNC']-r
-        r = ds['RAINNC'].values
+        r = ds['RAINNC'].values.round(1)
 
         dda = da.squeeze()  # 该是几维的就是几维的
         dc = dda.rename({'XLAT':'lat', 'XLONG':'lon', 'XTIME':'time'})
         dds_list.append(dc)
     da_concate = xr.concat(dds_list, dim='time') # 原始的， 未经坐标变化的降水
-
-    ## 改变坐标, add latlon coords
-    latlon = xy_ll(fl)  # 获得所有点的经纬度坐标
-    rain = xr.DataArray(
-                da_concate.values.round(1), # 降水精确到1位小数
-                coords={
-                    'time':da_concate.time.values,
-                    'lat':latlon['lat'].round(3),  # 经纬度精确到3位
-                    'lon':latlon['lon'].round(3),
-                },
-                dims=['time', 'lat', 'lon']
-            )
-    # ds.to_netcdf(path_dic['path_rain'])
+    rain = da_concate.round(1)
     return rain
 
 # %%
-def grid2station(flnm_obs, flnm_wrf, area):
-    """将格点数据插值为站点数据, 
-    都是多时间尺度的数据
+# path = '/mnt/zfm_18T/fengxiang/HeNan/Data/1912_900m/'
+# rain = combine_rain(path)
+# rain
+
+# %%
+# flnm_obs = '/mnt/zfm_18T/fengxiang/HeNan/Data/OBS/rain_station.nc'
+# 特定区域范围内观测的站点数据
+# da_obs = xr.open_dataarray(flnm_obs)
+# wrf输出后转化的latlon格点数据
+
+## 构建插值区域
+# %%
+# cc = da_obs.isel(time=0)
+# sta = cc.id.values
+# wrfin = nc.Dataset('/mnt/zfm_18T/fengxiang/HeNan/Data/1912_900m/wrfout_d04_2021-07-19_12:00:00')
+# x, y = wrf.ll_to_xy(wrfin, cc.lat, cc.lon)
+# rain_station = rain.sel(south_north=y, west_east=x)
+# rain_station
+
+# %%
+# rain_station.drop_vars(['latlon_coord'])
+# rain_station.to_netcdf('ttt.nc')
+
+
+
+
+# lon = xr.DataArray(cc.lon.values, coords=[sta], dims=['sta'])
+# lat = xr.DataArray(cc.lat.values, coords=[sta], dims=['sta'])
+# ## 插值
+# # rr = da_wrf.interp(lon=lon, lat=lat, method='nearest').round(1)
+# rr = da_wrf.interp(lon=lon, lat=lat, method='linear').round(1)
+# xr.DataArray.interp
+
+
+
+
+# %%
+def grid2station(flnm_obs, flnm_wrf, flnm_wrfout='/mnt/zfm_18T/fengxiang/HeNan/Data/1912_900m/wrfout_d04_2021-07-19_12:00:00'):
+    """将格点数据插值为站点数据
+
+    Args:
+        flnm_obs ([type]): 多时次聚合的站点数据
+        flnm_wrf ([type]): 多时次聚合的wrfout数据, 某个变量的，例如RAINNC
+        flnm_wrfout ([type]): 原始的wrfout数据
 
     Returns:
-        [type]: [description]
-    """
+        da_station: 从wrf数据插值出来的和观测经纬度一致的格点数据
+    """    
 
+    print("插值数据到站点")
     # 特定区域范围内观测的站点数据
     da_obs = xr.open_dataarray(flnm_obs)
     # wrf输出后转化的latlon格点数据
     da_wrf = xr.open_dataarray(flnm_wrf)
 
-    ## 构建插值区域
     cc = da_obs.isel(time=0)
-    sta = cc.id.values
-    lon = xr.DataArray(cc.lon.values, coords=[sta], dims=['sta'])
-    lat = xr.DataArray(cc.lat.values, coords=[sta], dims=['sta'])
-    ## 插值
-    # rr = da_wrf.interp(lon=lon, lat=lat, method='nearest').round(1)
-    rr = da_wrf.interp(lon=lon, lat=lat, method='linear').round(1)
-    xr.DataArray.interp
-    return rr
+    # sta = cc.id.values
+    wrfin = nc.Dataset(flnm_wrfout)
+    x, y = wrf.ll_to_xy(wrfin, cc.lat, cc.lon)
+    da_station = da_wrf.sel(south_north=y, west_east=x)
+    da_station = da_station.drop_vars(['latlon_coord'])
+    da_station = da_station.rename({'idx':'sta'})
+    # print(da_station)
+
+    return da_station
 
 
 # %%
 def regrid_latlon(flnm_rain, area):
     """
-    将combine得到的数据，
+    将combine得到的数据()，
     插值到格距较粗的latlon格点上, 
     也包含有投影转换的需求
     插值到latlon格点上
     将二维的latlon坐标水平插值到一维的latlon坐标上
     """
+    print("插值数据到网格点")
     ds = xr.open_dataset(flnm_rain)
     ds_out = regrid_xesmf(ds, area, rd=1)
     return ds_out
@@ -116,6 +149,7 @@ def save_one(path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/1900_90m/'):
 
     path_dic = {
         'path_main':path_main,  # 模式数据文件夹
+        'path_wrfout':'/mnt/zfm_18T/fengxiang/HeNan/Data/1900_90m/wrfout_d04_2021-07-19_00:00:00', # 原始的一个wrfout数据，获得投影需要
         'path_rain_wrf_grid':path_main+'rain.nc', # 原始降水数据存储路径+文件名
         'path_rain_wrf_latlon':path_main+'rain_latlon.nc',  # 插值到latlon之后的文件名
         'path_rain_wrf_station':path_main+'rain_station.nc',  # 插值到站点之后的文件名
@@ -133,13 +167,13 @@ def save_one(path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/1900_90m/'):
     da = combine_rain(path_main)
     da.to_netcdf(path_dic['path_rain_wrf_grid'])
 
-    ## 降低分辨率
+    ## 降低分辨率和转换投影
     # regrid_rain_model(path_dic, area)
     da1 = regrid_latlon(path_dic['path_rain_wrf_grid'], area)
     da1.to_netcdf(path_dic['path_rain_wrf_latlon'])
 
     ## 插值到站点
-    da2 = grid2station(path_dic['path_rain_obs_station'], path_dic['path_rain_wrf_grid'],area)
+    da2 = grid2station(path_dic['path_rain_obs_station'], path_dic['path_rain_wrf_grid'],path_dic['path_wrfout'])
     da2.to_netcdf(path_dic['path_rain_wrf_station'])
     pass
 
@@ -156,6 +190,7 @@ if __name__ == '__main__':
 
     pass
     # main()
+    # save_one()
     dual()
 
 
