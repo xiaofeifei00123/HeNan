@@ -43,11 +43,6 @@ def draw_screen_poly(lats, lons):
     plt.gca().add_patch(poly)
 
 
-
-
-
-
-
 def create_map(info):
     """创建一个包含青藏高原区域的Lambert投影的底图
 
@@ -75,7 +70,7 @@ def create_map(info):
     proj = ccrs.PlateCarree()  # 创建坐标系
     ## 创建坐标系
     fig = plt.figure(figsize=(6, 5), dpi=300)  # 创建页面
-    ax = fig.add_axes([0.08, 0.02, 0.85, 0.95], projection=proj_lambert)
+    ax = fig.add_axes([0.1, 0.1, 0.85, 0.85], projection=proj_lambert)
 
     ## 读取青藏高原地形文件
     Province = cfeat.ShapelyFeature(
@@ -87,9 +82,30 @@ def create_map(info):
         facecolor='none',
         alpha=1.)
 
+    Henan = cfeat.ShapelyFeature(
+        # Reader('/mnt/zfm_18T/fengxiang/DATA/SHP/Province_shp/henan.shp').geometries(),
+        Reader('/mnt/zfm_18T/fengxiang/DATA/SHP/shp_henan/henan.shp').geometries(),
+        proj,
+        edgecolor='black',
+        lw=1.,
+        linewidth=1.,
+        facecolor='none',
+        alpha=1.)
+    city = cfeat.ShapelyFeature(
+        Reader('/mnt/zfm_18T/fengxiang/DATA/SHP/shp_henan/zhenzhou/zhenzhou_max.shp').geometries(),
+        proj,
+        edgecolor='black',
+        lw=2.,
+        linewidth=2.,
+        facecolor='none',
+        alpha=1.)
     ## 将青藏高原地形文件加到地图中区
-    ax.add_feature(Province, linewidth=0.5, zorder=2)
-    ax.coastlines()
+    # ax.add_feature(Province, linewidth=0.5, zorder=2, linestyle=':')
+    # ax.add_feature(Henan, linewidth=0.5, zorder=2)
+    ax.add_feature(city, linewidth=0.5, zorder=2)
+    ax.coastlines(linestyle=':')
+    # import cartopy.feature as cfeature
+    # ax.add_feature(cfeature.BORDERS, linestyle=':')
 
     ## --设置网格属性, 不画默认的标签
     gl = ax.gridlines(draw_labels=True,
@@ -111,8 +127,8 @@ def create_map(info):
 
     gl.xformatter = LONGITUDE_FORMATTER  #使横坐标转化为经纬度格式
     gl.yformatter = LATITUDE_FORMATTER
-    gl.xlocator = mticker.FixedLocator(np.arange(100, 140, 5))
-    gl.ylocator = mticker.FixedLocator(np.arange(10, 55, 5))
+    gl.xlocator = mticker.FixedLocator(np.arange(90, 140, 5))
+    gl.ylocator = mticker.FixedLocator(np.arange(10, 50, 5))
     gl.xlabel_style = {'size': 10}  #修改经纬度字体大小
     gl.ylabel_style = {'size': 10}
     ax.spines['geo'].set_linewidth(0.6)  #调节边框粗细
@@ -122,13 +138,13 @@ def create_map(info):
                   crs=proj_lambert)
 
     # 标注d01, 这个位置需要根据经纬度手动调整
-    ax.text(65,
-            50,
-            'd01',
-            transform=ccrs.PlateCarree(),
-            fontdict={
-                'size': 14,
-            })
+    # ax.text(65,
+    #         50,
+    #         'd01',
+    #         transform=ccrs.PlateCarree(),
+    #         fontdict={
+    #             'size': 14,
+    #         })
 
     return ax
 
@@ -165,6 +181,7 @@ def get_information(flnm):
     def get_var(var, pattern=pattern, fr=fr):
         """处理正则表达式得到的数据"""
         ff1 = re.search(pattern[var], fr, flags=0)
+        # print(ff1)
         str_f1 = ff1.group(0)
 
         str1 = str_f1.replace('=', ',')
@@ -297,17 +314,21 @@ def draw_d02(info):
         draw_screen_poly(lat, lon)
 
 
-def draw_station():
+def draw_station(ax):
     """画站点
     """
     station = {
         'ZhengZhou': {
-            'lat': 34.5,
-            'lon': 113
+            'lat': 34.76,
+            'lon': 113.65
         },
         'YanHua': {
             'lat': 22.4,
             'lon': 132.5
+        },
+        'ChaPaka': {
+            'lat': 21.1,
+            'lon': 112.9,
         },
         # 'LS': {
         #     'lat': 29.6,
@@ -370,16 +391,25 @@ def draw_station():
                  fontdict={
                      'size': 9,
                  })
-
-
-if __name__ == '__main__':
-    file_folder = "./"
-    file_name = "namelist.wps"
+def draw():
+    pass
+    file_folder = "/mnt/zfm_18T/fengxiang/HeNan/Figure_domain/"
+    file_name = "namelist.wps.yyx"
     flnm = file_folder + file_name
 
     info = get_information(flnm)  # 获取namelist.wps文件信息
     # print(info['ref_lat'])
     ax = create_map(info)  # 在domain1区域内，添加地理信息，创建底图
+    print("创建地图完毕")
     draw_d02(info)  # 绘制domain2区域
-    draw_station()
-    plt.savefig("domain_lyh.png")
+    # print("绘制完毕")
+
+    draw_station(ax)
+    # print("标注站点完毕")
+    fig_name = file_folder+'domainyyx.png'
+    plt.savefig(fig_name)
+
+if __name__ == '__main__':
+    draw()
+
+# %%

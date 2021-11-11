@@ -46,8 +46,8 @@ def combine_rain(path):
     for fl in fl_list:
         print(fl[-18:])
         ds = xr.open_dataset(fl)
-        da = ds['RAINNC']-r
-        r = ds['RAINNC'].values.round(1)
+        da = ds['RAINNC']+ds['RAINC']+ds['RAINSH']-r
+        r = (ds['RAINNC']+ds['RAINC']+ds['RAINSH']).values.round(1)
 
         dda = da.squeeze()  # 该是几维的就是几维的
         dc = dda.rename({'XLAT':'lat', 'XLONG':'lon', 'XTIME':'time'})
@@ -109,7 +109,7 @@ def grid2station(flnm_obs, flnm_wrf, flnm_wrfout='/mnt/zfm_18T/fengxiang/HeNan/D
     print("插值数据到站点")
     # 特定区域范围内观测的站点数据
     da_obs = xr.open_dataarray(flnm_obs)
-    # wrf输出后转化的latlon格点数据
+    # wrf输出后聚合到一起的多时间维度数据
     da_wrf = xr.open_dataarray(flnm_wrf)
 
     cc = da_obs.isel(time=0)
@@ -181,7 +181,7 @@ def dual():
     """处理多个模式的数据
     """
     pass
-    model_list = ['1900_90m', '1912_900m', '1912_90m', 'YJF']
+    model_list = ['1900_90m', '1900_900m','1912_900m', '1912_90m',]
     for model in model_list:
         path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/'+model+'/'
         save_one(path_main)

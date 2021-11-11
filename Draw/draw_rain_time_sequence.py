@@ -162,9 +162,13 @@ class Draw():
 if __name__ == '__main__':
     # main()
     pass
+    # %%
+    import xarray as xr
     flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/Rain/rain_all_station.nc'
     ds = xr.open_dataset(flnm)
+    ds
 
+    # %%
     ##  根据da范围获得ds范围
     # ds = xr.open_dataset(flnm)
     # area = {

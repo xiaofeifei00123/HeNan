@@ -18,7 +18,6 @@ Author           :fengxiang
 Version          :1.1
 '''
 
-
 # %%
 import xarray as xr
 import os
@@ -32,17 +31,42 @@ from multiprocessing import Pool
 # from baobao.caculate import caculate_q_rh_thetav
 # from baobao.interp import regrid_xesmf
 from baobao.caculate import caculate_q_rh_thetav
-from baobao.coord_transform import xy_ll
-from netCDF4 import MFDataset
+# from baobao.coord_transform import xy_ll
+# from netCDF4 import MFDataset
 
 # %%
 
+def get_centroid(flnm= '/mnt/zfm_18T/fengxiang/HeNan/Data/1912_900m/rain.nc', t_start='2021-07-20 00', t_end='2021-07-20 12'):
+    """获得一段时间降水的质心
+    根据降水聚合文件获取
+
+    Args:
+        flnm (str, optional): 原始wrfout降水数据的聚合. Defaults to '/mnt/zfm_18T/fengxiang/HeNan/Data/1912_900m/rain.nc'.
+        t_start (str, optional): 起始时间. Defaults to '2021-07-20 00'.
+        t_end (str, optional): 结束时间. Defaults to '2021-07-20 12'.
+
+    Returns:
+        [type]: [description]
+    """
+    flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/1912_900m/rain.nc'
+    da = xr.open_dataarray(flnm)
+    # tt = slice('2021-07-20 00', '2021-07-20 12')
+    tt = slice(t_start, t_end)
+    rain = da.sel(time=tt).sum(dim='time')
+    lat = sum(sum(rain*rain.lat))/sum(sum(rain))
+    lon = sum(sum(rain*rain.lon))/sum(sum(rain))
+    lon = lon.round(3)
+    lat = lat.round(3)
+    return lat, lon
 # 我其实想要获得的是某一个点的多个变量, 但是变量只能一个一个获取
+
 def sounding_1station_1time(flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/1900_90m/wrfout_d04_2021-07-19_00:00:00'):
     # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/1900_90m/wrfout_d04_2021-07-19_00:00:00'
     print(flnm[-19:])
     wrfnc = nc.Dataset(flnm)
-    x,y = wrf.ll_to_xy(wrfnc, 34.71, 113.66)
+    lat, lon = get_centroid()
+    # x,y = wrf.ll_to_xy(wrfnc, 34.71, 113.66)
+    x,y = wrf.ll_to_xy(wrfnc, lat, lon)
 
     hagl = wrf.getvar(wrfnc, 'height_agl', units='m')[:,x,y]  # 先纬度后经度
     # pj = str(hagl.attrs['projection'])
@@ -134,7 +158,7 @@ def combine():
     将wrfout数据中需要的变量聚合成一个文件，并进行相关的垂直插值, 和诊断量的计算
     处理两种模式，不同时次的数据
     """
-    model_list = ['1900_90m', '1912_90m', '1912_900m']
+    model_list = ['1900_90m', '1900_900m','1912_90m', '1912_900m']
     for model in model_list:
         combine_one(model)
 

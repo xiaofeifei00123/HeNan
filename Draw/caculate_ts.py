@@ -30,17 +30,6 @@ import seaborn as sns
 
 
 
-# %%
-def contourf():
-    """验证数据的正确性
-    """
-    flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/rain_all.nc'
-    ds = xr.open_dataset(flnm)
-    ds = ds.drop_vars('EC')
-    dds = ds.sel(time=slice('2021-07-19 1200', '2021-07-20 1200')).sum(dim='time')
-    da = dds['ERA51912']
-    da
-    draw_contourf_quick(da)
 
 # %%
 
@@ -52,7 +41,7 @@ class Caculate():
         self.rain = rain
         # self.threshold = threshold
         # self.model_list = ['ERA51800','ERA51812','ERA51900','ERA51912','GDAS1800','GDAS1812','GDAS1900','GDAS1912',]
-        self.model_list = ['1900_90m', '1912_90m', '1912_900m']
+        self.model_list = ['1900_90m', '1900_900m','1912_90m', '1912_900m']
 
     def get_two_scale(self, threshold):
         # flag = 'all'
@@ -149,7 +138,7 @@ class Caculate():
         # rain = rd.get_rain_times()
         # print(rain)
         # model_list = ['ACM2', 'YSU', 'QNSE', 'QNSE_EDMF', 'TEMF']
-        model_list = ['1900_90m', '1912_90m', '1912_900m']
+        model_list = ['1900_90m', '1900_900m','1912_90m', '1912_900m']
 
         MAE = {} # 平均绝对误差
         RMSE = {} # 均方根误差
@@ -212,8 +201,8 @@ def get_ts():
     # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/rain_all.nc'
     flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/Rain/rain_all_station.nc'
     ds = xr.open_dataset(flnm)
-    ds = ds.drop_vars('YJF')
     dds = ds.sel(time=slice('2021-07-20 0000', '2021-07-20 1200')).sum(dim='time')
+    # print(dds)
     ca = Caculate(dds)
     threshold_list = [0.1, 5, 15, 30, 70, 140]
     rain_list = ['小雨', '中雨', '大雨', '暴雨', '大暴雨', '特大暴雨']
@@ -227,9 +216,6 @@ def get_ts():
         ts_list.append(da)
     dda = xr.concat(ts_list, pd.Index(threshold_list, name='threshold'))
     return dda
-    # dda.sel(threshold=0.1)
-# ts = get_ts()
-# ts
 # %%
 ##### 画图
 def draw_bar(ts):
@@ -244,15 +230,16 @@ def draw_bar(ts):
     ds = ts.to_dataset(dim='model')
 
     # model_list = ['ERA51800','ERA51812','ERA51900','ERA51912','GDAS1800','GDAS1812','GDAS1900','GDAS1912',]
-    model_list = ['1900_90m','1912_90m','1912_900m']
+    model_list = ['1900_90m','1900_900m','1912_90m','1912_900m']
     # color_list = ['green', 'blue','orange', 'red',  'green', 'blue','orange', 'red', ]
     # color_list = ['darkgreen', 'darkblue','darkorange', 'darkred',  'green', 'cornflowerblue', 'orange', 'red',]
+    # color_list = ['green', 'blue','orange', 'red',  'darkgreen', 'darkblue', 'darkorange', 'darkred',]
     color_list = ['green', 'blue','orange', 'red',  'darkgreen', 'darkblue', 'darkorange', 'darkred',]
     # hatch_list = ['.','.','.','.','x','x','x','x',]
     width = 0.20
     fig = plt.figure(figsize=(12, 8), dpi=300)  # 创建页面
     ax = fig.add_axes([0.05,0.1, 0.92,0.8])
-    i = -1
+    i = -2
     j = 0
     for model in model_list:
         # rects = ax.bar(x+width*i, ds[model], width, label=model, facecolor='white', edgecolor=color_list[j], hatch=hatch_list[j])
@@ -261,12 +248,12 @@ def draw_bar(ts):
         i += 1
         j += 1
     ax.set_xticks(x)
-    ax.set_xticklabels(labels, fontsize=18)
+    ax.set_xticklabels(labels, fontsize=20)
     ax.set_yticks(np.arange(0,1.1,0.1))
     # ax.set_yticklabels(fontsize=24)
-    ax.tick_params(axis='both', labelsize=19, direction='out')
-    ax.legend(fontsize=20, edgecolor='white', loc='upper right')
-    ax.set_title('TS', fontsize=24)
+    ax.tick_params(axis='both', labelsize=20, direction='out')
+    ax.legend(fontsize=24, edgecolor='white', loc='upper right')
+    ax.set_title('TS', fontsize=28)
     fig.savefig('/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_rain/ts_score.png')
 if __name__ == '__main__':
     pass
