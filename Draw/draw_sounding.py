@@ -219,7 +219,7 @@ def draw_wrf_all():
     # time_list = ['1800', '1812', '1900', '1912']
     # initial_file_list = ['ERA5', 'GDAS']
 
-    model_list = ['1900_90m', '1912_900m', '1912_90m']
+    model_list = ['1900_90m', '1900_900m','1912_900m', '1912_90m']
     for model in model_list:
         path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/'+model+'/'
         dic_model = {'initial_time':'', 'file_type':model}

@@ -143,7 +143,7 @@ def draw_1time(t='2021-07-20 09'):
         draw(t=t, flpath=fl)
 
 def draw_mtime():
-    time_list = pd.date_range('2021-07-20 00', '2021-07-20 12', freq='3H')
+    time_list = pd.date_range('2021-07-20 00', '2021-07-20 12', freq='1H')
     for t in time_list:
         draw_1time(t)
     pass

@@ -70,8 +70,8 @@ class Caculate():
             # print(rain_model.max())
             print("计算 %s" %model)
             hfmc = mem.hfmc(rain_obs, rain_model, grade_list=[threshold])   # 这里算的都是平均值的评分, 我想要的是评分的平均值, 也就是要算每个时次的评分
-            # ETS[model] = mem.ets_hfmc(hfmc) 
-            TS[model] = mem.ts_hfmc(hfmc) 
+            TS[model] = mem.ets_hfmc(hfmc) 
+            # TS[model] = mem.ts_hfmc(hfmc) 
             Accuracy[model] = mem.pc_hfmc(hfmc)
             # POFD[model] = mem.pofd_hfmc(hfmc)
             # POFD[model] = mem.far_hfmc(hfmc)
@@ -201,10 +201,12 @@ def get_ts():
     # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/rain_all.nc'
     flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/Rain/rain_all_station.nc'
     ds = xr.open_dataset(flnm)
-    dds = ds.sel(time=slice('2021-07-20 0000', '2021-07-20 1200')).sum(dim='time')
+    # dds = ds.sel(time=slice('2021-07-20 0000', '2021-07-20 1200')).sum(dim='time')
+    dds = ds.sel(time=slice('2021-07-20 0000', '2021-07-21 0000')).sum(dim='time')
     # print(dds)
     ca = Caculate(dds)
-    threshold_list = [0.1, 5, 15, 30, 70, 140]
+    # threshold_list = [0.1, 5, 15, 30, 70, 140]
+    threshold_list=[0.1, 10, 25.0, 50, 100, 250]#雨量等级
     rain_list = ['小雨', '中雨', '大雨', '暴雨', '大暴雨', '特大暴雨']
     ts_list = []
     for threshold in threshold_list:
@@ -223,7 +225,8 @@ def draw_bar(ts):
     # labels = list(threshold_list.astype('str').values)
     # rain_list = ['小雨', '中雨', '大雨', '暴雨', '大暴雨', '特大暴雨']
     # threshold_list = [0.1, 5, 15, 30, 70, 140]
-    rain_list = ['小雨≥0.1', '中雨≥5', '大雨≥15', '暴雨≥30', '大暴雨≥70', '特大暴雨≥140']
+    # rain_list = ['小雨≥0.1', '中雨≥5', '大雨≥15', '暴雨≥30', '大暴雨≥70', '特大暴雨≥140']
+    rain_list = ['小雨≥0.1', '中雨≥10', '大雨≥25', '暴雨≥50', '大暴雨≥100', '特大暴雨≥250']
     labels = rain_list
     x = np.arange(len(labels))
     ds = ts
@@ -249,11 +252,13 @@ def draw_bar(ts):
         j += 1
     ax.set_xticks(x)
     ax.set_xticklabels(labels, fontsize=20)
-    ax.set_yticks(np.arange(0,1.1,0.1))
+    # ax.set_yticks(np.arange(0,1.1,0.1))
+    ax.set_yticks(np.arange(0,0.7,0.1))
+    ax.set_ylim(0,0.7)
     # ax.set_yticklabels(fontsize=24)
     ax.tick_params(axis='both', labelsize=20, direction='out')
     ax.legend(fontsize=24, edgecolor='white', loc='upper right')
-    ax.set_title('TS', fontsize=28)
+    ax.set_title('ETS', fontsize=28)
     fig.savefig('/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_rain/ts_score.png')
 if __name__ == '__main__':
     pass

@@ -18,19 +18,6 @@ import cmaps
 from get_cmap import get_cmap_rain2
 from multiprocessing import Pool
 
-flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/OBS/rain_station.nc'
-# flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/OBS/rain_era.nc'
-da_rain_all = xr.open_dataarray(flnm)
-# da_rain = da_rain_all.sel(time=slice('2021-07-20 08', '2021-07-20 20'))  # 24小时逐小时降水
-da_rain = da_rain_all.sel(time=slice('2021-07-20 00', '2021-07-20 12'))  # 24小时逐小时降水
-# da_rain = da_rain_all.sel(time=slice('2021-07-19 08', '2021-07-21 08'))  # 24小时逐小时降水
-# dd
-# da_rain = da_rain_all.isel(dtime=0)
-dd = da_rain.sum(dim='time')
-
-
-# %%
-
 
 # %%
 
@@ -258,6 +245,20 @@ class Draw(object):
         # pass
 
 # dd
+# flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/OBS/rain_station.nc'
+flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/OBS/rain_latlon.nc'
+# flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/OBS/rain_era.nc'
+da_rain_all = xr.open_dataarray(flnm)
+# da_rain = da_rain_all.sel(time=slice('2021-07-20 08', '2021-07-20 20'))  # 24小时逐小时降水
+# da_rain = da_rain_all.sel(time=slice('2021-07-20 00', '2021-07-20 12'))  # 24小时逐小时降水
+da_rain = da_rain_all.sel(time=slice('2021-07-19 16', '2021-07-21 04'))  # 24小时逐小时降水
+# dd
+# da_rain = da_rain_all.isel(dtime=0)
+dd = da_rain.sum(dim='time')
+
+
+# %%
+
 dr = Draw()
 # dr.draw_single(dd, '20_08-20_20')
 dr.draw_single(dd, '2021-07, 2000--2012')

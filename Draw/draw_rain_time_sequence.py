@@ -31,27 +31,16 @@ import matplotlib.pyplot as plt
 plt.rcParams['font.family'] = ['sans-serif']
 plt.rcParams['font.sans-serif'] = ['SimHei']
 plt.rcParams['axes.unicode_minus'] = False
-# %%
-# flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/Rain/rain_all_station.nc'
-# ds = xr.open_dataset(flnm)
-# ds['OBS'].sel(time=slice('2021-07-19 12', '2021-07-20 12'))
-# # ds['OBS'].sel(time=slice([]))
 
-# flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/Rain/rain_all_station.nc'
-# ds = xr.open_dataset(flnm)
-# area = {
-#     'lon1':112.5,
-#     'lon2':114,
-#     'lat1':34,
-#     'lat2':35,
-#     'interval':0.125,
-# }
-# da = ds['OBS']
-# # da = rain_st
-# index = ((ds.lat<=area['lat2']) & (ds.lat>=area['lat1']) & (ds.lon>=area['lon1']) & (ds.lon<=area['lon2']))
-# sta = da[:,index].sta
-# ds.sel(sta=sta)
-# ds.sel(lon=slice('112.5, 114'))
+# %%
+
+
+flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/Rain/rain_all_station.nc'
+ds = xr.open_dataset(flnm)
+# %%
+ds.lat.max()
+
+
 
 # %%
 class Draw():
@@ -76,20 +65,7 @@ class Draw():
         x_label = x_label.dt.strftime('%d/%H')
 
 
-        # x_label = x_label.dt.strftime("%H")  # 转换时间维字符串格式
-        # y = QNSE.values
-        # module_list = ['obs', 'ACM2','YSU', 'QNSE', 'QNSE_EDMF', 'TEMF']
-        # x = np.arange(len(x_label))
-        # print(x)
-
-
-        # ccolor = ['black','m', 'green', 'cyan', 'blue', 'red', 'green','cyan','blue','red'  ]
-        # ccolor = ['black','gray', 'green', 'darkorange', 'blue', 'red', 'green','darkorange','blue','red'  ]
-        ccolor = ['red', 'blue', 'green', 'black', 'blue', 'blue','green','green','green','green'  ]
-        # lline_style = ['-', '-', '-', '--', '-.', ':','-', '--', '-.', ':']
-        # lline_style = ['-', '-', '--', '--', '--', '--',':', ':', ':', ':']
-        # lline_style = ['-', '-', '--', '--', '--', '--',':', ':', ':', ':']
-        # lline_style = ['-', '-', '--', '--', '--', '--','-.', '-.', '-.', '-.']
+        ccolor = ['green', 'blue', 'orange', 'red', 'black', 'blue','green','green','green','green'  ]
         lline_style = ['-', '-', '-', '-', '-', '-','-.', '-.', '-.', '-.']
         mmarker = ['o', 'o', '^', '^', '^', '^', '*', '*', '*', '*']
         custom_cycler = (
@@ -114,28 +90,15 @@ class Draw():
 
         # ax.set_xticks(x_label[::24])  # 这个是选择哪几个坐标画上来的了,都有只是显不显示
         ax.set_xticks(x_label[::4])  # 这个是选择哪几个坐标画上来的了,都有只是显不显示
-        # ax.set_yticks(np.arange(0, 230, 20))
-        # ax.set_yticks(pic_dic['yticks'])
-        
-        # ax.set_yticks(np.arange(0, 20.1, 1))
-        # ax.xaxis.set_tick_params(labelsize=15)
-        # ax.xaxis.set_tick_params(labelsize=self.fontsize*1.8, rotation=45)
         ax.xaxis.set_tick_params(labelsize=self.fontsize*2.0)
         ax.yaxis.set_tick_params(labelsize=self.fontsize*2.0)
         ax.tick_params(which='major',length=8,width=1.0) # 控制标签大小 
         ax.tick_params(which='minor',length=4,width=0.5)  #,colors='b')
         ax.xaxis.set_minor_locator(plt.MultipleLocator(1))
         ax.yaxis.set_minor_locator(plt.MultipleLocator(5))
-        # ax.set_yticks(np.arange(0, 5.01, 0.1))  # 这个是选择哪几个坐标画上来的了,都有只是显不显示
-        # ax.set_ylim(0,5.1)
-        # ax.set_ylim(0.0,0.6)
-        # ax.set_xlabel("Time(Jul2021, UTC)", fontsize=self.fontsize*2.5)
         ax.set_xlabel("Date/Hour (UTC)", fontsize=self.fontsize*2.5)
         ax.set_ylabel("Precipitation (mm)", fontsize=self.fontsize*2.5)
-        # ax.legend()
         ax.legend(fontsize=self.fontsize*2.0, edgecolor='white')
-        # ax.set_title("201607", fontsize=18)
-        # fig.savefig('/home/fengxiang/Project/Asses_pbl_July/Draw/Rain/time_sequecnce.png')
     
 
     def draw_single(self, rain, pic_dic):
@@ -159,50 +122,13 @@ class Draw():
         flnm = self.path+'time_sequence'+"_"+title+'.png'   # 这里要改
         fig.savefig(flnm)
 
-if __name__ == '__main__':
-    # main()
+def draw_area_max():
     pass
-    # %%
-    import xarray as xr
     flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/Rain/rain_all_station.nc'
+    # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/Rain/rain_all_station_cst.nc'
     ds = xr.open_dataset(flnm)
-    ds
-
-    # %%
-    ##  根据da范围获得ds范围
-    # ds = xr.open_dataset(flnm)
-    # area = {
-    #     'lon1':112.5,
-    #     'lon2':114,
-    #     'lat1':34,
-    #     'lat2':35,
-    #     'interval':0.125,
-    # }
-    # da = ds['OBS']
-    # # da = rain_st
-    # index = ((ds.lat<=area['lat2']) & (ds.lat>=area['lat1']) & (ds.lon>=area['lon1']) & (ds.lon<=area['lon2']))
-    # sta = da[:,index].sta
-    # ds = ds.sel(sta=sta)
-
-
-
-
-
-
-    # ds = ds.loc[:,index]  # 这里时间维度在前
-    # print(ds)
-    # print(index)
-    # print(ds[0])
-
-
-
-    # ds.data_vars
-    ds_max = ds.max(dim='sta').drop_vars(['YJF']).sel(time=slice('2021-07-19 12', '2021-07-20 12'))
-
-    # print(ds_max['OBS'])
-
+    ds_max = ds.max(dim='sta').sel(time=slice('2021-07-19 12', '2021-07-21 00'))
     dr = Draw()
-
     # ## 区域最大降水
     pic_dic_max = {
         # 'title':'max_rain',
@@ -211,7 +137,12 @@ if __name__ == '__main__':
     }
     dr.draw_single(ds_max, pic_dic_max)
 
+def draw_area_mean():
     # ### 区域平均降水
+    flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/Rain/rain_all_station.nc'
+    # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/Rain/rain_all_station_cst.nc'
+    ds = xr.open_dataset(flnm)
+    dr = Draw()
     pic_dic_mean = {
         # 'title':'mean_rain',
         'title':'平均小时降水',
@@ -219,8 +150,97 @@ if __name__ == '__main__':
         # 'yticks':np.arange(0,20,1),
     }
     # ds_mean = get_data_mean()
-    ds_mean = ds.mean(dim='sta').drop_vars(['YJF']).sel(time=slice('2021-07-19 12', '2021-07-20 12'))
-
+    # ds_mean = ds.mean(dim='sta').sel(time=slice('2021-07-19 12', '2021-07-20 12'))
+    ds_mean = ds.mean(dim='sta').sel(time=slice('2021-07-19 12', '2021-07-21 00'))
     dr.draw_single(ds_mean, pic_dic_mean)
+
+def draw_zhenzhou():
+    pass
+    flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/Rain/rain_all_station.nc'
+    ds = xr.open_dataset(flnm)
+    rain  = ds.sel(sta='57083')
+    pic_dic_rain= {
+        # 'title':'mean_rain',
+        'title':'郑州站逐小时降水',
+        'yticks':np.arange(0,210,5),
+        # 'yticks':np.arange(0,20,1),
+    }
+    dr = Draw()
+    dr.draw_single(rain, pic_dic_rain)
+
+def draw_zhenzhou_max():
+    pass
+    flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/Rain/rain_all_station.nc'
+    ds = xr.open_dataset(flnm)
+    area = {
+        'lon1':110,
+        'lon2':116,
+        'lat1':32,
+        'lat2':37,
+        'interval':0.125,
+    }
+    index = ((ds.lat<=area['lat2']) & (ds.lat>=area['lat1']) & (ds.lon>=area['lon1']) & (ds.lon<=area['lon2']))
+    rain = ds.sel(sta=index)
+    rain = rain.max(dim='sta')
+    pic_dic_rain= {
+        'title':'郑州站及周边最大小时降水',
+        'yticks':np.arange(0,210,5),
+    }
+    dr = Draw()
+    dr.draw_single(rain, pic_dic_rain)
+
+def draw_zhenzhou_mean():
+    pass
+    flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/Rain/rain_all_station.nc'
+    ds = xr.open_dataset(flnm)
+    area = {
+        'lon1':112.7,
+        'lon2':114.2,
+        'lat1':34.3,
+        'lat2':34.9,
+        'interval':0.125,
+    }
+    index = ((ds.lat<=area['lat2']) & (ds.lat>=area['lat1']) & (ds.lon>=area['lon1']) & (ds.lon<=area['lon2']))
+    rain = ds.sel(sta=index)
+    rain = rain.mean(dim='sta')
+    pic_dic_rain= {
+        'title':'郑州站及其周边站点平均降水逐小时变化',
+        'yticks':np.arange(0,26,5),
+    }
+    dr = Draw()
+    dr.draw_single(rain, pic_dic_rain)
+if __name__ == '__main__':
+    # main()
+    # draw_zhenzhou()
+    # draw_zhenzhou_max()
+    # draw_zhenzhou_mean()
+    pass
+    # %%
+    # import xarray as xr
+    # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/Rain/rain_all_station.nc'
+    # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/Rain/rain_all_station_cst.nc'
+    # ds = xr.open_dataset(flnm)
+    # ds_max = ds.max(dim='sta').sel(time=slice('2021-07-19 12', '2021-07-21 00'))
+    # dr = Draw()
+    # # ## 区域最大降水
+    # pic_dic_max = {
+    #     # 'title':'max_rain',
+    #     'title':'最大小时降水',
+    #     'yticks':np.arange(0,225+25,25),
+    # }
+    # dr.draw_single(ds_max, pic_dic_max)
+
+    # ### 区域平均降水
+    # pic_dic_mean = {
+    #     # 'title':'mean_rain',
+    #     'title':'平均小时降水',
+    #     'yticks':np.arange(0,3.6,0.5),
+    #     # 'yticks':np.arange(0,20,1),
+    # }
+    # # ds_mean = get_data_mean()
+    # # ds_mean = ds.mean(dim='sta').sel(time=slice('2021-07-19 12', '2021-07-20 12'))
+    # ds_mean = ds.mean(dim='sta').sel(time=slice('2021-07-19 12', '2021-07-21 00'))
+
+    # dr.draw_single(ds_mean, pic_dic_mean)
 
 

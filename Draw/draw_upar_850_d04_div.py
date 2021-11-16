@@ -43,7 +43,8 @@ from metpy.units import units
 from pyproj import CRS
 from metpy import constants
 # from metdig.io.cassandra import get_obs_station
-from caculate_diag import QvDiv
+# from caculate_diag import QvDiv
+from baobao.caculate import QvDiv
 
 
 
@@ -115,6 +116,7 @@ def get_data(dic):
     """
     flnm_wrf = dic['flnm']
     ds_wrf = xr.open_dataset(flnm_wrf)
+    ds_wrf = ds_wrf.rename({'ua':'u', 'va':'v'})
     t = dic['time']
     level = dic['level']
     ds2 = ds_wrf.sel(time=t, pressure=level)
@@ -202,16 +204,37 @@ def draw_contourf(ax, da):
     y = da.lat
     # contour_levels = [-1.5, -1.3, -1.1, -0.9, -0.7, -0.5, -0.3,  -0.1, 0.1,  0.3,  0.5, 0.7, 0.9,  1.1, 1.3, 1.5]
     # contour_levels = [0.2, 0.6, 1.0, 1.4, 1.8, 2.2]
-    contour_levels = np.arange(-2.6, 2.6+0.1, 0.4)
-    colormap = cmaps.ViBlGrWhYeOrRe
-    color_li = ['white', '#6CA6CD', '#436EEE', '#66CD00', '#7FFF00','#cdfd02', 'yellow','#fdaa48','#EE7600','red']
+    # contour_levels = np.arange(-2.6, 2.6+0.1, 0.4)
+    # contour_levels = np.arange(-5.6, 5.6+0.1, 0.4)
+    # contour_levels = np.arange(-2.6, 2.6+0.1, 0.4)*10
+    print(da.max().values, da.min().values)
+    # colormap = cmaps.ViBlGrWhYeOrRe
+    # color_li = ['white', '#6CA6CD', '#436EEE', '#66CD00', '#7FFF00','#cdfd02', 'yellow','#fdaa48','#EE7600','red']
+    # crx = ax.contourf(x,
+    #                     y,
+    #                     da,
+    #                     cmap=colormap,
+    #                     # colors=color_li,
+    #                     levels=contour_levels,
+    #                     # levels=10,
+    #                     transform=ccrs.PlateCarree())
+
+    colordict=['#191970','#005ffb','#5c9aff','#98ff98','#ddfddd','#FFFFFF','#fffde1','#ffff9e', '#ffc874','#ffa927', '#ff0000']#颜色列表
+    # colorlevel=[-8, -3, -2, -1, -0.5, -0.1, 0.1, 0.5, 1, 2, 3, 8]#雨量等级
+    colorlevel=[-80, -3, -2, -1, -0.5, -0.1, 0.1, 0.5, 1, 2, 3, 80]#雨量等级
+    colorticks=[-3, -2, -1, -0.5, -0.1, 0.1, 0.5, 1, 2, 3,]#雨量等级
+    # colorticks=[-30, -20, -10, -5, -1, 1, 5, 10, 20, 30]#雨量等级
     crx = ax.contourf(x,
                         y,
-                        da,
-                        cmap=colormap,
-                        # colors=color_li,
-                        levels=contour_levels,
-                        transform=ccrs.PlateCarree())
+                        da.values,
+                        colors=colordict,
+                        levels=colorlevel,
+                        transform=ccrs.PlateCarree()
+    )
+
+
+
+
     return crx
 
 def draw_contour(ax, da, **kw):
@@ -237,8 +260,10 @@ def draw_quiver(u,v, ax):
     '''
     绘制风矢图
     '''
-    u = u[::3,::3]
-    v = v[::3,::3]
+    # u = u[::3,::3]
+    # v = v[::3,::3]
+    u = u[::30,::30]
+    v = v[::30,::30]
     y = u.lat.values
     x = u.lon.values
 
@@ -270,13 +295,14 @@ def draw(qdif, qu,qv, dic):
     mb.drawstates(linewidths=0.8, alpha=0.5) # 省界
     mb.set_extent([110, 116, 32, 36])
     cs = draw_contourf(ax,qdif)
-    contour_levels = [-1.5, -1.1,   -0.7,  -0.3, 0.3,  0.7,   1.1, 1.5]
+    # contour_levels = [-1.5, -1.1, -0.7, -0.3, 0.3, 0.7, 1.1, 1.5]
+    colorticks=[-3, -2, -1, -0.5, -0.1, 0.1, 0.5, 1, 2, 3,]#雨量等级
     cb = fig.colorbar(
         cs,
         orientation='horizontal',
         fraction=0.06,  # 色标大小
         pad=0.12,  # colorbar和图之间的距离
-        ticks=contour_levels,
+        ticks=colorticks,
 
     )
     cb.ax.tick_params(labelsize=24)  # 设置色标标注的大小
@@ -348,25 +374,24 @@ def draw_model_dual():
     """画所有模式的数据
     """
     path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/'
-    flnm1 = 'high_resolution_high_hgt_upar_d04_latlon.nc'
-    flnm2 = 'high_resolution_upar_d04_latlon.nc'
-    fl_list = [flnm1, flnm2]
-    model_list = ['1km_hr', '1km']
+    # path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/1900_900m/rain_latlon.nc'
+    model_list = ['1900_90m', '1900_900m', '1912_90m', '1912_900m']
+    fl_list = []
+    for model in model_list:
+        # fl = path_main+model+'/upar_latlon.nc'
+        fl = path_main+model+'/upar.nc'
+        fl_list.append(fl)
     ### 北京时
     t_list = pd.DatetimeIndex(['2021-07-20 08','2021-07-20 16'])
     level_list = [700, 850, 925]
 
     i = 0
     for fl in fl_list:
-
         for t in t_list:
             for level in level_list:
-                path_out = path_main+fl
-                if i == 0:
-                    model = '1km_hr'
-                else: 
-                    model = '1km'
-                dic_model = {'model': model, 'flnm':path_out}
+                # path_out = path_main+fl
+                model = fl.split('/')[-2]
+                dic_model = {'model': model, 'flnm':fl}
                 print("画北京时[%s],[%s]hPa高度, [%s]分辨率的图"%(t,level, model))
                 dic_model['time'] = t
                 dic_model['level'] = level

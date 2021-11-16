@@ -231,8 +231,10 @@ def draw_station(ax):
 
 def add_ticks(ax,):
     """添加坐标标签"""
-    ax.set_yticks(np.arange(20, 40 + 1, 5))
-    ax.set_xticks(np.arange(107, 135 + 1, 5))
+    # ax.set_yticks(np.arange(20, 40 + 1, 5))
+    # ax.set_xticks(np.arange(107, 135 + 1, 5))
+    ax.set_yticks(np.arange(32, 36 + 1, 1))
+    ax.set_xticks(np.arange(110, 116 + 1, 1))
     ax.xaxis.set_major_formatter(LongitudeFormatter())
     # ax.xaxis.set_minor_locator(plt.MultipleLocator(5))
     ax.yaxis.set_major_formatter(LatitudeFormatter())
@@ -245,7 +247,7 @@ def draw_south_sea(fig,):
     pass
     # ax2 = fig.add_axes([0.102, 0.145, 0.2, 0.2],projection=ccrs.PlateCarree())
     ax2 = fig.add_axes([0.798, 0.145, 0.2, 0.2],projection=ccrs.PlateCarree())
-    ax2.set_extent([105.8, 122,0,25])
+    # ax2.set_extent([105.8, 122,0,25])
     # ax2.add_feature(cfeature.LAKES.with_scale('50m'))
     ax2.add_geometries(Reader('/mnt/zfm_18T/fengxiang/DATA/SHP/Map/cn_shp/Province_9/Province_9.shp').geometries(),ccrs.PlateCarree(),facecolor='none',edgecolor='black',linewidth=0.8)
     # ax2.add_geometries(Reader(r'F:/Rpython/lp27/data/china1.shp').geometries(),ccrs.PlateCarree(),facecolor='none',edgecolor='k',linewidth=0.2)
@@ -331,8 +333,8 @@ def draw_quiver(u,v, ax):
     '''
     绘制风矢图
     '''
-    u = u[::2,::2]
-    v = v[::2,::2]
+    # u = u[::2,::2]
+    # v = v[::2,::2]
     # y = u.coords['lat']
     y = u.lat.values
     x = u.lon.values
@@ -376,7 +378,8 @@ def draw(hgt_list, tmp_list, ddf, qdif, qu,qv, dic):
 
     mb.drawstates(linewidths=0.8, alpha=0.5) # 省界
     # mb.set_extent('中国陆地')
-    mb.set_extent([107, 135, 20,40])
+    # mb.set_extent([107, 135, 20,40])
+    mb.set_extent([110, 116, 32,36])
     # mb.southsea(zoom=0.3, loc='left_bottom')
 
     for df in hgt_list:
@@ -595,7 +598,7 @@ def draw_obs():
 # %%
 if __name__ == '__main__':
     pass
-    draw_model()
+    # draw_model()
     draw_obs()
 
 

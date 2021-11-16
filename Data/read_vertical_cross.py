@@ -31,8 +31,8 @@ class CrossData():
     def __init__(self, wrf_file) -> None:
         pass
         ## Create the start point and end point for the cross section
-        self.cross_start = CoordPair(lat=33.5, lon=111.5)
-        self.cross_end = CoordPair(lat=35.5, lon=115)
+        self.cross_start = CoordPair(lat=33.5, lon=114)
+        self.cross_end = CoordPair(lat=35.5, lon=112.5)
         ## read the ncfile
         # wrf_file = '/mnt/zfm_18T/fengxiang/HeNan/Data/1900_90m/wrfout_d04_2021-07-20_08:00:00'
         self.ncfile = Dataset(wrf_file)
@@ -138,7 +138,8 @@ def save_one_model_mp(path='/mnt/zfm_18T/fengxiang/HeNan/Data/1900_90m/'):
 
 
     # path = '/mnt/zfm_18T/fengxiang/HeNan/Data/1900_90m/'
-    tt = pd.date_range('2021-07-20 0000', '2021-07-20 1200', freq='3H')
+    # tt = pd.date_range('2021-07-20 0000', '2021-07-20 1200', freq='1H')
+    tt = pd.date_range('2021-07-20 0000', '2021-07-21 0000', freq='1H')
     # tt
     fl_list = []
     for t in tt:
@@ -147,7 +148,7 @@ def save_one_model_mp(path='/mnt/zfm_18T/fengxiang/HeNan/Data/1900_90m/'):
         fl_list.append(flnm)
 
 
-    pool = Pool(4)
+    pool = Pool(12)
     result = []
     for fl in fl_list:
         tr = pool.apply_async(__cross_1model_1time, args=(fl,))

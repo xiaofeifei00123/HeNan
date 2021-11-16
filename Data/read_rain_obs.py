@@ -22,8 +22,8 @@ import meteva.base as meb
 import numpy as np
 import os
 import pandas as pd
-from metpy.interpolate import inverse_distance_to_grid
-from metpy.interpolate import interpolate_to_grid
+# from metpy.interpolate import inverse_distance_to_grid
+# from metpy.interpolate import interpolate_to_grid
 # from baobao.quick_draw import quick_contourf,quick_contourf_station
 from baobao.interp import rain_station2grid
 # %%
@@ -31,7 +31,7 @@ from baobao.interp import rain_station2grid
 
 # %%
 class RainStation():
-    """站点数据聚合到一起，并未没有数据的站点赋值为0"""
+    """站点数据聚合到一起"""
     def read_one_station(self, flnm):
         station = meb.read_stadata_from_micaps3(flnm)
         ## 转换为世界时
@@ -59,6 +59,7 @@ class RainStation():
         dds_list = []
         for fl in fl_list:
             da = self.read_one_station(fl)
+            # print(da)
             dds_list.append(da)
 
         ## 针对micaps数据的各个站点数据进行聚合
@@ -67,7 +68,10 @@ class RainStation():
         lon = da_concat['lon'].mean(dim='time')
         dda = da_concat.drop_vars(['lat', 'lon'])
         daa = dda.assign_coords({'lat':('id',lat.values), 'lon':('id',lon.values)})
-        dc = daa.fillna(0)
+        # dc = daa.fillna(0)
+        # dc = daa.dropna(dim='id')
+        dc = daa
+        # print()
         
         return dc
         
@@ -76,6 +80,7 @@ class RainStation():
         ## 保存成micaps3格式, 保存站点数据
         # rs = rain_station()
         rain_st = self.get_rain_station()
+        # print(rain_st)
         ## 保存所有站点的数据
         rain_st.to_netcdf('/mnt/zfm_18T/fengxiang/HeNan/Data/OBS/rain.nc') # 所有站点
 
@@ -87,9 +92,17 @@ class RainStation():
             'lat2':36.5,
             'interval':0.125,
         }
+        # area = {
+        #     'lon1':111.5,
+        #     'lon2':113.5,
+        #     'lat1':33.5,
+        #     'lat2':35,
+        #     'interval':0.125,
+        # }
         da = rain_st
         index = ((da.lat<=area['lat2']) & (da.lat>=area['lat1']) & (da.lon>=area['lon1']) & (da.lon<=area['lon2']))
         da_obs = da.loc[:,index]  # 这里时间维度在前
+        print(da_obs)
         da_obs.to_netcdf('/mnt/zfm_18T/fengxiang/HeNan/Data/OBS/rain_station.nc') # 所有站点
         
 class RainGrid():
@@ -128,8 +141,8 @@ class RainGrid():
 def save_rain():
     rs = RainStation()
     rs.save_rain_station()
-    rg = RainGrid()
-    rg.save_rain_grid()
+    # rg = RainGrid()
+    # rg.save_rain_grid()
             
         
 

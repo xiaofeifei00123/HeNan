@@ -45,7 +45,8 @@ from metpy import calc as ca  # calc是一个文件夹
 from metpy.units import units  # units是units模块中的一个变量名(函数名？类名？)
 from metpy import constants  # constatns是一个模块名
 from pyproj import CRS
-from caculate_diag import Qv, QvDiv  ## 计算水汽通量散度的类
+# from caculate_diag import Qv, QvDiv  ## 计算水汽通量散度的类
+from baobao.caculate import Qv, QvDiv
 
 # %%
 def get_data(dic):
@@ -63,7 +64,7 @@ def get_data(dic):
     # flnm_wrf = '/mnt/zfm_18T/fengxiang/HeNan/Data/GDAS/YSU_1900_upar_d02_latlon.nc'
     flnm_wrf = dic['flnm']
     ds_wrf = xr.open_dataset(flnm_wrf)
-    # ds_wrf.time
+    ds_wrf = ds_wrf.rename({'ua':'u', 'va':'v'})
     t = dic['time']
     level = dic['level']
     ds2 = ds_wrf.sel(time=t, pressure=level)
@@ -71,7 +72,7 @@ def get_data(dic):
     
     dic2 = {}
     cqv = Qv()
-    cqvd = QvDiv()
+    # cqvd = QvDiv()
     dic2['qf'] = cqv.caculate_qv(ds2)['qv_f']
     # dic2['qv_div'] = cqvd.caculate_qv_div(ds2)
     dic2['u'] = ds2.u
@@ -302,8 +303,8 @@ def draw_quiver(u,v, ax):
     '''
     绘制风矢图
     '''
-    u = u[::3,::3]
-    v = v[::3,::3]
+    u = u[::30,::30]
+    v = v[::30,::30]
     # y = u.coords['lat']
     y = u.lat.values
     x = u.lon.values
@@ -541,26 +542,25 @@ def draw_model_dual():
     """画所有模式的数据
     """
     path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/'
-    flnm1 = 'high_resolution_high_hgt_upar_d04_latlon.nc'
-    flnm2 = 'high_resolution_upar_d04_latlon.nc'
-    fl_list = [flnm1, flnm2]
-    model_list = ['1km_hr', '1km']
+    # path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/1900_900m/rain_latlon.nc'
+    model_list = ['1900_90m', '1900_900m', '1912_90m', '1912_900m']
+    fl_list = []
+    for model in model_list:
+        # fl = path_main+model+'/upar_latlon.nc'
+        fl = path_main+model+'/upar.nc'
+        fl_list.append(fl)
     ### 北京时
     t_list = pd.DatetimeIndex(['2021-07-20 08','2021-07-20 16'])
-    level_list = [700,850, 925]
+    level_list = [700, 850, 925]
 
     i = 0
     for fl in fl_list:
-
         for t in t_list:
             for level in level_list:
-                path_out = path_main+fl
-                if i == 0:
-                    model = '1km_hr'
-                else: 
-                    model = '1km'
-                dic_model = {'model': model, 'flnm':path_out}
-                print("画北京时[%s], [%s]hPa高度, [%s]分辨率的图"%(t,level, model))
+                # path_out = path_main+fl
+                model = fl.split('/')[-2]
+                dic_model = {'model': model, 'flnm':fl}
+                print("画北京时[%s],[%s]hPa高度, [%s]分辨率的图"%(t,level, model))
                 dic_model['time'] = t
                 dic_model['level'] = level
                 draw_all(dic_model)

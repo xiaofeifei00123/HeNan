@@ -47,7 +47,7 @@ def get_rain_zhenzhou():
     flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/OBS/rain_station.nc'
     ds = xr.open_dataset(flnm)
     da = ds.to_array().squeeze()
-    da_return = da.sel(id=57083)
+    da_return = da.sel(id='57083')
     return da_return
 
 def draw_bar(dazz, damax):
@@ -62,7 +62,7 @@ def draw_bar(dazz, damax):
     ax.bar(tt, da, label='郑州站降水')
     ax.plot(tt, damax, color='red',lw=1.5,  label='最大站点降水')
     # ax.hlines(y=30, xmin=tt[0], xmax=tt[-1])
-    ax.axhline(y=30, color='black')
+    ax.axhline(y=50, color='black')
     ax.set_xlim(tt[0], tt[-1])
     # ax.hlines(y=30, xmin=tt[0], xmax=tt[-1])
     # ax.plot(tt, da)
