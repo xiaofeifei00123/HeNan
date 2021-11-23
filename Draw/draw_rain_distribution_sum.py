@@ -2,7 +2,8 @@
 # -*- encoding: utf-8 -*-
 '''
 Description:
-降水分布图, 小时降水
+降水分布图, 
+从某个小时开始, 逐小时的累积降水
 实况降水，站点插值出
 模式降水，原始的wrfout网格点(未插值)
 -----------------------------------------
@@ -55,8 +56,9 @@ class Draw(object):
         """
 
         # colorlevel=[0, 0.1, 5, 15.0, 30, 70, 140,  700]#雨量等级
-        colorlevel=[0, 0.1, 5, 10, 15.0, 20, 25, 30, 700]#雨量等级
-        colordict=['#F0F0F0','#A6F28F','#3DBA3D','#61BBFF','#0000FF','#FA00FA','#800040', '#EE0000']#颜色列表
+        colorlevel=[0, 0.1, 10, 25, 50, 100, 250, 400, 600]#雨量等级
+        colordict=['#F0F0F0','#A6F28F','#3DBA3D','#61BBFF','#0000FF','#FA00FA','#800040', '#EE0000','#ff0000']#颜色列表
+        # colordict=['#F0F0F0','#A6F28F','#3DBA3D','#61BBFF','#0000FF','#FA00FA','#800040', '#EE0000']#颜色列表
         x = data.lon
         y = data.lat
         
@@ -111,7 +113,8 @@ class Draw(object):
         ax.set_title(picture_dic['type'], fontsize=30,loc='right')
         cf = self.draw_contourf_single(da, ax, dic)
         # colorticks=[0.1,5,15,30.0,70,140]#雨量等级
-        colorlevel=[0, 0.1, 5, 10, 15.0, 20, 25, 30, 700]#雨量等级
+        # colorlevel=[0, 0.1, 5, 10, 15.0, 20, 25, 30, 700]#雨量等级
+        colorlevel=[0, 0.1, 10, 25, 50, 100, 250, 400, 600]#雨量等级
         colorticks = colorlevel[1:-1]
         
         cb = fig.colorbar(
@@ -124,7 +127,7 @@ class Draw(object):
         )
         cb.ax.tick_params(labelsize=30)  # 设置色标标注的大小
         fig_name = picture_dic['type']+'_'+picture_dic['initial_time']+'_'+picture_dic['date']
-        fig_path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_rain/rain_1h/'
+        fig_path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_rain/rain_sum/'
         fig.savefig(fig_path+fig_name)
 
 
@@ -201,7 +204,7 @@ def draw_tricontourf(rain):
     # mp.add_station(ax)
     fig_name = 'obs_distribution' 
     # fig_time = rain.time.dt.strftime('%Y%m%d-%H').values
-    fig_path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_rain/rain_1h/'
+    fig_path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_rain/rain_sum/'
     fig.savefig(fig_path+fig_name+'_'+pic_time)
 
 
@@ -242,18 +245,20 @@ def draw_one(model='1900_90m'):
     # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/1912_900m/rain.nc'
     da = xr.open_dataarray(flnm)
     da = da.sel(time=slice('2021-07-20 00', '2021-07-21 00'))
-    # da = da.sel(time=slice('2021-07-19 16', '2021-07-20 04 '))
-    # da = da.sel(time=slice('2021-07-19 17', '2021-07-20 05 '))
-    # da = da.sum(dim='time') 
     tt = da.time
+    t_start = pd.Timestamp('2021-07-20 00')
     for t in tt:
-        rain1h = da.sel(time=t) 
+        # print(t)
+        sumt = pd.date_range(t_start, t.values, freq='1H')
+        # print(sumt)
+        rain1h = da.sel(time=sumt).sum(dim='time')
+        # print(rain1h)
+        
         picture_dic = {'date':t.dt.strftime("%Y%m%d-%H").values, 'type':model, 'initial_time':''}
         dr.draw_single(rain1h, picture_dic)
 
 def draw_dual():
-    # model_list = ['1900_90m', '1900_900m','1912_900m', '1912_90m', '1912_90m_OGWD']
-    model_list = ['1912_90m_OGWD']
+    model_list = ['1900_90m', '1900_900m','1912_900m', '1912_90m']
     for model in model_list:
         # path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/'+model+'/'
         draw_one(model)

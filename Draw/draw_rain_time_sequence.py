@@ -35,10 +35,9 @@ plt.rcParams['axes.unicode_minus'] = False
 # %%
 
 
-flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/Rain/rain_all_station.nc'
-ds = xr.open_dataset(flnm)
-# %%
-ds.lat.max()
+# def test():
+    # rain.plot()
+# get_max_sta_rain('1912_90m')
 
 
 
@@ -47,7 +46,7 @@ class Draw():
     
     def __init__(self,):
         self.fontsize = 10
-        self.path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_rain/'   # 这里要改
+        self.path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_rain/time_sequence/'   # 这里要改
 
     def draw_time_sequence(self,ax, dic, pic_dic):
         """[summary]
@@ -65,8 +64,8 @@ class Draw():
         x_label = x_label.dt.strftime('%d/%H')
 
 
-        ccolor = ['green', 'blue', 'orange', 'red', 'black', 'blue','green','green','green','green'  ]
-        lline_style = ['-', '-', '-', '-', '-', '-','-.', '-.', '-.', '-.']
+        ccolor = ['blue', 'blue', 'red', 'red','green', 'black', 'blue','green','green','green']
+        lline_style = ['-', '--', '-', '--', '-', '-','-.', '-.', '-.', '-.']
         mmarker = ['o', 'o', '^', '^', '^', '^', '*', '*', '*', '*']
         custom_cycler = (
             cycler(color=ccolor) +
@@ -154,11 +153,51 @@ def draw_area_mean():
     ds_mean = ds.mean(dim='sta').sel(time=slice('2021-07-19 12', '2021-07-21 00'))
     dr.draw_single(ds_mean, pic_dic_mean)
 
+def get_max_sta_rain(model):
+    flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/Rain/rain_all_station.nc'
+    ds = xr.open_dataset(flnm)
+    # da = ds['1912_90m']
+    da = ds[model]  # 某个模式的数据, 包括观测
+
+    ## 特定时间范围
+    rainmax = da.sel(time=slice('2021-07-20 05', '2021-07-20 12')) # 让最大值出现在这个时间段
+
+    ## 特定空间范围, 郑州市范围内
+    area = {
+        'lon1':112.7,
+        'lon2':114.2,
+        'lat1':34.2,
+        'lat2':34.8,
+        'interval':0.125,
+    }
+    # area = {
+    #     'lon1':110.5,
+    #     'lon2':116,
+    #     'lat1':32,
+    #     'lat2':36,
+    #     'interval':0.125,
+    # }
+    index = ((rainmax.lat<=area['lat2']) & (rainmax.lat>=area['lat1']) & (rainmax.lon>=area['lon1']) & (rainmax.lon<=area['lon2']))
+    rainmax = rainmax.sel(sta=index)
+    
+
+    sta = rainmax.idxmax(dim='sta')  # 每个时次的最大降水的站号
+    ssta = rainmax.sel(sta=sta).idxmax(dim='time').sta.values  # 在这些站点降水中最大的降水时次站点号是多少
+    rain  = da.sel(sta=ssta)  # 最大降水站点的所有时次降水时间序列
+    # print(rain.lat)
+    return rain
+
 def draw_zhenzhou():
     pass
     flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/Rain/rain_all_station.nc'
     ds = xr.open_dataset(flnm)
-    rain  = ds.sel(sta='57083')
+    ds = ds.sel(time=slice('2021-07-20 00', '2021-07-21 00'))
+    rain = xr.Dataset()
+    for var in ds.data_vars:
+        # print(var)
+        rain[var] = get_max_sta_rain(var)
+
+
     pic_dic_rain= {
         # 'title':'mean_rain',
         'title':'郑州站逐小时降水',
@@ -172,18 +211,26 @@ def draw_zhenzhou_max():
     pass
     flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/Rain/rain_all_station.nc'
     ds = xr.open_dataset(flnm)
+    ds = ds.sel(time=slice('2021-07-20 00', '2021-07-21 00'))
+    # area = {
+    #     'lon1':112,
+    #     'lon2':115,
+    #     'lat1':33.5,
+    #     'lat2':36.5,
+    #     'interval':0.125,
+    # }
     area = {
-        'lon1':110,
-        'lon2':116,
-        'lat1':32,
-        'lat2':37,
+        'lon1':112.7,
+        'lon2':114.2,
+        'lat1':34.2,
+        'lat2':34.8,
         'interval':0.125,
     }
     index = ((ds.lat<=area['lat2']) & (ds.lat>=area['lat1']) & (ds.lon>=area['lon1']) & (ds.lon<=area['lon2']))
     rain = ds.sel(sta=index)
     rain = rain.max(dim='sta')
     pic_dic_rain= {
-        'title':'郑州站及周边最大小时降水',
+        'title':'郑州及周边站点最大小时降水',
         'yticks':np.arange(0,210,5),
     }
     dr = Draw()
@@ -193,27 +240,37 @@ def draw_zhenzhou_mean():
     pass
     flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/Rain/rain_all_station.nc'
     ds = xr.open_dataset(flnm)
+    ds = ds.sel(time=slice('2021-07-20 00', '2021-07-21 00'))
+    # area = {
+    #     'lon1':112,
+    #     'lon2':115,
+    #     'lat1':33.5,
+    #     'lat2':36.5,
+    #     'interval':0.125,
+    # }
     area = {
         'lon1':112.7,
         'lon2':114.2,
-        'lat1':34.3,
-        'lat2':34.9,
+        'lat1':34.2,
+        'lat2':34.8,
         'interval':0.125,
     }
     index = ((ds.lat<=area['lat2']) & (ds.lat>=area['lat1']) & (ds.lon>=area['lon1']) & (ds.lon<=area['lon2']))
     rain = ds.sel(sta=index)
     rain = rain.mean(dim='sta')
     pic_dic_rain= {
-        'title':'郑州站及其周边站点平均降水逐小时变化',
-        'yticks':np.arange(0,26,5),
+        'title':'平均小时降水(郑州范围内)',
+        # 'yticks':np.arange(0,10,1),
+        'yticks':np.arange(0,20,1),
     }
     dr = Draw()
     dr.draw_single(rain, pic_dic_rain)
+
 if __name__ == '__main__':
     # main()
-    # draw_zhenzhou()
-    # draw_zhenzhou_max()
-    # draw_zhenzhou_mean()
+    draw_zhenzhou()
+    draw_zhenzhou_max()
+    draw_zhenzhou_mean()
     pass
     # %%
     # import xarray as xr

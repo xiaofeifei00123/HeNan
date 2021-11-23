@@ -188,7 +188,7 @@ def draw_obs():
     pass
     flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/OBS/rain_station.nc'
     da = xr.open_dataarray(flnm)
-    da = da.sel(time=slice('2021-07-20 00', '2021-07-21 00'))
+    da = da.sel(time=slice('2021-07-20 01', '2021-07-21 00'))
     da = da.sum(dim='time') 
     draw_tricontourf(da)
     
@@ -199,7 +199,7 @@ def draw_one(model='1900_90m'):
     dr = Draw()
     flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/'+model+'/'+'rain.nc'
     da = xr.open_dataarray(flnm)
-    da = da.sel(time=slice('2021-07-20 00', '2021-07-21 00'))
+    da = da.sel(time=slice('2021-07-20 01', '2021-07-21 00'))
     da = da.sum(dim='time') 
     picture_dic = {'date':'2021-07 20/00--21/00', 'type':model, 'initial_time':''}
     dr.draw_single(da, picture_dic)
@@ -210,8 +210,21 @@ def draw_dual():
         # path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/'+model+'/'
         draw_one(model)
 
+def draw_onemodel(model='1912_90m_OGWD'):
+    pass
+
+    dr = Draw()
+    flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/'+model+'/'+'rain.nc'
+    da = xr.open_dataarray(flnm)
+    da = da.sel(time=slice('2021-07-20 01', '2021-07-21 00'))
+    da = da.sum(dim='time') 
+    # picture_dic = {'date':'2021-07 20/00--21/00', 'type':model, 'initial_time':''}
+    picture_dic = {'date':'2021-07 20/00--21/00', 'type':'OGWD', 'initial_time':''}
+    dr.draw_single(da, picture_dic)
+
 
 if __name__ == '__main__':
 
-    draw_dual()
-    draw_obs()
+    # draw_dual()
+    # draw_obs()
+    draw_onemodel()

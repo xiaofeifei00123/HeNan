@@ -52,8 +52,10 @@ def draw_contourf(fig, ax_cross, da, ter_line):
     xs = np.arange(0, da.shape[-1], 1)
     ys = da.coords['vertical'].values
     colordict=['#191970','#005ffb','#5c9aff','#98ff98','#ddfddd','#FFFFFF','#fffde1','#ffff9e', '#ffc874','#ffa927', '#ff0000']#颜色列表
-    colorlevel=[-80, -30, -20, -10, -5, -1, 1, 5, 10, 20, 30, 80]#雨量等级
-    colorticks=[-30, -20, -10, -5, -1, 1, 5, 10, 20, 30]#雨量等级
+    # colorlevel=[-80, -30, -20, -10, -5, -1, 1, 5, 10, 20, 30, 80]#雨量等级
+    colorlevel=[-120, -50, -30, -10, -5, -1, 1, 5, 10, 30, 50, 120]#雨量等级
+    # colorticks=[-30, -20, -10, -5, -1, 1, 5, 10, 20, 30]#雨量等级
+    colorticks = colorlevel[1:-1]
     dbz_contours = ax_cross.contourf(xs,
                                     ys,
                                     da.values*10,
@@ -134,6 +136,7 @@ def draw(t='2021-07-20 09', flpath='/mnt/zfm_18T/fengxiang/HeNan/Data/1900_90m/'
     fig_path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_cross/'
     fig_name = title_model+'_'+title_t
     fig.savefig(fig_path+fig_name+'.png')
+    plt.clf()
 
 def draw_1time(t='2021-07-20 09'):
     path_main ='/mnt/zfm_18T/fengxiang/HeNan/Data/'
@@ -143,7 +146,7 @@ def draw_1time(t='2021-07-20 09'):
         draw(t=t, flpath=fl)
 
 def draw_mtime():
-    time_list = pd.date_range('2021-07-20 00', '2021-07-20 12', freq='1H')
+    time_list = pd.date_range('2021-07-20 00', '2021-07-21 00', freq='1H')
     for t in time_list:
         draw_1time(t)
     pass

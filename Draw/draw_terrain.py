@@ -13,6 +13,7 @@ import wrf
 import xarray as xr
 import netCDF4 as nc
 import cartopy.crs as ccrs
+import cartopy.feature as cfeature
 import matplotlib.pyplot as plt
 import numpy as np
 import cmaps
@@ -39,7 +40,7 @@ def get_hgt(flnm):
     h = h.rename({'XLAT':'lat', 'XLONG':'lon'})
     return h
 # %%
-def draw_tricontourf(rain, pic_dic):
+def draw_contourf(rain, pic_dic):
 
     """rain[lon, lat, data],离散格点的DataArray数据
 
@@ -52,7 +53,7 @@ def draw_tricontourf(rain, pic_dic):
     """
     from nmc_met_graphics.plot import mapview
     mb = mapview.BaseMap()
-    fig = plt.figure(figsize=[12, 12], dpi=600)
+    fig = plt.figure(figsize=[12, 10], dpi=600)
     # ax = fig.add_axes([0.1, 0.1, 0.8, 0.8], projection=ccrs.LambertConformal(central_latitude=34, central_longitude=113))
     # ax = fig.add_axes([0.1,0.1,0.85,0.85], projection=proj)
     ax = fig.add_axes([0.1, 0.1, 0.85, 0.8], projection=ccrs.PlateCarree())
@@ -61,7 +62,8 @@ def draw_tricontourf(rain, pic_dic):
     map_dic = {
         'proj':ccrs.PlateCarree(),
         # 'extent':[110.5, 116, 32, 36.5],
-        'extent':[111, 112, 33.5, 34.5],
+        # 'extent':[111, 112, 33.5, 34.5],
+        'extent':[109, 117, 31, 37],
         'extent_interval_lat':1,
         'extent_interval_lon':1,
     }
@@ -96,8 +98,23 @@ def draw_tricontourf(rain, pic_dic):
         orientation='horizontal',
         ticks=colorticks,
         fraction = 0.05,  # 色标大小,相对于原图的大小
-        pad=0.05,  #  色标和子图间距离
+        pad=0.07,  #  色标和子图间距离
     )
+
+    station = {
+        'ZhengZhou': {
+            'abbreviation':'ZZ',
+            'lat': 34.76,
+            'lon': 113.65
+        },
+    }
+    mp.add_station(ax, station, justice=True)
+    ax.add_feature(cfeature.RIVERS, lw=2.5)
+    # ax.add_feature(cfeature.LAKES, lw=1)
+    
+    
+    
+
     # mb.cities(ax, city_type='base_station', color_style='black', 
     #             marker_size=5, font_size=16)
     # mb.gridlines()
@@ -107,7 +124,7 @@ def draw_tricontourf(rain, pic_dic):
     fig_name = fig_path+pic_dic['title']
     fig.savefig(fig_name)
 
-def draw_tricontourf_minus(rain, pic_dic):
+def draw_contourf_minus(rain, pic_dic):
     """地形高度的差
 
     Args:
@@ -128,7 +145,8 @@ def draw_tricontourf_minus(rain, pic_dic):
     map_dic = {
         'proj':ccrs.PlateCarree(),
         # 'extent':[110.5, 116, 32, 36.5],
-        'extent':[111, 112, 33.5, 34.5],
+        # 'extent':[111, 112, 33.5, 34.5],
+        'extent':[109, 117, 31, 37],
         'extent_interval_lat':1,
         'extent_interval_lon':1,
     }
@@ -139,7 +157,8 @@ def draw_tricontourf_minus(rain, pic_dic):
     # colorlevel=[0, 0.1, 5, 15.0, 30, 70, 140, 700]#雨量等级
     # colorlevel=[0, 0.1, 5, 15.0, 30, 70, 140, 700]#雨量等级
     # colorlevel = np.arange(0, 2300, 100)
-    colorlevel = np.arange(-50, 50+5, 5)
+    # colorlevel = np.arange(-60, 60+5, 5)
+    colorlevel = np.arange(-160, 160+20, 20)
     colordict=['#F0F0F0','#A6F28F','#3DBA3D','#61BBFF','#0000FF','#FA00FA','#800040', '#EE0000',]#颜色列表
     # cmap = cmaps.precip3_16lev
     # cmap = cmaps.MPL_terrain
@@ -182,8 +201,8 @@ def draw_tricontourf_minus(rain, pic_dic):
 if __name__ == '__main__':
     flnm_900m = '/mnt/zfm_18T/fengxiang/HeNan/Data/1900_900m/wrfout_d04_2021-07-19_01:00:00'
     flnm_90m = '/mnt/zfm_18T/fengxiang/HeNan/Data/1900_90m/wrfout_d04_2021-07-19_01:00:00'
-    flnm_900m_met = '/mnt/zfm_18T/fengxiang/HeNan/Data/1900_900m/geo_em.d04.nc'
-    flnm_90m_met = '/mnt/zfm_18T/fengxiang/HeNan/Data/1900_90m/geo_em.d04.nc'
+    flnm_900m_met = '/mnt/zfm_18T/fengxiang/HeNan/Data/1900_900m/geo_em.d03.nc'
+    flnm_90m_met = '/mnt/zfm_18T/fengxiang/HeNan/Data/1900_90m/geo_em.d03.nc'
 
     # h90 = get_hgt(flnm_90m)
     # h900 = get_hgt(flnm_900m)
@@ -198,6 +217,6 @@ if __name__ == '__main__':
     # draw_tricontourf(h900, {'title':'900m'})
     # draw_tricontourf_minus(h99, {'title':'90m-900m'})
 
-    draw_tricontourf(met_h90, {'title':'geo_90m'})
-    draw_tricontourf(met_h900, {'title':'geo_900m'})
-    draw_tricontourf_minus(met_h99, {'title':'geo_90m-900m'})
+    draw_contourf(met_h90, {'title':'geo_90m'})
+    draw_contourf(met_h900, {'title':'geo_900m'})
+    draw_contourf_minus(met_h99, {'title':'geo_90m-900m'})

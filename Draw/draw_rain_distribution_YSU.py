@@ -54,8 +54,10 @@ class Draw(object):
         """画填色图
         """
 
-        colorlevel=[0, 0.1, 5, 15.0, 30, 70, 140,  700]#雨量等级
-        colordict=['#F0F0F0','#A6F28F','#3DBA3D','#61BBFF','#0000FF','#FA00FA','#800040', '#EE0000']#颜色列表
+        # colorlevel=[0, 0.1, 5, 15.0, 30, 70, 140,  700]#雨量等级
+        # colordict=['#F0F0F0','#A6F28F','#3DBA3D','#61BBFF','#0000FF','#FA00FA','#800040', '#EE0000']#颜色列表
+        colorlevel=[0, 0.1, 5, 15.0, 30, 70, 140, 250, 700]#雨量等级
+        colordict=['#F0F0F0','#A6F28F','#3DBA3D','#61BBFF','#0000FF','#FA00FA','#800040', '#EE0000','#ff0000']#颜色列表
         x = data.lon
         y = data.lat
         
@@ -108,7 +110,8 @@ class Draw(object):
         ax.set_title(picture_dic['initial_time'], fontsize=30,loc='left')
         ax.set_title(picture_dic['type'], fontsize=30,loc='right')
         cf = self.draw_contourf_single(da, ax, dic)
-        colorticks=[0.1,5,15,30.0,70,140]#雨量等级
+        # colorticks=[0.1,5,15,30.0,70,140]#雨量等级
+        colorticks=[0.1,5,15,30.0,70,140, 250]#雨量等级
         
         cb = fig.colorbar(
             cf,
@@ -120,7 +123,7 @@ class Draw(object):
         )
         cb.ax.tick_params(labelsize=30)  # 设置色标标注的大小
         fig_name = picture_dic['type']+'_'+picture_dic['initial_time']
-        fig_path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_rain/'
+        fig_path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_rain/YSU/'
         fig.savefig(fig_path+fig_name)
 
 
@@ -153,8 +156,9 @@ def draw_tricontourf(rain):
     ax = mp.create_map(ax, map_dic)
     ax.set_extent(map_dic['extent'])
 
-    colorlevel=[0, 0.1, 5, 15.0, 30, 70, 140, 700]#雨量等级
-    colordict=['#F0F0F0','#A6F28F','#3DBA3D','#61BBFF','#0000FF','#FA00FA','#800040', '#EE0000',]#颜色列表
+    # colorlevel=[0, 0.1, 5, 15.0, 30, 70, 140, 700]#雨量等级
+    colorlevel=[0, 0.1, 5, 15.0, 30, 70, 140, 250, 700]#雨量等级
+    colordict=['#F0F0F0','#A6F28F','#3DBA3D','#61BBFF','#0000FF','#FA00FA','#800040', '#EE0000','#ff0000']#颜色列表
     cs = ax.tricontour(rain.lon, rain.lat, rain, levels=colorlevel, transform=ccrs.PlateCarree())
     cs = ax.tricontourf(rain.lon, rain.lat, rain, levels=colorlevel,colors=colordict, transform=ccrs.PlateCarree())
     colorticks=[0.1,5,15,30.0,70,140]#雨量等级
@@ -192,7 +196,7 @@ def draw_tricontourf(rain):
 
     # mp.add_station(ax)
     fig_name = 'obs_distribution' 
-    fig_path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_rain/'
+    fig_path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_rain/YSU/'
     fig.savefig(fig_path+fig_name)
 
 

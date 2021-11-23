@@ -41,7 +41,7 @@ class Caculate():
         self.rain = rain
         # self.threshold = threshold
         # self.model_list = ['ERA51800','ERA51812','ERA51900','ERA51912','GDAS1800','GDAS1812','GDAS1900','GDAS1912',]
-        self.model_list = ['1900_90m', '1900_900m','1912_90m', '1912_900m']
+        self.model_list = [ '1900_900m','1900_90m','1912_900m','1912_90m', '1912_90m_OGWD']
 
     def get_two_scale(self, threshold):
         # flag = 'all'
@@ -138,7 +138,8 @@ class Caculate():
         # rain = rd.get_rain_times()
         # print(rain)
         # model_list = ['ACM2', 'YSU', 'QNSE', 'QNSE_EDMF', 'TEMF']
-        model_list = ['1900_90m', '1900_900m','1912_90m', '1912_900m']
+        # model_list = ['1900_90m', '1900_900m','1912_90m', '1912_900m']
+        model_list = self.model_list
 
         MAE = {} # 平均绝对误差
         RMSE = {} # 均方根误差
@@ -201,8 +202,8 @@ def get_ts():
     # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/rain_all.nc'
     flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/Rain/rain_all_station.nc'
     ds = xr.open_dataset(flnm)
-    # dds = ds.sel(time=slice('2021-07-20 0000', '2021-07-20 1200')).sum(dim='time')
-    dds = ds.sel(time=slice('2021-07-20 0000', '2021-07-21 0000')).sum(dim='time')
+    dds = ds.sel(time=slice('2021-07-20 0000', '2021-07-20 1200')).sum(dim='time')
+    # dds = ds.sel(time=slice('2021-07-20 0000', '2021-07-21 0000')).sum(dim='time')
     # print(dds)
     ca = Caculate(dds)
     # threshold_list = [0.1, 5, 15, 30, 70, 140]
@@ -233,13 +234,15 @@ def draw_bar(ts):
     ds = ts.to_dataset(dim='model')
 
     # model_list = ['ERA51800','ERA51812','ERA51900','ERA51912','GDAS1800','GDAS1812','GDAS1900','GDAS1912',]
-    model_list = ['1900_90m','1900_900m','1912_90m','1912_900m']
+    # model_list = ['1900_90m','1900_900m','1912_90m','1912_900m']
+    model_list = ['1900_900m','1900_90m','1912_900m','1912_90m','1912_90m_OGWD']
     # color_list = ['green', 'blue','orange', 'red',  'green', 'blue','orange', 'red', ]
     # color_list = ['darkgreen', 'darkblue','darkorange', 'darkred',  'green', 'cornflowerblue', 'orange', 'red',]
     # color_list = ['green', 'blue','orange', 'red',  'darkgreen', 'darkblue', 'darkorange', 'darkred',]
-    color_list = ['green', 'blue','orange', 'red',  'darkgreen', 'darkblue', 'darkorange', 'darkred',]
+    # color_list = ['green', 'blue','orange', 'red',  'darkgreen', 'darkblue', 'darkorange', 'darkred',]
+    color_list = ['#70ca70', '#116711','#0080ff', '#0009ff',  '#ff0000', 'darkblue', 'darkorange', 'darkred',]
     # hatch_list = ['.','.','.','.','x','x','x','x',]
-    width = 0.20
+    width = 0.15
     fig = plt.figure(figsize=(12, 8), dpi=300)  # 创建页面
     ax = fig.add_axes([0.05,0.1, 0.92,0.8])
     i = -2
@@ -258,8 +261,8 @@ def draw_bar(ts):
     # ax.set_yticklabels(fontsize=24)
     ax.tick_params(axis='both', labelsize=20, direction='out')
     ax.legend(fontsize=24, edgecolor='white', loc='upper right')
-    ax.set_title('ETS', fontsize=28)
-    fig.savefig('/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_rain/ts_score.png')
+    ax.set_title('ETS (12h)', fontsize=28)
+    fig.savefig('/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_rain/ts_score_12h.png')
 if __name__ == '__main__':
     pass
     ts = get_ts()
