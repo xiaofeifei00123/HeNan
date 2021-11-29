@@ -55,8 +55,11 @@ class Draw(object):
         """
 
         # colorlevel=[0, 0.1, 5, 15.0, 30, 70, 140,  700]#雨量等级
-        colorlevel=[0, 0.1, 5, 10, 15.0, 20, 25, 30, 700]#雨量等级
-        colordict=['#F0F0F0','#A6F28F','#3DBA3D','#61BBFF','#0000FF','#FA00FA','#800040', '#EE0000']#颜色列表
+        # colorlevel=[0, 0.1, 5, 10, 15.0, 20, 25, 30, 700]#雨量等级
+        colorlevel=[0, 0.1, 0.5, 1, 1.5, 2.0, 2.5, 3.0, 70]#雨量等级
+        # colorlevel=[0, 50, 500, 1000, 1500, 2000, 2500, 3000, 7000]#雨量等级
+        # colorlevel=np.arange(0,3000, 500)
+        colordict=['white','#A6F28F','#3DBA3D','#61BBFF','#0000FF','#FA00FA','#800040', '#EE0000']#颜色列表
         x = data.lon
         y = data.lat
         
@@ -67,6 +70,10 @@ class Draw(object):
                           corner_mask=False,
                           levels=colorlevel,
                           colors = colordict,
+                        #   levels=6,
+                        #   cmap
+                        #   cmap=cmaps.precip3_16lev,
+                        #   cmap=cmaps.WhiteBlueGreenYellowRed,
                           transform=ccrs.PlateCarree())
         return crx
 
@@ -111,7 +118,8 @@ class Draw(object):
         ax.set_title(picture_dic['type'], fontsize=30,loc='right')
         cf = self.draw_contourf_single(da, ax, dic)
         # colorticks=[0.1,5,15,30.0,70,140]#雨量等级
-        colorlevel=[0, 0.1, 5, 10, 15.0, 20, 25, 30, 700]#雨量等级
+        # colorlevel=[0, 0.1, 5, 10, 15.0, 20, 25, 30, 700]#雨量等级
+        colorlevel=[0, 0.1, 0.5, 1, 1.5, 2.0, 2.5, 3.0, 70]#雨量等级
         colorticks = colorlevel[1:-1]
         
         cb = fig.colorbar(
@@ -124,111 +132,8 @@ class Draw(object):
         )
         cb.ax.tick_params(labelsize=30)  # 设置色标标注的大小
         fig_name = picture_dic['type']+'_'+picture_dic['initial_time']+'_'+picture_dic['date']
-        fig_path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_rain/rain_1h/'
+        fig_path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_gwd/'
         fig.savefig(fig_path+fig_name)
-
-
-def draw_tricontourf(rain):
-
-    """rain[lon, lat, data],离散格点的DataArray数据
-
-    Args:
-        rain ([type]): [description]
-    Example:
-    da = xr.open_dataarray('/mnt/zfm_18T/fengxiang/HeNan/Data/OBS/rain_station.nc')
-    da.max()
-    rain = da.sel(time=slice('2021-07-20 00', '2021-07-20 12')).sum(dim='time')
-    """
-    from nmc_met_graphics.plot import mapview
-    mb = mapview.BaseMap()
-    fig = plt.figure(figsize=[12, 12], dpi=600)
-    # ax = fig.add_axes([0.1, 0.1, 0.8, 0.8], projection=ccrs.LambertConformal(central_latitude=34, central_longitude=113))
-    # ax = fig.add_axes([0.1,0.1,0.85,0.85], projection=proj)
-    ax = fig.add_axes([0.1, 0.1, 0.85, 0.85], projection=ccrs.PlateCarree())
-    # ax.plot(rain.lon.values, rain.lat.values, 'ko',ms=3,zorder=2, transform=ccrs.PlateCarree())
-    mp = Map()
-    map_dic = {
-        'proj':ccrs.PlateCarree(),
-        'extent':[110.5, 116, 32, 36.5],
-        'extent_interval_lat':1,
-        'extent_interval_lon':1,
-    }
-
-    ax = mp.create_map(ax, map_dic)
-    ax.set_extent(map_dic['extent'])
-
-    # colorlevel=[0, 0.1, 5, 15.0, 30, 70, 140, 700]#雨量等级
-    colorlevel=[0, 0.1, 5, 10, 15.0, 20, 25, 30, 700]#雨量等级
-    colordict=['#F0F0F0','#A6F28F','#3DBA3D','#61BBFF','#0000FF','#FA00FA','#800040', '#EE0000',]#颜色列表
-    # cs = ax.tricontour(rain.lon, rain.lat, rain, levels=colorlevel, transform=ccrs.PlateCarree())
-    cs = ax.tricontourf(rain.lon, rain.lat, rain, levels=colorlevel,colors=colordict, transform=ccrs.PlateCarree())
-    # colorticks=[0.1,5,15,30.0,70,140]#雨量等级
-    colorticks = colorlevel[1:-1]
-    
-    cb = fig.colorbar(
-        cs,
-        # cax=ax6,
-        orientation='horizontal',
-        ticks=colorticks,
-        fraction = 0.05,  # 色标大小,相对于原图的大小
-        pad=0.05,  #  色标和子图间距离
-    )
-    # mb.cities(ax, city_type='base_station', color_style='black', 
-    #             marker_size=5, font_size=16)
-    # mb.gridlines()
-    cb.ax.tick_params(labelsize=30)  # 设置色标标注的大小
-
-
-
-    mp = Map()
-    station = {
-        'ZhengZhou': {
-            'abbreviation':'ZZ',
-            'lat': 34.76,
-            'lon': 113.65
-        },
-    }
-    mp.add_station(ax, station, justice=True)
-
-
-    # ax.set_title('2021-07-20 00-12', fontsize=35,)
-    pic_time = rain.time.dt.strftime('%Y%m%d-%H').values
-    print("画%s时刻的图"%pic_time)
-    ax.set_title(pic_time, fontsize=35,)
-    ax.set_title('OBS', fontsize=30,loc='left')
-
-
-    # mp.add_station(ax)
-    fig_name = 'obs_distribution' 
-    # fig_time = rain.time.dt.strftime('%Y%m%d-%H').values
-    fig_path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_rain/rain_1h/'
-    fig.savefig(fig_path+fig_name+'_'+pic_time)
-
-
-def draw_obs():
-    pass
-    flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/OBS/rain_station.nc'
-    # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/Rain/rain_all_station_cst.nc'
-    da = xr.open_dataarray(flnm)
-    # da = da.sel(time=slice('2021-07-20 00', '2021-07-20 12'))
-    # da = da.sel(time=slice('2021-07-20 07', '2021-07-20 19'))
-    # da = da.sel(time=slice('2021-07-19 17', '2021-07-20 05'))
-    # da = da.sel(time=slice('2021-07-19 16', '2021-07-20 04 '))
-    da = da.sel(time=slice('2021-07-19 00', '2021-07-21 00'))
-    # da = da.sum(dim='time') 
-    # from baobao.quick_draw import quick_contourf_station
-    # draw_tricontourf(da)
-
-    ## 逐小时的绘制
-    tt = da.time
-    for t in tt:
-        rain = da.sel(time=t)
-        draw_tricontourf(rain)
-    
-    # quick_contourf_station(da)
-# draw_obs()
-
-# %%
 
 
 
@@ -237,23 +142,24 @@ def draw_obs():
 def draw_one(model='1900_90m'):
     pass
 
-    dr = Draw()
-    flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/'+model+'/'+'rain.nc'
-    # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/1912_900m/rain.nc'
-    da = xr.open_dataarray(flnm)
-    da = da.sel(time=slice('2021-07-20 00', '2021-07-21 00'))
-    # da = da.sel(time=slice('2021-07-19 16', '2021-07-20 04 '))
-    # da = da.sel(time=slice('2021-07-19 17', '2021-07-20 05 '))
-    # da = da.sum(dim='time') 
-    tt = da.time
+    fl_path ='/mnt/zfm_18T/fengxiang/HeNan/Data/1912_90m_OGWD/wrfout_d04_' # 2021-07-20_05:00:00'
+    # flnm  = '/mnt/zfm_18T/fengxiang/HeNan/Data/1912_90m_OGWD/wrfout_d04_2021-07-20_05:00:00'
+    tt = pd.date_range('2021-07-20 00', '2021-07-21 00', freq='1H')
     for t in tt:
-        rain1h = da.sel(time=t) 
-        picture_dic = {'date':t.dt.strftime("%Y%m%d-%H").values, 'type':model, 'initial_time':''}
-        dr.draw_single(rain1h, picture_dic)
+        flnm = fl_path+t.strftime('%Y-%m-%d_%H:%M:%S')
+        # print(flnm)
+    
+        ds = xr.open_dataset(flnm)
+        # da = ds['DVSFCG']
+        da = xr.ufuncs.sqrt(ds['DUSFCG']**2+ds['DVSFCG']**2)
+        gwd_sfc = da.rename({'XLAT':'lat', 'XLONG':'lon', 'XTIME':'time'}).squeeze()
+        dr = Draw()
+        picture_dic = {'date':gwd_sfc.time.dt.strftime("%Y%m%d-%H").values, 'type':model, 'initial_time':'DSFCG'}
+        dr.draw_single(gwd_sfc, picture_dic)
 
 def draw_dual():
     # model_list = ['1900_90m', '1900_900m','1912_900m', '1912_90m', '1912_90m_OGWD']
-    model_list = ['1912_90m_gwd3']
+    model_list = ['1912_90m_OGWD']
     for model in model_list:
         # path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/'+model+'/'
         draw_one(model)

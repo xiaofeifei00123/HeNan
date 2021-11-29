@@ -13,7 +13,7 @@ Version          :1.0
 import xarray as xr
 import numpy as np
 import pandas as pd
-from wrf import xy, interp2dxy, to_np, getvar, CoordPair, vertcross, get_cartopy
+# from wrf import xy, interp2dxy, to_np, getvar, CoordPair, vertcross, get_cartopy
 from wrf import smooth2d
 import wrf
 from netCDF4 import Dataset
@@ -31,18 +31,20 @@ def draw_quiver(ax, u,v):
     '''
     绘制风矢图
     '''
-    x = u.cross_line_idx.values[::10]
-    u = u[::3,::10]
-    v = v[::3,::10]
+    x = u.cross_line_idx.values[::30]
+    # u = u[::3,::10]
+    # v = v[::3,::10]
+    u = u[::9,::30]
+    v = v[::9,::30]
     y = u.coords['vertical'].values
-    Q = ax.quiver(x, y, u.values,v.values,units='inches',scale=30,pivot='middle', zorder=1)  # 绘制风矢
+    Q = ax.quiver(x, y, u.values,v.values,units='inches',scale=30,pivot='middle', zorder=2)  # 绘制风矢
 
 def draw_contour(ax, da):
     pass
 
     xs = np.arange(0, da.shape[-1], 1)
     ys = da.coords['vertical'].values
-    levels=np.arange(342, 372, 2)
+    levels=np.arange(342, 372, 4)
     cs = ax.contour(xs, ys, smooth2d(da.values, passes=16), levels=levels, colors='black')
     ax.clabel(cs, inline=True, fontsize=10)
 
@@ -140,13 +142,15 @@ def draw(t='2021-07-20 09', flpath='/mnt/zfm_18T/fengxiang/HeNan/Data/1900_90m/'
 
 def draw_1time(t='2021-07-20 09'):
     path_main ='/mnt/zfm_18T/fengxiang/HeNan/Data/'
-    model_list = ['1900_90m', '1900_900m','1912_90m', '1912_900m']
+    # model_list = ['1900_90m', '1900_900m','1912_90m', '1912_900m']
+    model_list = ['1912_90m', '1912_90m_OGWD']
     for model in model_list:
         fl = path_main+model+'/'
         draw(t=t, flpath=fl)
 
 def draw_mtime():
-    time_list = pd.date_range('2021-07-20 00', '2021-07-21 00', freq='1H')
+    # time_list = pd.date_range('2021-07-20 00', '2021-07-21 00', freq='1H')
+    time_list = pd.date_range('2021-07-20 05', '2021-07-20 06', freq='1H')
     for t in time_list:
         draw_1time(t)
     pass

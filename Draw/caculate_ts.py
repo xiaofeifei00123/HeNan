@@ -41,7 +41,7 @@ class Caculate():
         self.rain = rain
         # self.threshold = threshold
         # self.model_list = ['ERA51800','ERA51812','ERA51900','ERA51912','GDAS1800','GDAS1812','GDAS1900','GDAS1912',]
-        self.model_list = [ '1900_900m','1900_90m','1912_900m','1912_90m', '1912_90m_OGWD']
+        self.model_list = [ '1900_900m','1900_90m','1912_900m','1912_90m', '1912_90m_gwd3']
 
     def get_two_scale(self, threshold):
         # flag = 'all'
@@ -202,12 +202,12 @@ def get_ts():
     # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/rain_all.nc'
     flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/Rain/rain_all_station.nc'
     ds = xr.open_dataset(flnm)
-    dds = ds.sel(time=slice('2021-07-20 0000', '2021-07-20 1200')).sum(dim='time')
-    # dds = ds.sel(time=slice('2021-07-20 0000', '2021-07-21 0000')).sum(dim='time')
+    # dds = ds.sel(time=slice('2022-07-20 0000', '2021-07-20 1200')).sum(dim='time')
+    dds = ds.sel(time=slice('2021-07-20 0000', '2021-07-21 0000')).sum(dim='time')
     # print(dds)
     ca = Caculate(dds)
-    # threshold_list = [0.1, 5, 15, 30, 70, 140]
-    threshold_list=[0.1, 10, 25.0, 50, 100, 250]#雨量等级
+    threshold_list = [0.1, 5, 15, 30, 70, 140]
+    # threshold_list=[0.1, 10, 25.0, 50, 100, 250]#雨量等级
     rain_list = ['小雨', '中雨', '大雨', '暴雨', '大暴雨', '特大暴雨']
     ts_list = []
     for threshold in threshold_list:
@@ -226,8 +226,8 @@ def draw_bar(ts):
     # labels = list(threshold_list.astype('str').values)
     # rain_list = ['小雨', '中雨', '大雨', '暴雨', '大暴雨', '特大暴雨']
     # threshold_list = [0.1, 5, 15, 30, 70, 140]
-    # rain_list = ['小雨≥0.1', '中雨≥5', '大雨≥15', '暴雨≥30', '大暴雨≥70', '特大暴雨≥140']
-    rain_list = ['小雨≥0.1', '中雨≥10', '大雨≥25', '暴雨≥50', '大暴雨≥100', '特大暴雨≥250']
+    rain_list = ['小雨≥0.1', '中雨≥5', '大雨≥15', '暴雨≥30', '大暴雨≥70', '特大暴雨≥140']
+    # rain_list = ['小雨≥0.1', '中雨≥10', '大雨≥25', '暴雨≥50', '大暴雨≥100', '特大暴雨≥250']
     labels = rain_list
     x = np.arange(len(labels))
     ds = ts
@@ -235,7 +235,7 @@ def draw_bar(ts):
 
     # model_list = ['ERA51800','ERA51812','ERA51900','ERA51912','GDAS1800','GDAS1812','GDAS1900','GDAS1912',]
     # model_list = ['1900_90m','1900_900m','1912_90m','1912_900m']
-    model_list = ['1900_900m','1900_90m','1912_900m','1912_90m','1912_90m_OGWD']
+    model_list = ['1900_900m','1900_90m','1912_900m','1912_90m','1912_90m_gwd3']
     # color_list = ['green', 'blue','orange', 'red',  'green', 'blue','orange', 'red', ]
     # color_list = ['darkgreen', 'darkblue','darkorange', 'darkred',  'green', 'cornflowerblue', 'orange', 'red',]
     # color_list = ['green', 'blue','orange', 'red',  'darkgreen', 'darkblue', 'darkorange', 'darkred',]
