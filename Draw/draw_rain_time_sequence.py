@@ -64,8 +64,10 @@ class Draw():
         x_label = x_label.dt.strftime('%d/%H')
 
 
-        ccolor = ['blue', 'blue', 'red', 'red','green', 'black', 'blue','green','green','green']
-        lline_style = ['-', '--', '-', '--', '-', '-','-.', '-.', '-.', '-.']
+        # ccolor = ['blue', 'blue', 'red', 'red','green', 'black', 'blue','green','green','green']
+        ccolor = ['blue', 'green', 'red', 'black','green', 'black', 'blue','green','green','green']
+        # lline_style = ['-', '--', '-', '--', '-', '-','-.', '-.', '-.', '-.']
+        lline_style = ['-', '-', '-', '-', '-', '-','-.', '-.', '-.', '-.']
         mmarker = ['o', 'o', '^', '^', '^', '^', '*', '*', '*', '*']
         custom_cycler = (
             cycler(color=ccolor) +
@@ -164,12 +166,19 @@ def get_max_sta_rain(model):
 
     ## 特定空间范围, 郑州市范围内
     area = {
-        'lon1':112.7,
-        'lon2':114.2,
-        'lat1':34.2,
-        'lat2':34.8,
+        'lon1':112,
+        'lon2':115,
+        'lat1':33,
+        'lat2':36,
         'interval':0.125,
     }
+    # area = {
+    #     'lon1':112.7,
+    #     'lon2':114.2,
+    #     'lat1':34.2,
+    #     'lat2':34.8,
+    #     'interval':0.125,
+    # }
     # area = {
     #     'lon1':110.5,
     #     'lon2':116,
@@ -212,20 +221,20 @@ def draw_zhenzhou_max():
     flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/Rain/rain_all_station.nc'
     ds = xr.open_dataset(flnm)
     ds = ds.sel(time=slice('2021-07-20 00', '2021-07-21 00'))
-    # area = {
-    #     'lon1':112,
-    #     'lon2':115,
-    #     'lat1':33.5,
-    #     'lat2':36.5,
-    #     'interval':0.125,
-    # }
     area = {
-        'lon1':112.7,
-        'lon2':114.2,
-        'lat1':34.2,
-        'lat2':34.8,
+        'lon1':112,
+        'lon2':115,
+        'lat1':33,
+        'lat2':36,
         'interval':0.125,
     }
+    # area = {
+    #     'lon1':112.7,
+    #     'lon2':114.2,
+    #     'lat1':34.2,
+    #     'lat2':34.8,
+    #     'interval':0.125,
+    # }
     index = ((ds.lat<=area['lat2']) & (ds.lat>=area['lat1']) & (ds.lon>=area['lon1']) & (ds.lon<=area['lon2']))
     rain = ds.sel(sta=index)
     rain = rain.max(dim='sta')
@@ -241,20 +250,21 @@ def draw_zhenzhou_mean():
     flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/Rain/rain_all_station.nc'
     ds = xr.open_dataset(flnm)
     ds = ds.sel(time=slice('2021-07-20 00', '2021-07-21 00'))
+    area = {
+        'lon1':112,
+        'lon2':115,
+        'lat1':33,
+        'lat2':36,
+        # 'interval':0.125,
+        'interval':0.05,
+    }
     # area = {
-    #     'lon1':112,
-    #     'lon2':115,
-    #     'lat1':33.5,
-    #     'lat2':36.5,
+    #     'lon1':112.7,
+    #     'lon2':114.2,
+    #     'lat1':34.2,
+    #     'lat2':34.8,
     #     'interval':0.125,
     # }
-    area = {
-        'lon1':112.7,
-        'lon2':114.2,
-        'lat1':34.2,
-        'lat2':34.8,
-        'interval':0.125,
-    }
     index = ((ds.lat<=area['lat2']) & (ds.lat>=area['lat1']) & (ds.lon>=area['lon1']) & (ds.lon<=area['lon2']))
     rain = ds.sel(sta=index)
     rain = rain.mean(dim='sta')

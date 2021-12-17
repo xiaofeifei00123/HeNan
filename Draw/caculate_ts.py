@@ -266,4 +266,5 @@ def draw_bar(ts):
 if __name__ == '__main__':
     pass
     ts = get_ts()
-    draw_bar(ts)
+    print(ts)
+    # draw_bar(ts)

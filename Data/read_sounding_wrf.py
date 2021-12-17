@@ -6,11 +6,16 @@ Description:
 然后再插值到垂直层
 读取单个和多个站的wrf逐层数据
 目的是为了多插值几层
+不同模式，一个站点的数据插值到一起
+
+分别存储，读取聚合
+这样做的好处是可以节省内存，针对每一步的错误分别改进
+
 参考：
 https://wrf-python.readthedocs.io/en/latest/user_api/generated/wrf.interp1d.html#wrf.interp1d
 
 ## 对于读取的文件可以这样设置不同的纵坐标
-dds = ds.set_coords(['height_agl', 'pressure'])
+dds = ds.set_coords(['height', 'pressure'])
 dds.swap_dims({'bottom_top':'pressure'})
 -----------------------------------------
 Time             :2021/10/05 22:53:08
@@ -23,154 +28,203 @@ import xarray as xr
 import os
 import xesmf as xe
 import numpy as np
+import pandas as pd
 import netCDF4 as nc
 import wrf
 from multiprocessing import Pool
-# from multiprocessing import Pool
-# from read_global import caculate_diagnostic, regrid_xesmf
-# from baobao.caculate import caculate_q_rh_thetav
-# from baobao.interp import regrid_xesmf
 from baobao.caculate import caculate_q_rh_thetav
-# from baobao.coord_transform import xy_ll
-# from netCDF4 import MFDataset
 
 # %%
 
-def get_centroid(flnm= '/mnt/zfm_18T/fengxiang/HeNan/Data/1912_900m/rain.nc', t_start='2021-07-20 00', t_end='2021-07-20 12'):
-    """获得一段时间降水的质心
-    根据降水聚合文件获取
 
-    Args:
-        flnm (str, optional): 原始wrfout降水数据的聚合. Defaults to '/mnt/zfm_18T/fengxiang/HeNan/Data/1912_900m/rain.nc'.
-        t_start (str, optional): 起始时间. Defaults to '2021-07-20 00'.
-        t_end (str, optional): 结束时间. Defaults to '2021-07-20 12'.
-
-    Returns:
-        [type]: [description]
+class Sounding():
+    """单个站点, 单个模式的
+    诊断量计算
+    数据聚合
     """
-    flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/1912_900m/rain.nc'
-    da = xr.open_dataarray(flnm)
-    # tt = slice('2021-07-20 00', '2021-07-20 12')
-    tt = slice(t_start, t_end)
-    rain = da.sel(time=tt).sum(dim='time')
-    lat = sum(sum(rain*rain.lat))/sum(sum(rain))
-    lon = sum(sum(rain*rain.lon))/sum(sum(rain))
-    lon = lon.round(3)
-    lat = lat.round(3)
-    return lat, lon
-# 我其实想要获得的是某一个点的多个变量, 但是变量只能一个一个获取
+    def __init__(self,
+                model='gwd0', 
+                sta_dic={'sta_num':'57083','sta_name':'zhengzhou','lon':113.66,'lat':34.71 },
+                path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/',
+                # path_wrfout ='/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/gwd0/' ,
+                # path_save ='/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/gwd0/' ,
+                 ):
+        """ 存放一些公共使用的变量,
+        也就是每个函数都一样的哪些
+        将一些不同模式不一样的东西，全部定义到这里
+        """
+        pass
+        self.model = model
+        self.sta_dic = sta_dic
+        self.path_main = path_main
+        # self.path_wrfout = path_wrfout
+        # self.path_save = path_save
+        self.path_wrfout = os.path.join(path_main, model)
+        self.path_save = os.path.join(path_main, model)
 
-def sounding_1station_1time(flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/1900_90m/wrfout_d04_2021-07-19_00:00:00'):
-    # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/1900_90m/wrfout_d04_2021-07-19_00:00:00'
-    print(flnm[-19:])
-    wrfnc = nc.Dataset(flnm)
-    lat, lon = get_centroid()
-    # x,y = wrf.ll_to_xy(wrfnc, 34.71, 113.66)
-    x,y = wrf.ll_to_xy(wrfnc, lat, lon)
+    def sounding_1station_1time(self, flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/1900_90m/wrfout_d03_2021-07-19_00:00:00'):
+        # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/1900_90m/wrfout_d04_2021-07-19_00:00:00'
+        print(flnm[-19:])
+        wrfnc = nc.Dataset(flnm)
+        # lat, lon = get_centroid()
 
-    hagl = wrf.getvar(wrfnc, 'height_agl', units='m')[:,x,y]  # 先纬度后经度
-    # pj = str(hagl.attrs['projection'])
-    pj = hagl.attrs['projection'].proj4()
-    hagl = hagl.assign_attrs({'projection':pj}).drop_vars(['latlon_coord'])
-    p = wrf.getvar(wrfnc, 'pres', units='hpa')[:,x,y].assign_attrs({'projection':pj}).drop_vars(['latlon_coord'])
-    u = wrf.getvar(wrfnc, 'ua', units='m/s')[:,x,y].assign_attrs({'projection':pj}).drop_vars(['latlon_coord'])
+        lat = self.sta_dic['lat']
+        lon = self.sta_dic['lon']
 
-    v = wrf.getvar(wrfnc, 'va', units='m/s')[:,x,y].assign_attrs({'projection':pj}).drop_vars(['latlon_coord'])
-    t = wrf.getvar(wrfnc, 'temp', units='degC')[:,x,y].assign_attrs({'projection':pj}).drop_vars(['latlon_coord'])
-    td = wrf.getvar(wrfnc, 'td', units='degC')[:,x,y].assign_attrs({'projection':pj}).drop_vars(['latlon_coord'])
-    ds = xr.merge([t,td, u, v, p, hagl])
-    dds = ds.set_coords(['height_agl', 'pressure'])
-    ds_return = dds.swap_dims({'bottom_top':'pressure'})
-    return ds_return
+        # x,y = wrf.ll_to_xy(wrfnc, 34.71, 113.66)
+        x,y = wrf.ll_to_xy(wrfnc, lat, lon)
 
-def sounding_1station(fl_list):
-    """单进程循环读取文件
-    单个站点多个时次
-    """
-    pass
-    dds_list = []
-    for fl in fl_list:
-        dds = sounding_1station_1time(fl)
-    dds_list.append(dds)
-    dds_concate = xr.concat(dds_list, dim='Time')
-    dds_return = dds_concate.rename({'XLAT':'lat', 'XLONG':'lon', 'Time':'time'}).drop_vars('XTIME')
-    return dds_return
+        ## 高度， 各层海拔高度, 单位m, 和探空资料保持一致
+        hagl = wrf.getvar(wrfnc, 'height', units='m')[:,x,y]  # 先纬度后经度
+        # pj = str(hagl.attrs['projection'])
+        pj = hagl.attrs['projection'].proj4()
+        hagl = hagl.assign_attrs({'projection':pj}).drop_vars(['latlon_coord'])
+        p = wrf.getvar(wrfnc, 'pres', units='hpa')[:,x,y].assign_attrs({'projection':pj}).drop_vars(['latlon_coord'])
+        u = wrf.getvar(wrfnc, 'ua', units='m/s')[:,x,y].assign_attrs({'projection':pj}).drop_vars(['latlon_coord'])
+        v = wrf.getvar(wrfnc, 'va', units='m/s')[:,x,y].assign_attrs({'projection':pj}).drop_vars(['latlon_coord'])
+        
+        ## 根据u,v风计算风向和风速
+        deg = 180.0/np.pi # 角度和弧度之间的转换
+        rad = np.pi/180.0
 
-def sounding_1station_mp(fl_list):
-    """多进程读取文件
-    单个站点多个时次
-    """
-    pass
-    pool = Pool(12)
-    result = []
-    for fl in fl_list:
-        tr = pool.apply_async(sounding_1station_1time, args=(fl,))
-        result.append(tr)
-    pool.close()
-    pool.join()
+        wind_speed = xr.ufuncs.sqrt(u**2+v**2)
+        wind_speed.name = 'wind_speed'
+        wind_angle = 180.0+xr.ufuncs.arctan2(u, v)*deg
+        wind_angle.name = 'wind_angle'
+        u = u.rename('u')
+        v = v.rename('v')
+        
 
-    dds_list = []
-    for j in result:
-        dds_list.append(j.get())
+        t = wrf.getvar(wrfnc, 'temp', units='degC')[:,x,y].assign_attrs({'projection':pj}).drop_vars(['latlon_coord'])
+        td = wrf.getvar(wrfnc, 'td', units='degC')[:,x,y].assign_attrs({'projection':pj}).drop_vars(['latlon_coord'])
+        ds = xr.merge([t,td, u, v, p, hagl])
+        ds = xr.merge([t,td, u, v, wind_speed, wind_angle, p, hagl])
+        dds = ds.set_coords(['height', 'pressure'])
+        ds_return = dds.swap_dims({'bottom_top':'pressure'})
+        return ds_return
 
-    dds_concate = xr.concat(dds_list, dim='Time')
-    # ds_upar = dds_concate.rename({'level':'pressure', 'XLAT':'lat', 'XLONG':'lon', 'Time':'time'})
-    dds_return = dds_concate.rename({'XLAT':'lat', 'XLONG':'lon', 'Time':'time'}).drop_vars('XTIME')
-    return dds_return
+    def sounding_1station(self, fl_list):
+        """单进程循环读取文件
+        单个站点多个时次
+        """
+        pass
+        dds_list = []
+        for fl in fl_list:
+            dds = self.sounding_1station_1time(fl,)
+        dds_list.append(dds)
+        dds_concate = xr.concat(dds_list, dim='Time')
+        dds_return = dds_concate.rename({'XLAT':'lat', 'XLONG':'lon', 'Time':'time'}).drop_vars('XTIME')
+        return dds_return
+
+    def sounding_1station_mp(self, fl_list):
+        """多进程读取文件
+        单个站点多个时次
+        """
+        pass
+        pool = Pool(13)
+        result = []
+        for fl in fl_list:
+            tr = pool.apply_async(self.sounding_1station_1time, args=(fl,))
+            result.append(tr)
+        pool.close()
+        pool.join()
+
+        dds_list = []
+        for j in result:
+            dds_list.append(j.get())
+        # print(dds_list)
+        dds_concate = xr.concat(dds_list, dim='Time')
+        # ds_upar = dds_concate.rename({'level':'pressure', 'XLAT':'lat', 'XLONG':'lon', 'Time':'time'})
+        dds_return = dds_concate.rename({'XLAT':'lat', 'XLONG':'lon', 'Time':'time'}).drop_vars('XTIME')
+        return dds_return
+
+    
+    def sounding_main(self):
+        """处理流程的主控制函数
+
+        Args:
+            path ([type]): [description]
+            path = '/mnt/zfm_18T/fengxiang/HeNan/Data/ERA5/YSU_1912/'
+
+        Returns:
+            [type]: [description]
+        """
+        # path_wrfout = os.path.join(self.path_main, self.model)
+        fl_list = os.popen('ls {}/wrfout_d03*'.format(self.path_wrfout))  # wrfout文件的path
+        fl_list = fl_list.read().split()
+
+        print("1.合并不同时次数据")
+        dds = self.sounding_1station_mp(fl_list)
+        print("2. 开始计算诊断变量")
+        cc = caculate_q_rh_thetav(dds)
+        print("3. 合并诊断变量")
+        ds_upar = xr.merge([dds, cc])
+        print("4. 保存单站，单模式，所有时次数据")
+
+        # self.sta_dic={'sta_num':'57083','sta_name':'zhenzhou','lon':113.66,'lat':34.71 }
+        flnm = 'sounding_'+self.sta_dic['sta_name']+'_'+self.model+'.nc'
+        path_save = os.path.join(self.path_save,flnm)
+        ds_upar.to_netcdf(path_save)
+        return ds_upar
 
 
-def get_upar(path):
-    pass
-    # path = '/mnt/zfm_18T/fengxiang/HeNan/Data/ERA5/YSU_1912/'
-    fl_list = os.popen('ls {}/wrfout_d04*'.format(path))  # 打开一个管道
-    fl_list = fl_list.read().split()
-    ## 临时测试
-    # fl_list = fl_list[0:2]
-    dds = sounding_1station_mp(fl_list)
-    print("开始计算诊断变量")
-    # cc = caculate_diagnostic(dds)
-    cc = caculate_q_rh_thetav(dds)
-    print("合并保存数据")
-    ds_upar = xr.merge([dds, cc])
-    return ds_upar
 
-
-
-def combine_one(model='1912_90m'):
+def sounding_dual():
     """
     将wrfout数据中需要的变量聚合成一个文件，并进行相关的垂直插值, 和诊断量的计算
     处理两种模式，不同时次的数据
+    多模式数据的合并
     """
-    path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/'
-    # gu = GetUpar()
-    # path_wrfout = path_main+'1912_90m'
-    path_wrfout = path_main+model
-    ds = get_upar(path_wrfout)
-    # ds = gu.get_upar_multi(path_wrfout)
-    flnm = model+'/sounding.nc'
-    path_save = path_main+flnm
-    print(path_save)
-    ds.to_netcdf(path_save)
-    return ds
+    model_list = ['gwd0', 'gwd1', 'gwd3']
 
+    sta_dic_list = [
+        {'sta_num':'57083','sta_name':'zhengzhou','lon':113.66,'lat':34.71 },
+        {'sta_num':'57178','sta_name':'nanyang','lon':112.4,'lat':33.1 }, 
+                   ]
+    
+    for stadic in sta_dic_list:
+        for model in model_list:
+            sd = Sounding(model=model, sta_dic=stadic)
+            ds = sd.sounding_main()
+            # ds_list.append(ds)
+            print(ds)
+
+# %%
 def combine():
+    """将不同模式，不同站点的数据聚合到一起
     """
-    将wrfout数据中需要的变量聚合成一个文件，并进行相关的垂直插值, 和诊断量的计算
-    处理两种模式，不同时次的数据
-    """
-    model_list = ['1900_90m', '1900_900m','1912_90m', '1912_900m']
-    for model in model_list:
-        combine_one(model)
 
-
-# %%
+    model_list = ['gwd0', 'gwd1', 'gwd3']
+    sta_dic_list = [
+        {'sta_num':'57083','sta_name':'zhengzhou','lon':113.66,'lat':34.71 },
+        {'sta_num':'57178','sta_name':'nanyang','lon':112.4,'lat':33.1 }, 
+    ]
+    sta_list = ['zhengzhou', 'nanyang']
+    path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/'
+    ds_sta_list = []
+    for stadic in sta_dic_list:
+        ds_model_list = []
+        for model in model_list:
+            flnm = 'sounding_'+stadic['sta_name']+'_'+model+'.nc'
+            # print(path_main)
+            path_save1 = os.path.join(path_main, model)
+            path_save = os.path.join(path_save1,flnm)
+            print(path_save)
+            ds = xr.open_dataset(path_save)
+            ds_model_list.append(ds)
+        dds = xr.concat(ds_model_list, dim=pd.Index(model_list, name='model'))
+        ds_sta_list.append(dds)
+    ddds  = xr.concat(ds_sta_list, dim=pd.Index(sta_list, name='station'))
+    flnm_all = os.path.join(path_main,'sounding_all.nc')
+    ddds.to_netcdf(flnm_all)
+    return ddds
+    # dds
 
 
 # %%
 if __name__ == '__main__':
-    ### combine和regrid一般不同时进行
-    combine()
-    # combine_one()
-    # regrid_one()
-    # combine() 
-    # regrid()
+    pass
+    sounding_dual() # 分别存储
+    aa = combine()  # 合并为一个文件
+    print(aa)
+    

@@ -28,7 +28,6 @@ import matplotlib.gridspec as gridspec
 from multiprocessing import Pool
 from netCDF4 import Dataset
 
-
 from wrf import get_cartopy, smooth2d, getvar
 
 

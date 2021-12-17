@@ -54,12 +54,16 @@ class Draw(object):
         """画填色图
         """
 
-        # colorlevel=[0, 0.1, 5, 15.0, 30, 70, 140,  700]#雨量等级
-        # colorlevel=[0, 0.1, 5, 10, 15.0, 20, 25, 30, 700]#雨量等级
-        colorlevel=[0, 0.1, 0.5, 1, 1.5, 2.0, 2.5, 3.0, 70]#雨量等级
-        # colorlevel=[0, 50, 500, 1000, 1500, 2000, 2500, 3000, 7000]#雨量等级
-        # colorlevel=np.arange(0,3000, 500)
-        colordict=['white','#A6F28F','#3DBA3D','#61BBFF','#0000FF','#FA00FA','#800040', '#EE0000']#颜色列表
+        ## 指定颜色
+        # colorlevel=[0, 0.1, 0.5, 1, 1.5, 2.0, 2.5, 3.0, 70]#雨量等级
+        
+        # colordict=['white','#A6F28F','#3DBA3D','#61BBFF','#0000FF','#FA00FA','#800040', '#EE0000']#降水颜色列表
+        colordict=['#0000fb','#3232fd','#6464fd','#a2a3fb','white','#fbbcbc', '#ff8383', '#fd4949', '#fd0000']#正负, 蓝-红
+
+        
+        # colorlevel=np.arange(-0.5, 0.6, 0.05)
+        # colorlevel=[-0.45, -0.35, -0.25, -0.15,-0.05, 0.05, 0.15, 0.25, 0.35, 0.45]
+        colorlevel=[-100, -0.35, -0.25, -0.15,-0.05, 0.05, 0.15, 0.25, 0.35, 100]
         x = data.lon
         y = data.lat
         
@@ -74,6 +78,7 @@ class Draw(object):
                         #   cmap
                         #   cmap=cmaps.precip3_16lev,
                         #   cmap=cmaps.WhiteBlueGreenYellowRed,
+                        #   cmap=cmaps.NCV_blue_red,
                           transform=ccrs.PlateCarree())
         return crx
 
@@ -119,7 +124,7 @@ class Draw(object):
         cf = self.draw_contourf_single(da, ax, dic)
         # colorticks=[0.1,5,15,30.0,70,140]#雨量等级
         # colorlevel=[0, 0.1, 5, 10, 15.0, 20, 25, 30, 700]#雨量等级
-        colorlevel=[0, 0.1, 0.5, 1, 1.5, 2.0, 2.5, 3.0, 70]#雨量等级
+        colorlevel=[-0.45, -0.35, -0.25, -0.15,-0.05, 0.05, 0.15, 0.25, 0.35, 0.45]
         colorticks = colorlevel[1:-1]
         
         cb = fig.colorbar(
@@ -132,7 +137,7 @@ class Draw(object):
         )
         cb.ax.tick_params(labelsize=30)  # 设置色标标注的大小
         fig_name = picture_dic['type']+'_'+picture_dic['initial_time']+'_'+picture_dic['date']
-        fig_path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_gwd/'
+        fig_path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_gwd3/'
         fig.savefig(fig_path+fig_name)
 
 
@@ -142,26 +147,33 @@ class Draw(object):
 def draw_one(model='1900_90m'):
     pass
 
-    fl_path ='/mnt/zfm_18T/fengxiang/HeNan/Data/1912_90m_OGWD/wrfout_d04_' # 2021-07-20_05:00:00'
-    # flnm  = '/mnt/zfm_18T/fengxiang/HeNan/Data/1912_90m_OGWD/wrfout_d04_2021-07-20_05:00:00'
-    tt = pd.date_range('2021-07-20 00', '2021-07-21 00', freq='1H')
+    fl_path =os.path.join('/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/', model)
+    tt = pd.date_range('2021-07-20 00', '2021-07-20 00', freq='1H')
     for t in tt:
-        flnm = fl_path+t.strftime('%Y-%m-%d_%H:%M:%S')
-        # print(flnm)
+        flnm = 'wrfout_d03_'+t.strftime('%Y-%m-%d_%H:%M:%S')
+        flnm = os.path.join(fl_path, flnm)
     
         ds = xr.open_dataset(flnm)
-        # da = ds['DVSFCG']
-        da = xr.ufuncs.sqrt(ds['DUSFCG']**2+ds['DVSFCG']**2)
+
+        if model == 'gwd1':
+            # var = 'DVSFCG'
+            var = 'DUSFCG'
+            da = ds[var]
+        elif model == 'gwd3':
+            # da = ds['DVSFCG_LS']+ds['DVSFCG_SS']+ds['DVSFCG_FD']+ds['DVSFCG_BL']
+            # var = 'DVSFCG'
+            da = ds['DUSFCG_LS']+ds['DUSFCG_SS']+ds['DUSFCG_FD']+ds['DUSFCG_BL']
+            var = 'DUSFCG'
+        print(da.max())
         gwd_sfc = da.rename({'XLAT':'lat', 'XLONG':'lon', 'XTIME':'time'}).squeeze()
         dr = Draw()
-        picture_dic = {'date':gwd_sfc.time.dt.strftime("%Y%m%d-%H").values, 'type':model, 'initial_time':'DSFCG'}
+        picture_dic = {'date':gwd_sfc.time.dt.strftime("%Y%m%d-%H").values, 'type':model, 'initial_time':var}
         dr.draw_single(gwd_sfc, picture_dic)
 
 def draw_dual():
-    # model_list = ['1900_90m', '1900_900m','1912_900m', '1912_90m', '1912_90m_OGWD']
-    model_list = ['1912_90m_OGWD']
+    model_list = ['gwd1', 'gwd3']
+    # model_list = ['gwd3']
     for model in model_list:
-        # path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/'+model+'/'
         draw_one(model)
 
 

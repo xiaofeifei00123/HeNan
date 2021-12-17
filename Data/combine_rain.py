@@ -19,7 +19,8 @@ import xarray as xr
 # %%
 def combine_latlon():
     ds = xr.Dataset()
-    model_list = ['1900_90m','1900_900m', '1912_900m', '1912_90m', ]
+    # model_list = ['1900_90m','1900_900m', '1912_900m', '1912_90m', ]
+    model_list = ['gwd0', 'gwd1', 'gwd3']
     for model in model_list:
         flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/'+model+'/rain_latlon.nc'
         da = xr.open_dataarray(flnm)
@@ -33,9 +34,10 @@ def combine_latlon():
 
 def combine_station():
     ds = xr.Dataset()
-    model_list = ['1900_90m', '1900_900m','1912_90m', '1912_900m']
+    # model_list = ['1900_90m', '1900_900m','1912_90m', '1912_900m']
+    model_list = ['gwd0', 'gwd1', 'gwd3']
     for model in model_list:
-        flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/'+model+'/rain_station.nc'
+        flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/'+model+'/rain_station.nc'
         da = xr.open_dataarray(flnm)
         ds[model] = da
     flnm_obs = '/mnt/zfm_18T/fengxiang/HeNan/Data/OBS/rain_station.nc'

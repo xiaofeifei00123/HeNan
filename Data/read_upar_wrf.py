@@ -37,6 +37,7 @@ from baobao.caculate import caculate_q_rh_thetav
 from baobao.interp import regrid_xesmf
 # from baobao.coord_transform import xy_ll
 
+# from wrf import getvar
 
 # %%
 class GetUpar():
@@ -45,7 +46,7 @@ class GetUpar():
     def get_upar_one(self, fl):
         # dds_list = []
         # pre_level = [1000, 925, 850, 700, 500, 200]
-        pre_level = [1000, 925, 850, 700, 500,200]
+        pre_level = [1000, 925, 900, 850, 700, 500,200]
         # pre_level = np.arange(1000, 90, -20)  # 对d03使用垂直方向10度的分辨率
         # pre_level = np.arange(1000, 90, -50)  # 对d02使用垂直方向100度的分辨率
         dds = xr.Dataset()
@@ -80,7 +81,7 @@ class GetUpar():
         """多进程读取文件
         """
         pass
-        pool = Pool(12)
+        pool = Pool(13)
         result = []
         for fl in fl_list:
             tr = pool.apply_async(self.get_upar_one, args=(fl,))
@@ -110,7 +111,7 @@ class GetUpar():
     def get_upar(self, path):
         pass
         # path = '/mnt/zfm_18T/fengxiang/HeNan/Data/ERA5/YSU_1912/'
-        fl_list = os.popen('ls {}/wrfout_d04*'.format(path))  # 打开一个管道
+        fl_list = os.popen('ls {}/wrfout_d03*'.format(path))  # 打开一个管道
         fl_list = fl_list.read().split()
         ## 临时测试
         # fl_list = fl_list[0:2]
@@ -120,6 +121,7 @@ class GetUpar():
         cc = caculate_q_rh_thetav(dds)
         print("合并保存数据")
         ds_upar = xr.merge([dds, cc])
+        print(ds_upar)
         return ds_upar
 
 
@@ -128,15 +130,18 @@ def combine_one(model='1912_90m'):
     将wrfout数据中需要的变量聚合成一个文件，并进行相关的垂直插值, 和诊断量的计算
     处理两种模式，不同时次的数据
     """
-    path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/'
+    path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/'
+    # path_main = os.path.join(path_main, model)
     gu = GetUpar()
     # path_wrfout = path_main+'1912_90m'
     path_wrfout = path_main+model
     ds = gu.get_upar(path_wrfout)
     # ds = gu.get_upar_multi(path_wrfout)
-    flnm = model+'/upar.nc'
-    path_save = path_main+flnm
-    print(path_save)
+    # flnm = model+'upar.nc'
+    # path_save = path_main+flnm
+    path_save = os.path.join(path_main, model, 'upar.nc')
+    # path_save = os.path.join(path_save, )
+    # print(path_save)
     ds.to_netcdf(path_save)
     return ds
 
@@ -145,7 +150,8 @@ def combine():
     将wrfout数据中需要的变量聚合成一个文件，并进行相关的垂直插值, 和诊断量的计算
     处理两种模式，不同时次的数据
     """
-    model_list = ['1900_90m','1900_900m', '1912_90m', '1912_900m']
+    # model_list = ['1900_90m','1900_900m', '1912_90m', '1912_900m']
+    model_list = ['gwd0','gwd1', 'gwd3']
     for model in model_list:
         combine_one(model)
 
@@ -199,7 +205,7 @@ def regrid_one(model='1900_90m'):
         'lat2':36+1,
         'interval':0.125,
     }
-    path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/'
+    path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/'
     flnm = 'upar.nc'
     path_in = path_main+model+'/'+flnm
     ds = xr.open_dataset(path_in)
@@ -211,7 +217,8 @@ def regrid_one(model='1900_90m'):
 
 def regrid_dual():
     pass
-    model_list = ['1900_90m','1900_900m', '1912_90m', '1912_900m']
+    # model_list = ['1900_90m','1900_900m', '1912_90m', '1912_900m']
+    model_list = ['gwd0', 'gwd1', 'gwd3']
     for model in model_list:
         regrid_one(model)
 
@@ -219,8 +226,8 @@ def regrid_dual():
 # %%
 if __name__ == '__main__':
     ### combine和regrid一般不同时进行
-    # combine()
-    regrid_dual()
+    combine()
+    # regrid_dual()
     # combine_one()
     # regrid_one()
     # combine() 

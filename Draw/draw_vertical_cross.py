@@ -31,11 +31,13 @@ def draw_quiver(ax, u,v):
     '''
     绘制风矢图
     '''
-    x = u.cross_line_idx.values[::30]
+    x = u.cross_line_idx.values[::10]
     # u = u[::3,::10]
     # v = v[::3,::10]
-    u = u[::9,::30]
-    v = v[::9,::30]
+    # u = u[::9,::30]
+    # v = v[::9,::30]
+    u = u[::3,::10]
+    v = v[::3,::10]
     y = u.coords['vertical'].values
     Q = ax.quiver(x, y, u.values,v.values,units='inches',scale=30,pivot='middle', zorder=2)  # 绘制风矢
 
@@ -141,16 +143,18 @@ def draw(t='2021-07-20 09', flpath='/mnt/zfm_18T/fengxiang/HeNan/Data/1900_90m/'
     plt.clf()
 
 def draw_1time(t='2021-07-20 09'):
-    path_main ='/mnt/zfm_18T/fengxiang/HeNan/Data/'
+    path_main ='/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/'
     # model_list = ['1900_90m', '1900_900m','1912_90m', '1912_900m']
-    model_list = ['1912_90m', '1912_90m_OGWD']
+    # model_list = ['1912_90m', '1912_90m_OGWD']
+    model_list = ['gwd0', 'gwd1', 'gwd3']
     for model in model_list:
         fl = path_main+model+'/'
         draw(t=t, flpath=fl)
 
 def draw_mtime():
     # time_list = pd.date_range('2021-07-20 00', '2021-07-21 00', freq='1H')
-    time_list = pd.date_range('2021-07-20 05', '2021-07-20 06', freq='1H')
+    # time_list = pd.date_range('2021-07-20 06', '2021-07-20 06', freq='1H')
+    time_list = pd.date_range('2021-07-20 08', '2021-07-20 08', freq='1H')
     for t in time_list:
         draw_1time(t)
     pass

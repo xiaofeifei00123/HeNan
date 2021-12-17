@@ -31,10 +31,12 @@ class CrossData():
     def __init__(self, wrf_file) -> None:
         pass
         ## Create the start point and end point for the cross section
-        self.cross_start = CoordPair(lat=33.5, lon=114)
-        self.cross_end = CoordPair(lat=35.5, lon=112.5)
+        # self.cross_start = CoordPair(lat=33.5, lon=114)
+        # self.cross_end = CoordPair(lat=35.5, lon=112.5)
+        self.cross_start = CoordPair(lat=33.6, lon=110.5)
+        self.cross_end = CoordPair(lat=33.6, lon=116)
         ## read the ncfile
-        # wrf_file = '/mnt/zfm_18T/fengxiang/HeNan/Data/1900_90m/wrfout_d04_2021-07-20_08:00:00'
+        # wrf_file = '/mnt/zfm_18T/fengxiang/HeNan/Data/1900_90m/wrfout_d03_2021-07-20_08:00:00'
         self.ncfile = Dataset(wrf_file)
         ## 计算垂直坐标, 可以是离地高度、气压等
         self.vert = getvar(self.ncfile, "height_agl")  # 离地高度坐标
@@ -104,7 +106,7 @@ def save_one_model():
     # tt
     fl_list = []
     for t in tt:
-        fl = 'wrfout_d04_'+t.strftime('%Y-%m-%d_%H:%M:%S')
+        fl = 'wrfout_d03_'+t.strftime('%Y-%m-%d_%H:%M:%S')
         flnm = path+fl
         fl_list.append(flnm)
 
@@ -143,7 +145,7 @@ def save_one_model_mp(path='/mnt/zfm_18T/fengxiang/HeNan/Data/1900_90m/'):
     # tt
     fl_list = []
     for t in tt:
-        fl = 'wrfout_d04_'+t.strftime('%Y-%m-%d_%H:%M:%S')
+        fl = 'wrfout_d03_'+t.strftime('%Y-%m-%d_%H:%M:%S')
         flnm = path+fl
         fl_list.append(flnm)
 
@@ -173,8 +175,10 @@ def save_one_model_mp(path='/mnt/zfm_18T/fengxiang/HeNan/Data/1900_90m/'):
     ds.to_netcdf(save_name)
 
 def save_all_model():
-    model_list = ['1900_90m', '1900_900m','1912_90m', '1912_900m']
-    path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/'
+    # model_list = ['1900_90m', '1900_900m','1912_90m', '1912_900m']
+    # model_list = ['gwd3-NO','gwd3-CTL','gwd3-FD', 'gwd3-BL','gwd3-SS', 'gwd3-LS']
+    model_list = ['gwd0', 'gwd1', 'gwd3']
+    path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/'
     for model in model_list:
         path = path_main+model+'/'
         save_one_model_mp(path)

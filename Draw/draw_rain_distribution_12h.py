@@ -124,7 +124,7 @@ class Draw(object):
         )
         cb.ax.tick_params(labelsize=30)  # 设置色标标注的大小
         fig_name = picture_dic['type']+'_'+picture_dic['initial_time']
-        fig_path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_rain/rain_12h/'
+        fig_path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_rain/rain_12h_gwd/'
         fig.savefig(fig_path+fig_name)
 
 
@@ -198,7 +198,7 @@ def draw_tricontourf(rain):
 
     # mp.add_station(ax)
     fig_name = 'obs_distribution' 
-    fig_path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_rain/rain_12h/'
+    fig_path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_rain/rain_12h_gwd/'
     fig.savefig(fig_path+fig_name)
 
 
@@ -251,28 +251,37 @@ def draw_dual():
         draw_one(model)
 
 def draw_onemodel(model='1912_90m_gwd3'):
+    """对于重力波试验的
+
+    Args:
+        model (str, optional): [description]. Defaults to '1912_90m_gwd3'.
+    """
     pass
 
     dr = Draw()
-    flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/'+model+'/'+'rain.nc'
-    # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/YSU/'+model+'/'+'rain.nc'
-    # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/1912_900m/rain.nc'
+    flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/'+model+'/'+'rain.nc'
     da = xr.open_dataarray(flnm)
-    # da = da.sel(time=slice('2021-07-20 00', '2021-07-21 00'))
     da = da.sel(time=slice('2021-07-20 00', '2021-07-20 12'))
-    # da = da.sel(time=slice('2021-07-19 16', '2021-07-20 04 '))
-    # da = da.sel(time=slice('2021-07-19 17', '2021-07-20 05 '))
     da = da.sum(dim='time') 
 
-    # t = '1900'
-    picture_dic = {'date':'2021-07-20 00-12', 'type':'gwd3', 'initial_time':''}
+    picture_dic = {'date':'2021-07-20 00-12', 'type':model, 'initial_time':''}
     dr.draw_single(da, picture_dic)
+
+def draw_dual_model():    
+    """对于重力波试验
+    """
+    # model_list = ['gwd3-NO', 'gwd3-CTL', 'gwd3-BL', 'gwd3-FD', 'gwd3-LS', 'gwd3-SS']
+    model_list = ['gwd0','gwd1', 'gwd3']
+    for model in model_list:
+        draw_onemodel(model)
+
 
 if __name__ == '__main__':
 
     # draw_dual()
     # draw_obs()
-    draw_onemodel()
+    # draw_onemodel()
+    draw_dual_model()
 
 
     

@@ -482,8 +482,8 @@ def draw_obs():
 # %%
 if __name__ == '__main__':
     pass
-    draw_model()
-    # draw_obs()
+    # draw_model()
+    draw_obs()
 
 
 
