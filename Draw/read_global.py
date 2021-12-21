@@ -2,7 +2,9 @@
 # -*- encoding: utf-8 -*-
 '''
 Description:
-存放公共的计算函数和变量等
+存放公共的计算函数
+插值函数(水平插值，垂直插值)
+计算诊断变量
 -----------------------------------------
 Time             :2021/09/22 11:01:19
 Author           :Forxd
@@ -18,16 +20,18 @@ from metpy.calc import virtual_potential_temperature
 from metpy.calc import potential_temperature
 from metpy.calc import relative_humidity_from_dewpoint
 from metpy.calc import dewpoint_from_relative_humidity
+import metpy.interpolate as interp
 from wrf import projection
 import xarray as xr
 import xesmf as xe
 import matplotlib.pyplot as plt
 import cartopy.crs as ccrs
-
+import numpy as np
 
 
 def caculate_diagnostic(ds):
     """计算比湿，位温等诊断变量
+    传入的温度和露点必须是摄氏温度
     根据td或者rh计算q,theta_v
     返回比湿q, 虚位温theta_v, 相对湿度rh
 
@@ -52,13 +56,13 @@ def caculate_diagnostic(ds):
         """探空资料的温度单位大多是degC"""
         td = ds['td']
         dew_point = units.Quantity(td.values, "degC")
-        temperature = units.Quantity(t.values, "K")
+        temperature = units.Quantity(t.values, "degC")
     elif 'rh' in var_list:
         """FNL资料的单位是K"""
         # rh = da.sel(variable='rh')
         rh = ds['rh']
         rh = units.Quantity(rh.values, "%")
-        temperature = units.Quantity(t.values, "K")
+        temperature = units.Quantity(t.values, "degC")
         dew_point = dewpoint_from_relative_humidity(temperature, rh)
     else:
         print("输入的DataArray中必须要有rh或者td中的一个")
@@ -104,125 +108,78 @@ def caculate_diagnostic(ds):
     ds_return = ds_return.transpose(*dims_origin)
     return ds_return
 
-    
-    
-
-# def regrid():
-    # pass
-# d03不适合插值
-
-# %%
-flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/ERA5/YSU_1800_upar.nc'
-ds = xr.open_dataset(flnm)
-# ds.XLONG.min()
-# ds_regrid = xe.util.grid_2d(79.875,102,0.25,25.875,38,0.25) # 80-98E,26-38N
-# %%
-# ds_input = ds.rename({'XLAT':'lat', 'XLONG':'lon', 'XTIME':'time'})
-ds_input = ds.squeeze()
-# %%
-# dds_concate['RAINNC'].max()
-def regrid(dataset):
+def regrid_xesmf(dataset, area):
     """利用xESMF库，将非标准格点的数据，插值到标准格点上去
+    注意：dataset的coords, lat,lon 必须同时是一维或是二维的
     Args:
-        dataset ([type]): Dataset格式的数据, 这里是由TBB构成的DataSet
+        dataset ([type]): Dataset格式的数据, 多变量，多时次，多层次
     读的是80-102度的数据
+        area, 需要插值的网格点范围, 即latlon坐标的经纬度范围
     """
     ## 创建ds_out, 利用函数创建,这个东西相当于掩膜一样
-    # ds_out = xe.util.grid_2d(79.875,98,0.25,25.875,38,0.25) # 80-98E,26-38N
-    # ds_out = xe.util.grid_2d(79.875,102,0.25,25.875,38,0.25) # 80-98E,26-38N
-    # ds_regrid = xe.util.grid_2d(108.975, 116, 0.05, 31.975, 37, 0.05)
-    # ds_regrid = xe.util.grid_2d(108, 116, 0.05, 32, 37, 0.05)
-    ds_regrid = xe.util.grid_2d(112, 114, 0.05, 33, 35, 0.05)
+    ds_regrid = xe.util.grid_2d(area['lon1'], area['lon2'], area['interval'], area['lat1'], area['lat2'], area['interval'])
+    # ds_regrid = xe.util.grid_2d(110, 116, 0.05, 32, 37, 0.05)
     regridder = xe.Regridder(dataset, ds_regrid, 'bilinear')  # 好像是创建了一个掩膜一样
-    dp = dataset['ua']  # 获取变量
-    dp_out = regridder(dataset)  # 返回插值后的变量
-    return dp_out
-aa = regrid(ds_input)
-# %%
-bb = aa['theta_v'].isel(pressure=3, time=0)
+    ds_out = regridder(dataset)  # 返回插值后的变量
 
-# %%
-fig = plt.figure(figsize=(12,6))
-ax  = fig.add_axes([0.1, 0.1, 0.8, 0.8], projection=ccrs.PlateCarree())
-# bb.plot.pcolormesh(ax=ax, x=bb.lon, y=bb.lat)
-# ax.contourf(x=bb.lon, y=bb.lat, bb)
-# ax.contourf(x=bb.lon, y=bb.lat, bb.values)
-# ax.contourf(bb.values)
-# ds_input['q'].isel(time=0, pressure=2).plot()
-aa['q'].isel(time=0, pressure=2).plot()
+    ### 重新构建经纬度坐标
+    lat = ds_out.lat.sel(x=0).values.round(3)
+    lon = ds_out.lon.sel(y=0).values.round(3)
+    ds_1 = ds_out.drop_vars(['lat', 'lon'])  # 可以删除variable和coords
 
+    ## 设置和dims, x, y相互依存的coords, 即lat要和y的维度一样
+    ds2 = ds_1.assign_coords({'lat':('y',lat), 'lon':('x',lon)})
+    # ## 将新的lat,lon, coords设为dims
+    ds3 = ds2.swap_dims({'y':'lat', 'x':'lon'})
+    ## 删除不需要的coords
+    # ds_return = ds3.drop_vars(['XTIME'])
+    ds_return = ds3
+    return ds_return
+    
 
+def interp_metpy(sta):
+    """
+    站点插值到格点
+    反距离权重插值
 
+    Args:
+        sta (DataFrame): [lon,lat,height]
 
+    Returns:
+        [type]: [description]
+    """
+    # h = sta['temperature']
+    # import metpy.interpolate as interp
+    h = sta['height']
 
-# aa.isel(time=0,pressure=0).plot()
-# %%
-# dds_concate.to_netcdf('/mnt/zfm_18T/fengxiang/HeNan/Data/ERA5/YSU_1912.nc')
+    lon = sta['lon']
+    lat = sta['lat']
+    # x,y,z = interp.interpolate_to_grid(lon, lat, h, 'barnes', hres=0.5, minimum_neighbors=2)
+    # grid1 = meb.grid([60,150,0.25],[10,60,0.25])
+    # x0, x1 = 69.05, 150.1
+    # y0, y1 = 0, 55.1 
 
-# %%
-# aa = wrf.getvar('pressure')
-# aa
-# ds['RAINNC']
-# dds['ua']
-# ds['pr']
+    x0, x1 = 0, 160
+    y0, y1 = 0, 80
+    # res = 1 / 32.0
+    # res = 1 / 10  # 0.1°
+    res = 1
+    mx, my = np.meshgrid(np.arange(x0, x1, res),
+                            np.arange(y0, y1, res),
+                            indexing="ij")
+    # mx
+    # grd2 = meb.interp_sg_idw(stb, grid1)
+    # z = interp.inverse_distance_to_grid(lon, lat, h, mx, my, r=10)
+    # x,y,z = interp.remove_nan_observations(lon,lat, h)
 
-# %%
-## 插值
-# ds_rain = dds_concate['RAINNC'].to_dataset()
-# ds_rain = ds_rain.rename({'XLAT':'lat', 'XLONG':'lon', 'XTIME':'time'})
-# ds_in = ds_rain.isel(Time=0)
-# ## 插值目标区域
-# ds_regrid = xe.util.grid_2d(108.975, 116, 0.05, 31.975, 37, 0.05)
-# ## 插值器构建
-# regridder = xe.Regridder(ds_in, ds_regrid, 'bilinear')  # 好像是创建了一个掩膜一样
-# ## 插值 
-# ds_out = regridder(ds_rain)  # 插值完成的数据依然是二维的，需要重构成一维的
-# # dp_out
-# # %%
-# # ds_out['RAINNC'].max()
+    z = interp.inverse_distance_to_grid(lon, lat, h, mx, my, r=5, min_neighbors=1)
+    return mx,my,z
+###  测试非均匀网格点插值程序
+# flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/ERA5/YSU_1800_upar_d03.nc'
+# ds_input = xr.open_dataset(flnm)
+# ds_input.XTIME
+###  测试结束
 
-# # %%
-# ### 重新构建经纬度坐标
-# lat = ds_out.lat.sel(x=0).values
-# lon = ds_out.lon.sel(y=0).values
-# da = ds_out['RAINNC']
-
-# # da.dims
-# ds_rr = xr.Dataset(
-#     {'RAINNC':(['time','lat', 'lon'], da.values)},
-#     coords={
-#         'time':da.time.values,
-#         'lat':lat,
-#         'lon':lon,
-#     },
-# )
-# # %%
-# # rain = ds_rr['RAINNC']
-
-# # # rain.mean(dim=['lat', 'lon']).max()
-# # # rain.sel(lat=)
-# # # rain.max()
-
-
-
-
-# lat = np.arange(24.875, 45.125+0.25,0.25)
-# lon = np.arange(69.875, 105.125+0.25,0.25)
-
-
-
-# ds_input = xr.Dataset(
-#     {'RAINNC':(['time', 'lat', 'lon'], ds_rain.values)}
-# )
-
-# ds_input
-
-
-# ds_out = xe.util.grid_2d(77.875, 105, 0.25, 25.875, 38, 0.25)
-# ds_out = xe.util.grid_2d(109.875, 116, 0.25, 31.875, 37, 0.25)
-# ds_out = xe.util.grid_2d(108.975, 116, 0.05, 31.975, 37, 0.05)
-# regridder = xe.Regridder(ds_rain, ds_out, 'bilinear')  # 好像是创建了一个掩膜一样
-# ds_out
 if __name__ == '__main__':
     # main()
     pass

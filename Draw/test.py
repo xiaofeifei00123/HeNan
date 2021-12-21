@@ -1,18 +1,26 @@
+#!/home/fengxiang/anaconda3/envs/wrfout/bin/python
+# -*- encoding: utf-8 -*-
+'''
+Description:
+寻找降水质心
+-----------------------------------------
+Time             :2021/11/09 13:19:10
+Author           :Forxd
+Version          :1.0
+'''
 # %%
-from netCDF4 import Dataset
-import numpy as np
+import xarray as xr
 import matplotlib.pyplot as plt
-from matplotlib.cm import get_cmap
-import cartopy.crs as crs
-from cartopy.feature import NaturalEarthFeature
-from wrf import (getvar, interplevel, to_np, latlon_coords, get_cartopy,
-                 cartopy_xlim, cartopy_ylim)
-# %%
-
-flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/ERA5/YSU_1800/wrfout_d03_2021-07-18_00:00:00'
-ncfile = Dataset(flnm)
-z = getvar(ncfile, 'z')
-u = getvar(ncfile, 'ua')
+import numpy as np
 
 # %%
-get_cartopy(u)
+flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/1912_90m/rain.nc'
+ds = xr.open_dataset(flnm)
+da = ds.max(dim=['south_north', 'west_east']).to_array()
+da.plot()
+
+
+
+
+
+
