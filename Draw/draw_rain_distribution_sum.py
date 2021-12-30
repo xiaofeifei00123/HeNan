@@ -36,6 +36,14 @@ from multiprocessing import Pool
 from baobao.map import Map
 
 
+# %%
+
+# flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd3-all/rain.nc'
+# da = xr.open_dataarray(flnm)
+# %%
+
+
+
 
 # %%
 class Draw(object):
@@ -108,6 +116,12 @@ class Draw(object):
             },
         }
         mp.add_station(ax, station, justice=True)
+
+        
+        # rain_max = da.max(dim=['south_north', 'west_east'])        
+        # rain_mean = da.mean(dim=['south_north', 'west_east'])        
+        # ax.set_title('Max = %s, Avg = %s'%(rain_max,rain_mean), fontsize=35,)
+
         ax.set_title(date, fontsize=35,)
         ax.set_title(picture_dic['initial_time'], fontsize=30,loc='left')
         ax.set_title(picture_dic['type'], fontsize=30,loc='right')

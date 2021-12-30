@@ -124,29 +124,28 @@ def save_one(path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/1900_90m/'):
     }
 
     ## 合并数据
-    # da = combine_rain(path_main)
-    # da.to_netcdf(path_dic['path_rain_wrf_grid'])
+    da = combine_rain(path_main)
+    da.to_netcdf(path_dic['path_rain_wrf_grid'])
 
     ## 降低分辨率和转换投影
     # regrid_rain_model(path_dic, area)
-    da1 = regrid_latlon(path_dic['path_rain_wrf_grid'], area)
-    da1.to_netcdf(path_dic['path_rain_wrf_latlon'])
+    # da1 = regrid_latlon(path_dic['path_rain_wrf_grid'], area)
+    # da1.to_netcdf(path_dic['path_rain_wrf_latlon'])
 
     ## 插值到站点
-    da2 = grid2station(path_dic['path_rain_obs_station'], path_dic['path_rain_wrf_grid'],path_dic['path_wrfout'])
-    da2.to_netcdf(path_dic['path_rain_wrf_station'])
+    # da2 = grid2station(path_dic['path_rain_obs_station'], path_dic['path_rain_wrf_grid'],path_dic['path_wrfout'])
+    # da2.to_netcdf(path_dic['path_rain_wrf_station'])
     pass
 
 def dual():
     """处理多个模式的数据
     """
     pass
-    # model_list = ['1900_90m', '1900_900m','1912_900m', '1912_90m',]
-    # model_list = ['gwd3-NO','gwd3-CTL','gwd3-FD', 'gwd3-BL','gwd3-SS', 'gwd3-LS']
+    # model_list = ['gwd3-CTL','gwd3-FD', 'gwd3-BL','gwd3-SS', 'gwd3-LS']
     model_list = ['gwd0', 'gwd1', 'gwd3']
-    # model_list = ['gwd1', 'gwd3']
     for model in model_list:
-        path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/'+model+'/'
+        # path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/'+model+'/'
+        path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d04/'+model+'/'
         save_one(path_main)
     
 if __name__ == '__main__':

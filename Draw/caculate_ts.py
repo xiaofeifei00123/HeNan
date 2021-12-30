@@ -235,7 +235,8 @@ def draw_bar(ts):
 
     # model_list = ['ERA51800','ERA51812','ERA51900','ERA51912','GDAS1800','GDAS1812','GDAS1900','GDAS1912',]
     # model_list = ['1900_90m','1900_900m','1912_90m','1912_900m']
-    model_list = ['1900_900m','1900_90m','1912_900m','1912_90m','1912_90m_gwd3']
+    # model_list = ['1900_900m','1900_90m','1912_900m','1912_90m','1912_90m_gwd3']
+    model_list = ['gwd3-CTL','1900_90m','1912_900m','1912_90m','1912_90m_gwd3']
     # color_list = ['green', 'blue','orange', 'red',  'green', 'blue','orange', 'red', ]
     # color_list = ['darkgreen', 'darkblue','darkorange', 'darkred',  'green', 'cornflowerblue', 'orange', 'red',]
     # color_list = ['green', 'blue','orange', 'red',  'darkgreen', 'darkblue', 'darkorange', 'darkred',]

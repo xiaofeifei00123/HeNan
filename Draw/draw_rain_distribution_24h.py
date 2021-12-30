@@ -56,7 +56,6 @@ class Draw(object):
         x = data.lon
         y = data.lat
         
-        
         crx = ax.contourf(x,
                           y,
                           data,
@@ -97,10 +96,25 @@ class Draw(object):
                 'lat': 34.76,
                 'lon': 113.65
             },
+            'NanYang': {
+                'abbreviation':'NY',
+                'lat': 33.1,
+                'lon': 112.49,
+            },
         }
-        mp.add_station(ax, station, justice=True)
-        ax.set_title(date, fontsize=35,)
-        ax.set_title(picture_dic['initial_time'], fontsize=30,loc='left')
+        mp.add_station(ax, station, justice=True, delx=0.1)
+        # mp.add_station(ax, station)
+        # ax.set_title(date, fontsize=35,)
+
+        
+        rain_max = da.max(dim=['south_north', 'west_east'])        
+        rain_mean = da.mean(dim=['south_north', 'west_east'])        
+        ax.set_title('Max = %s, Avg = %s'%(rain_max.values.round(2),rain_mean.values.round(2)), fontsize=35,loc='left')
+        
+        
+        
+
+        # ax.set_title(picture_dic['initial_time'], fontsize=30,loc='left')
         ax.set_title(picture_dic['type'], fontsize=30,loc='right')
         cf = self.draw_contourf_single(da, ax, dic)
         colorlevel=[0, 0.1, 10, 25.0, 50, 100, 250,  700]#雨量等级
@@ -193,28 +207,12 @@ def draw_obs():
     draw_tricontourf(da)
     
 
-def draw_one(model='1900_90m'):
-    pass
-
-    dr = Draw()
-    flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/'+model+'/'+'rain.nc'
-    da = xr.open_dataarray(flnm)
-    da = da.sel(time=slice('2021-07-20 01', '2021-07-21 00'))
-    da = da.sum(dim='time') 
-    picture_dic = {'date':'2021-07 20/00--21/00', 'type':model, 'initial_time':''}
-    dr.draw_single(da, picture_dic)
-
-def draw_dual():
-    model_list = ['1900_90m', '1900_900m','1912_900m', '1912_90m']
-    for model in model_list:
-        # path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/'+model+'/'
-        draw_one(model)
-
 def draw_onemodel(model='gwd3'):
     pass
 
     dr = Draw()
-    flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/'+model+'/'+'rain.nc'
+    # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/'+model+'/'+'rain.nc'
+    flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d04/'+model+'/'+'rain.nc'
     da = xr.open_dataarray(flnm)
     da = da.sel(time=slice('2021-07-20 01', '2021-07-21 00'))
     da = da.sum(dim='time') 
@@ -225,15 +223,16 @@ def draw_onemodel(model='gwd3'):
 def draw_dual_model():    
     """对于重力波试验
     """
-    # model_list = ['gwd3-NO', 'gwd3-CTL', 'gwd3-BL', 'gwd3-FD', 'gwd3-LS', 'gwd3-SS']
+    # model_list = ['gwd3-LS']
+    # model_list = ['gwd3-CTL','gwd3-BL', 'gwd3-FD', 'gwd3-LS', 'gwd3-SS']
     model_list = ['gwd0','gwd1', 'gwd3']
     for model in model_list:
+        print("画 %s 模式"%model)
         draw_onemodel(model)
 
 
 if __name__ == '__main__':
 
-    # draw_dual()
     # draw_obs()
     # draw_onemodel()
     draw_dual_model()

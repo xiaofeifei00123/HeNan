@@ -5,7 +5,32 @@ import netCDF4 as nc
 import matplotlib.pyplot as plt
 
 # %%
-# flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/gwd0/wrfout_d03_2021-07-19_21:00:00'
+flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/OBS/rain_latlon.nc'
+ds = xr.open_dataarray(flnm)
+# ds
+da = ds.isel(time=0)
+da
+# da = ds.sel(time='2021-07-20 00')
+# da = ds.sel(time=slice('2021-07-20 01', '2021-07-21 00')).sum(dim='time')
+# # da
+# ds.sel(time=slice('2021-07-20 01', '2021-07-21 00'))
+# %%
+south_north = da.lat.values
+west_east = da.lon.values
+# da = da.a
+da = da.assign_coords({'south_north':('lat',south_north), 'west_east':('lon',west_east)})
+da = da.swap_dims({'lat':'south_north', 'lon':'west_east'})
+import sys
+sys.path.append('/mnt/zfm_18T/fengxiang/HeNan/Draw')
+import draw_rain_distribution_24h as d2
+dr = d2.Draw()
+picture_dic = {'date':'2021-07 20/00--21/00', 'type':'aa', 'initial_time':''}
+dr.draw_single(da, picture_dic)
+
+# import baobao.quick_draw as bq
+# bq.quick_contourf(da)
+
+
 # wrfnc = nc.Dataset(flnm)
 # lat = 34.72
 # lon = 113.65

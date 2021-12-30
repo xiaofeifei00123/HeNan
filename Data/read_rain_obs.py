@@ -90,7 +90,7 @@ class RainStation():
             'lon2':116,
             'lat1':32,
             'lat2':36.5,
-            'interval':0.125,
+            'interval':0.05,
         }
         # area = {
         #     'lon1':111.5,
@@ -122,19 +122,27 @@ class RainGrid():
             [type]: [description]
         """
         area = {
-            'lon1':110,
+            'lon1':110.5,
             'lon2':116,
-            'lat1':31,
-            'lat2':37,
-            'interval':0.125,
+            'lat1':32,
+            'lat2':36.5,
+            'interval':0.01,
         }
         ddc = rain_station2grid(da, area)
+        ## 这个插值出来的数据太不靠谱了
         return ddc
 
     def save_rain_grid(self,):
         ## 读取存储好的站点数据
         da = xr.open_dataarray('/mnt/zfm_18T/fengxiang/HeNan/Data/OBS/rain.nc')
-        ## 插值为格点数据
+        ## 只保留24小时累积降水的插值
+        da = da.sel(time=slice('2021-07-20 01', '2021-07-21 00')).sum(dim='time')
+        # da = da.assign_coords({'time':[pd.Timestamp('2021-07-20 00'),]})
+        da = da.expand_dims(dim='time')
+        tt = pd.date_range('2021-07-20 00', '2021-07-20 00', freq='1H')
+        da = da.assign_coords({'time':tt}) 
+        print(da.time)
+        # ## 插值为格点数据
         da_grid = self.rain_station2grid(da)
         da_grid.to_netcdf('/mnt/zfm_18T/fengxiang/HeNan/Data/OBS/rain_latlon.nc')
 
