@@ -101,15 +101,21 @@ class Draw(object):
                 'lat': 33.1,
                 'lon': 112.49,
             },
+            'LuShi': {
+                'abbreviation':'LS',
+                'lat': 34.08,
+                'lon': 111.07,
+            },
         }
         mp.add_station(ax, station, justice=True, delx=0.1)
         # mp.add_station(ax, station)
         # ax.set_title(date, fontsize=35,)
 
         
-        rain_max = da.max(dim=['south_north', 'west_east'])        
-        rain_mean = da.mean(dim=['south_north', 'west_east'])        
-        ax.set_title('Max = %s, Avg = %s'%(rain_max.values.round(2),rain_mean.values.round(2)), fontsize=35,loc='left')
+        # rain_max = da.max(dim=['south_north', 'west_east'])        
+        # rain_mean = da.mean(dim=['south_north', 'west_east'])        
+        # # ax.set_title('Max = %s, Avg = %s'%(rain_max.values.round(2),rain_mean.values.round(2)), fontsize=35,loc='left')
+        # ax.set_title('Max = %s'%(rain_max.values.round(1)), fontsize=30,loc='left')
         
         
         
@@ -184,17 +190,29 @@ def draw_tricontourf(rain):
             'lat': 34.76,
             'lon': 113.65
         },
+        'NanYang': {
+            'abbreviation':'NY',
+            'lat': 33.1,
+            'lon': 112.49,
+        },
+        'LuShi': {
+            'abbreviation':'LS',
+            'lat': 34.08,
+            'lon': 111.07,
+        },
     }
     mp.add_station(ax, station, justice=True)
 
 
-    ax.set_title('2021-07 20/00--21/00', fontsize=35,)
-    ax.set_title('OBS', fontsize=30,loc='left')
+    rain_max = rain.max()        
+    ax.set_title('Max = %s'%(rain_max.values.round(1)), fontsize=30,loc='left')
+    # ax.set_title('2021-07 20/00--21/00', fontsize=35,)
+    ax.set_title('OBS', fontsize=30,loc='right')
 
 
     # mp.add_station(ax)
     fig_name = 'obs_distribution' 
-    fig_path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_rain/rain_24h/'
+    fig_path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_rain/rain_24h_gwd/'
     fig.savefig(fig_path+fig_name)
 
 
@@ -212,7 +230,8 @@ def draw_onemodel(model='gwd3'):
 
     dr = Draw()
     # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/'+model+'/'+'rain.nc'
-    flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d04/'+model+'/'+'rain.nc'
+    flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/'+model+'/'+'rain.nc'
+    # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d04/'+model+'/'+'rain.nc'
     da = xr.open_dataarray(flnm)
     da = da.sel(time=slice('2021-07-20 01', '2021-07-21 00'))
     da = da.sum(dim='time') 
@@ -224,8 +243,10 @@ def draw_dual_model():
     """对于重力波试验
     """
     # model_list = ['gwd3-LS']
-    # model_list = ['gwd3-CTL','gwd3-BL', 'gwd3-FD', 'gwd3-LS', 'gwd3-SS']
-    model_list = ['gwd0','gwd1', 'gwd3']
+    # model_list = ['gwd3-BL', 'gwd3-FD', 'gwd3-LS', 'gwd3-SS']
+    model_list = ['gwd0','gwd1', 'gwd3','gwd3-BL', 'gwd3-FD', 'gwd3-LS', 'gwd3-SS']
+    # model_list = ['gwd3-test']
+    # model_list = ['gwd0', 'gwd1','gwd3']
     for model in model_list:
         print("画 %s 模式"%model)
         draw_onemodel(model)
@@ -233,6 +254,6 @@ def draw_dual_model():
 
 if __name__ == '__main__':
 
-    # draw_obs()
+    draw_obs()
     # draw_onemodel()
     draw_dual_model()

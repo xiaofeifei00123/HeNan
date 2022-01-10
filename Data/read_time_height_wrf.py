@@ -3,6 +3,7 @@
 '''
 Description:
 站点的高空数据
+单站数据的聚合
 其实很简单，先插值到一个站点
 然后再插值到垂直层
 读取单个和多个站的wrf逐层数据
@@ -33,7 +34,7 @@ import pandas as pd
 import netCDF4 as nc
 import wrf
 from multiprocessing import Pool
-from baobao.caculate import caculate_q_rh_thetav
+from baobao.caculate import caculate_q_rh_thetav, caculate_average_wrf
 
 # %%
 
@@ -69,37 +70,58 @@ class Sounding():
         wrfnc = nc.Dataset(flnm)
         # lat, lon = get_centroid()
 
-        lat = self.sta_dic['lat']
-        lon = self.sta_dic['lon']
+        # lat = self.sta_dic['lat']
+        # lon = self.sta_dic['lon']
 
         # x,y = wrf.ll_to_xy(wrfnc, 34.71, 113.66)
-        x,y = wrf.ll_to_xy(wrfnc, lat, lon)
+        # x,y = wrf.ll_to_xy(wrfnc, lat, lon)
 
+        area = {
+            'lat1':33,
+            'lat2':34,
+            'lon1':111.5,
+            'lon2':113,
+        }
+        
         ## 高度， 各层海拔高度, 单位m, 和探空资料保持一致
-        hagl = wrf.getvar(wrfnc, 'height', units='m')[:,x,y]  # 先纬度后经度
-        # pj = str(hagl.attrs['projection'])
+        hagl = wrf.getvar(wrfnc, 'height', units='m')  # 先纬度后经度
         pj = hagl.attrs['projection'].proj4()
-        hagl = hagl.assign_attrs({'projection':pj}).drop_vars(['latlon_coord'])
-        p = wrf.getvar(wrfnc, 'pres', units='hpa')[:,x,y].assign_attrs({'projection':pj}).drop_vars(['latlon_coord'])
-        u = wrf.getvar(wrfnc, 'ua', units='m/s')[:,x,y].assign_attrs({'projection':pj}).drop_vars(['latlon_coord'])
-        v = wrf.getvar(wrfnc, 'va', units='m/s')[:,x,y].assign_attrs({'projection':pj}).drop_vars(['latlon_coord'])
+        hagl = hagl.assign_attrs({'projection':pj})
+        p = wrf.getvar(wrfnc, 'pres', units='hpa').assign_attrs({'projection':pj})
+        u = wrf.getvar(wrfnc, 'ua', units='m/s').assign_attrs({'projection':pj})
+        v = wrf.getvar(wrfnc, 'va', units='m/s').assign_attrs({'projection':pj})
+        w = wrf.getvar(wrfnc, 'wa', units='m/s').assign_attrs({'projection':pj})
+        t = wrf.getvar(wrfnc, 'temp', units='degC').assign_attrs({'projection':pj})
+        td = wrf.getvar(wrfnc, 'td', units='degC').assign_attrs({'projection':pj})
+
+        ## 计算区域平均值
+        hagl = caculate_average_wrf(hagl).round(1)
+        p = caculate_average_wrf(p).round(0)
+        u = caculate_average_wrf(u).round(1)
+        v = caculate_average_wrf(v).round(1)
+        w = caculate_average_wrf(w)
+        t = caculate_average_wrf(t).round(1)
+        td = caculate_average_wrf(td).round(1)
+        
+
         
         ## 根据u,v风计算风向和风速
         deg = 180.0/np.pi # 角度和弧度之间的转换
         rad = np.pi/180.0
 
-        wind_speed = xr.ufuncs.sqrt(u**2+v**2)
+        # wind_speed = xr.ufuncs.sqrt(u**2+v**2).round(1)
+        wind_speed = np.sqrt(u**2+v**2).round(1)
         wind_speed.name = 'wind_speed'
-        wind_angle = 180.0+xr.ufuncs.arctan2(u, v)*deg
+        # wind_angle = (180.0+xr.ufuncs.arctan2(u, v)*deg).round(0)
+        wind_angle = (180.0+np.arctan2(u, v)*deg).round(0)
         wind_angle.name = 'wind_angle'
-        u = u.rename('u')
+        u = u.rename('u')  # 给DataArray一个名称u
         v = v.rename('v')
+        w = w.rename('w')
         
 
-        t = wrf.getvar(wrfnc, 'temp', units='degC')[:,x,y].assign_attrs({'projection':pj}).drop_vars(['latlon_coord'])
-        td = wrf.getvar(wrfnc, 'td', units='degC')[:,x,y].assign_attrs({'projection':pj}).drop_vars(['latlon_coord'])
-        ds = xr.merge([t,td, u, v, p, hagl])
-        ds = xr.merge([t,td, u, v, wind_speed, wind_angle, p, hagl])
+        # ds = xr.merge([t,td, u, v, p, hagl])
+        ds = xr.merge([t,td, u, v, w,wind_speed, wind_angle, p, hagl])
         dds = ds.set_coords(['height', 'pressure'])
         ds_return = dds.swap_dims({'bottom_top':'pressure'})
         return ds_return
@@ -136,7 +158,8 @@ class Sounding():
         # print(dds_list)
         dds_concate = xr.concat(dds_list, dim='Time')
         # ds_upar = dds_concate.rename({'level':'pressure', 'XLAT':'lat', 'XLONG':'lon', 'Time':'time'})
-        dds_return = dds_concate.rename({'XLAT':'lat', 'XLONG':'lon', 'Time':'time'}).drop_vars('XTIME')
+        # dds_return = dds_concate.rename({'XLAT':'lat', 'XLONG':'lon', 'Time':'time'}).drop_vars('XTIME')
+        dds_return = dds_concate.rename({'Time':'time'}).drop_vars('XTIME')
         return dds_return
 
     
@@ -163,12 +186,18 @@ class Sounding():
         print("4. 保存单站，单模式，所有时次数据")
 
         # self.sta_dic={'sta_num':'57083','sta_name':'zhenzhou','lon':113.66,'lat':34.71 }
-        flnm = 'sounding_'+self.sta_dic['sta_name']+'_'+self.model+'.nc'
+        # flnm = 'sounding_'+self.sta_dic['sta_name']+'_'+self.model+'.nc'
+        flnm = 'time_height'+'_'+self.model+'.nc'
         path_save = os.path.join(self.path_save,flnm)
         ds_upar.to_netcdf(path_save)
         return ds_upar
 
 
+# sd = Sounding()
+# sd.sounding_main()
+
+
+# %%
 
 def sounding_dual():
     """
@@ -178,18 +207,18 @@ def sounding_dual():
     """
     model_list = ['gwd0', 'gwd1', 'gwd3']
 
-    sta_dic_list = [
-        {'sta_num':'57083','sta_name':'zhengzhou','lon':113.66,'lat':34.71 },
-        {'sta_num':'57178','sta_name':'nanyang','lon':112.4,'lat':33.1 }, 
-        {'sta_num':'57067','sta_name':'lushi','lon':111.04,'lat':34.05 }, 
-                   ]
+    # sta_dic_list = [
+    #     {'sta_num':'57083','sta_name':'zhengzhou','lon':113.66,'lat':34.71 },
+    #     {'sta_num':'57178','sta_name':'nanyang','lon':112.4,'lat':33.1 }, 
+    #     {'sta_num':'57067','sta_name':'lushi','lon':111.04,'lat':34.05 }, 
+    #                ]
     
-    for stadic in sta_dic_list:
-        for model in model_list:
-            sd = Sounding(model=model, sta_dic=stadic)
-            ds = sd.sounding_main()
-            # ds_list.append(ds)
-            print(ds)
+    # for stadic in sta_dic_list:
+    for model in model_list:
+        sd = Sounding(model=model)
+        ds = sd.sounding_main()
+        # ds_list.append(ds)
+        print(ds)
 
 # %%
 def combine():
@@ -228,6 +257,6 @@ def combine():
 if __name__ == '__main__':
     pass
     sounding_dual() # 分别存储
-    aa = combine()  # 合并为一个文件
-    print(aa)
+    # aa = combine()  # 合并为一个文件
+    # print(aa)
     

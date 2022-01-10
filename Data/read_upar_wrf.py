@@ -2,6 +2,7 @@
 # -*- encoding: utf-8 -*-
 '''
 Description:
+多个点的高空数据，500hPa高度场
 读取聚合wrf高空数据
 保存
 原始网格数据

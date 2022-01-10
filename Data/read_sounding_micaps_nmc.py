@@ -2,6 +2,7 @@
 # -*- encoding: utf-8 -*-
 '''
 Description:
+单个站的高空数据
 获取想要的站点的探空多时次的探空数据集合
 57083 113.66 34.71 112 864
    994.4   11.2   24.4   24.4   54   2
@@ -151,8 +152,9 @@ def dual_station():
     sta_dic_list = [
         {'sta_num':'57083','sta_name':'zhengzhou','lon':113.66,'lat':34.71 },
         {'sta_num':'57178','sta_name':'nanyang','lon':112.4,'lat':33.1 }, 
+        {'sta_num':'57067','sta_name':'lushi','lon':111.04,'lat':34.05 }, 
     ]
-    sta_list = ['zhengzhou', 'nanyang']
+    sta_list = ['zhengzhou', 'nanyang', 'lushi']
     # ds = xr.Dataset()
     ds_list = []
     for sta in sta_dic_list:

@@ -11,7 +11,7 @@ import os
 class Data():
     
     def __init__(self, station='zhengzhou', data_time='2021-07-20 00') -> None:
-        flnm1 = '/home/fengxiang/HeNan/Data/GWD/sounding_all.nc'
+        flnm1 = '/home/fengxiang/HeNan/Data/GWD/d03/sounding_all.nc'
         flnm2 = '/mnt/zfm_18T/fengxiang/HeNan/Data/OBS/micaps_sounding_station_all.nc'
         self.ds1 = xr.open_dataset(flnm1)
         self.ds2 = xr.open_dataset(flnm2)
@@ -148,7 +148,7 @@ def draw(var_dic, station='zhengzhou'):
 
 if __name__ == '__main__':
 
-    station_list = ['zhengzhou', 'nanyang']    
+    station_list = ['zhengzhou', 'nanyang', 'lushi']    
 
     for sta in station_list:
         gd = Data(station=sta) 

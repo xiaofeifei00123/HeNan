@@ -27,7 +27,7 @@ import os
 class Data():
     
     def __init__(self, station='zhengzhou', data_time='2021-07-20 00') -> None:
-        flnm1 = '/home/fengxiang/HeNan/Data/GWD/sounding_all.nc'
+        flnm1 = '/home/fengxiang/HeNan/Data/GWD/d03/sounding_all.nc'
         flnm2 = '/mnt/zfm_18T/fengxiang/HeNan/Data/OBS/micaps_sounding_station_all.nc'
         self.ds1 = xr.open_dataset(flnm1)
         self.ds2 = xr.open_dataset(flnm2)
@@ -87,7 +87,7 @@ def interp_onetime(var_dic, model='OBS'):
         ds1[var] = da_obs
     return ds1
 
-station_list = ['zhengzhou', 'nanyang']
+station_list = ['zhengzhou', 'nanyang','lushi']
 def get_bias_data():
     tt = pd.date_range('2021-07-20 00', '2021-07-20 12', freq='6H')
     model_list = ['OBS', 'gwd0', 'gwd1', 'gwd3']

@@ -216,6 +216,7 @@ class Draw(object):
             #    'cmap':get_cmap_rain2(),
                'time':str(date)}
         ax = self.create_map(ax)
+        # rain_max = da.max(dim=['south_north', 'west_east'])        
         ax.set_title(date, fontsize=30, loc='left')
         ax.set_title('OBS', fontsize=30,loc='right')
         cf = self.draw_contourf_single(da, ax, dic)

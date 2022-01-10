@@ -34,6 +34,8 @@ import xesmf as xe
 from read_global import caculate_diagnostic
 from multiprocessing import Pool
 
+from baobao.interp
+
 
 # %%
 

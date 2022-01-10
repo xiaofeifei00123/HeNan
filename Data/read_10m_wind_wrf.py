@@ -19,7 +19,7 @@ import numpy as np
 import wrf
 import netCDF4 as nc
 from baobao.interp import regrid_xesmf
-
+import netCDF4 as nc
 # %%
 
 # %%
@@ -43,12 +43,31 @@ def combine_rain(path):
     r = 0
     for fl in fl_list:
         print(fl[-18:])
-        ds = xr.open_dataset(fl)
-        da = ds['RAINNC']+ds['RAINC']+ds['RAINSH']-r
-        r = (ds['RAINNC']+ds['RAINC']+ds['RAINSH']).values.round(1)
 
-        dda = da.squeeze()  # 该是几维的就是几维的
-        dc = dda.rename({'XLAT':'lat', 'XLONG':'lon', 'XTIME':'time'})
+        # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd0/wrfout_d01_2021-07-19_12:00:00'
+        wrfnc = nc.Dataset(fl)
+        uv = wrf.getvar(wrfnc, 'uvmet10')
+        uv1 = uv.rename({'XLAT':'lat', 'XLONG':'lon', 'XTIME':'time', })
+        pj = uv1.attrs['projection'].proj4()
+        dc = uv1.assign_attrs({'projection':pj})
+        
+        
+
+        # ds = xr.open_dataset(fl)
+        # da = ds['RAINNC']+ds['RAINC']+ds['RAINSH']-r
+        # r = (ds['RAINNC']+ds['RAINC']+ds['RAINSH']).values.round(1)
+        # wrfnc = nc.Dataset(fl)
+        # uv = wrf.getvar(wrfnc, 'uvmet10')
+        # u = uv.sel(u_v='u')
+
+        
+
+        # p = wrf.getvar(wrfnc, 'pres', units='hpa')[:,x,y].assign_attrs({'projection':pj}).drop_vars(['latlon_coord'])
+        # dc = dda.rename({'XLAT':'lat', 'XLONG':'lon', 'XTIME':'time'})
+        # u = wrf.getvar(wrfnc, 'ua', units='m/s')[:,x,y].assign_attrs({'projection':pj}).drop_vars(['latlon_coord'])
+
+        # dda = da.squeeze()  # 该是几维的就是几维的
+        # dc = dda.rename({'XLAT':'lat', 'XLONG':'lon', 'XTIME':'time'})
         dds_list.append(dc)
     da_concate = xr.concat(dds_list, dim='time') # 原始的，未经坐标变化的降水
     rain = da_concate.round(1)
@@ -69,7 +88,10 @@ def grid2station(flnm_obs, flnm_wrf, flnm_wrfout):
 
     print("插值数据到站点")
     # 特定区域范围内观测的站点数据
-    da_obs = xr.open_dataarray(flnm_obs)
+    ds_obs = xr.open_dataset(flnm_obs)
+    da_obs = ds_obs['u']
+    # ds_obs = xr.open_dataset(flnm_obs)
+    # da_obs = ds_obs['u']
     # wrf输出后聚合到一起的多时间维度数据
     da_wrf = xr.open_dataarray(flnm_wrf)
 
@@ -77,11 +99,22 @@ def grid2station(flnm_obs, flnm_wrf, flnm_wrfout):
     # sta = cc.id.values
     wrfin = nc.Dataset(flnm_wrfout)
     x, y = wrf.ll_to_xy(wrfin, cc.lat, cc.lon)
-    print(y)
+
+    # x = xr.where(x>-1, x, np.nan)
+    # y = xr.where(y>-1, y, np.nan)
+    # # print(y)
+    # x = x.dropna(dim='idx').astype(np.int16)
+    # y = y.dropna(dim='idx').astype(np.int16)
+    # # print(y)
+
+    # print(x[0])
+    # print(x,y)
     da_station = da_wrf.sel(south_north=y, west_east=x)
+    da_station = da_station.assign_coords({'sta':('idx', da_obs.idx.values)})
+    da_station = da_station.swap_dims({'idx':'sta'})
     # print(da_station)
     da_station = da_station.drop_vars(['latlon_coord'])
-    da_station = da_station.rename({'idx':'sta'})
+    # da_station = da_station.rename({'idx':'sta'})
     # print(da_station)
 
     return da_station
@@ -112,10 +145,10 @@ def save_one(path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/1900_90m/'):
     path_dic = {
         'path_main':path_main,  # 模式数据文件夹
         'path_wrfout':'/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd3-BL/wrfout_d03_2021-07-19_19:00:00', # 原始的一个wrfout数据，获得投影需要
-        'path_rain_wrf_grid':path_main+'rain.nc', # 原始降水数据存储路径+文件名
-        'path_rain_wrf_latlon':path_main+'rain_latlon.nc',  # 插值到latlon之后的文件名
-        'path_rain_wrf_station':path_main+'rain_station.nc',  # 插值到站点之后的文件名
-        'path_rain_obs_station':'/mnt/zfm_18T/fengxiang/HeNan/Data/OBS/rain_station.nc', # 站点降水
+        'path_rain_wrf_grid':path_main+'10m_wind.nc', # 原始降水数据存储路径+文件名
+        'path_rain_wrf_latlon':path_main+'10m_wind_latlon.nc',  # 插值到latlon之后的文件名
+        'path_rain_wrf_station':path_main+'10m_wind_station.nc',  # 插值到站点之后的文件名
+        'path_rain_obs_station':'/mnt/zfm_18T/fengxiang/HeNan/Data/OBS/10m_wind_station.nc', # 站点降水
     }
     area = {
         'lon1':110.5,
@@ -126,12 +159,12 @@ def save_one(path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/1900_90m/'):
     }
 
     ## 合并数据
-    da = combine_rain(path_main)
-    da.to_netcdf(path_dic['path_rain_wrf_grid'])
+    # da = combine_rain(path_main)
+    # da.to_netcdf(path_dic['path_rain_wrf_grid'])
 
     ## 降低分辨率和转换投影
-    da1 = regrid_latlon(path_dic['path_rain_wrf_grid'], area)
-    da1.to_netcdf(path_dic['path_rain_wrf_latlon'])
+    # da1 = regrid_latlon(path_dic['path_rain_wrf_grid'], area)
+    # da1.to_netcdf(path_dic['path_rain_wrf_latlon'])
 
     ## 插值到站点
     da2 = grid2station(path_dic['path_rain_obs_station'], path_dic['path_rain_wrf_grid'],path_dic['path_wrfout'])
@@ -142,12 +175,10 @@ def dual():
     """处理多个模式的数据
     """
     pass
-    # model_list = ['gwd3-FD', 'gwd3-BL','gwd3-SS', 'gwd3-LS']
+    model_list = ['gwd0', 'gwd1', 'gwd3','gwd3-FD', 'gwd3-BL','gwd3-SS', 'gwd3-LS']
     # model_list = ['gwd0', 'gwd1', 'gwd3']
     # model_list = ['gwd3-test']
-    model_list = ['gwd0','gwd1', 'gwd3','gwd3-FD', 'gwd3-BL','gwd3-SS', 'gwd3-LS']
     for model in model_list:
-        # path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/'+model+'/'
         path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/'+model+'/'
         # path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d04/'+model+'/'
         save_one(path_main)
