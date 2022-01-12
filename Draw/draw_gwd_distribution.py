@@ -147,23 +147,23 @@ class Draw(object):
 def draw_one(model='1900_90m'):
     pass
 
-    fl_path =os.path.join('/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/', model)
+    fl_path =os.path.join('/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/', model)
     tt = pd.date_range('2021-07-20 00', '2021-07-20 00', freq='1H')
     for t in tt:
-        flnm = 'wrfout_d03_'+t.strftime('%Y-%m-%d_%H:%M:%S')
+        flnm = 'wrfout_d01_'+t.strftime('%Y-%m-%d_%H:%M:%S')
         flnm = os.path.join(fl_path, flnm)
     
         ds = xr.open_dataset(flnm)
 
         if model == 'gwd1':
-            # var = 'DVSFCG'
-            var = 'DUSFCG'
+            var = 'DVSFCG'
+            # var = 'DUSFCG'
             da = ds[var]
         elif model == 'gwd3':
-            # da = ds['DVSFCG_LS']+ds['DVSFCG_SS']+ds['DVSFCG_FD']+ds['DVSFCG_BL']
-            # var = 'DVSFCG'
-            da = ds['DUSFCG_LS']+ds['DUSFCG_SS']+ds['DUSFCG_FD']+ds['DUSFCG_BL']
-            var = 'DUSFCG'
+            da = ds['DVSFCG_LS']+ds['DVSFCG_SS']+ds['DVSFCG_FD']+ds['DVSFCG_BL']
+            var = 'DVSFCG'
+            # da = ds['DUSFCG_LS']+ds['DUSFCG_SS']+ds['DUSFCG_FD']+ds['DUSFCG_BL']
+            # var = 'DUSFCG'
         print(da.max())
         gwd_sfc = da.rename({'XLAT':'lat', 'XLONG':'lon', 'XTIME':'time'}).squeeze()
         dr = Draw()

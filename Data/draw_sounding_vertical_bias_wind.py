@@ -2,7 +2,7 @@
 # -*- encoding: utf-8 -*-
 '''
 Description:
-计算bias偏差和均方根误差
+计算探空廓线的bias偏差和均方根误差
 不同时次和不同站点就是不同的试验罢了
 -----------------------------------------
 Time             :2021/12/17 10:40:47
@@ -17,16 +17,13 @@ import wrf
 import netCDF4 as nc
 import matplotlib.pyplot as plt
 import os
-
-# import meteva as meb
-# import meteva.base as meb
-# meb.xarray_to_griddata()
+plt.rcParams['axes.unicode_minus']=False 
 
 
 # %%
 class Data():
     
-    def __init__(self, station='zhengzhou', data_time='2021-07-20 00') -> None:
+    def __init__(self, station='zhengzhou', data_time='2021-07-20 00'):
         flnm1 = '/home/fengxiang/HeNan/Data/GWD/d03/sounding_all.nc'
         flnm2 = '/mnt/zfm_18T/fengxiang/HeNan/Data/OBS/micaps_sounding_station_all.nc'
         self.ds1 = xr.open_dataset(flnm1)
@@ -89,7 +86,13 @@ def interp_onetime(var_dic, model='OBS'):
 
 station_list = ['zhengzhou', 'nanyang','lushi']
 def get_bias_data():
-    tt = pd.date_range('2021-07-20 00', '2021-07-20 12', freq='6H')
+    # tt = pd.date_range('2021-07-20 00', '2021-07-20 12', freq='6H')
+    tt = pd.DatetimeIndex([
+        '2021-07-20 00',
+        '2021-07-20 06',
+        '2021-07-20 12',
+        '2021-07-21 00',
+        ])
     model_list = ['OBS', 'gwd0', 'gwd1', 'gwd3']
     ds2_list = []
     for t in tt:
@@ -110,6 +113,7 @@ def get_bias_data():
     ds3 = xr.concat(ds2_list, dim='time')
     return ds3
 ds3 = get_bias_data()
+ds3
 # %%
 # ds3
 ## 计算偏差
@@ -118,38 +122,25 @@ model_list_new = ['gwd0', 'gwd1', 'gwd3']
 
 ds_bias_list = []
 for model in model_list_new:
-    ds_b = (ds3.sel(model=model)-ds3.sel(model='OBS')).mean(dim=['time','station'])
+    # ds_b = (ds3.sel(model=model)-ds3.sel(model='OBS')).mean(dim=['time','station'])
+    ds_b = (ds3.sel(model=model)-ds3.sel(model='OBS')).mean(dim='station').mean(dim='time')
+    # ds_b = abs(ds3.sel(model=model)-ds3.sel(model='OBS')).mean(dim='station').mean(dim='time')
     cc = ds_b.expand_dims(dim='model')
     ds_c = cc.assign_coords({'model':[model]}) 
     ds_bias_list.append(ds_c)
 ds_bias = xr.concat(ds_bias_list, dim='model')
 
-## 计算均方根误差
+## 计算均方根误差的时间平均值
 ds_rmse_list = []
 for model in model_list_new:
-    ds_r = xr.ufuncs.sqrt((((ds3.sel(model=model)-ds3.sel(model='OBS'))**2).sum(dim=['time', 'station'])/6))
+    # ds_r = xr.ufuncs.sqrt((((ds3.sel(model=model)-ds3.sel(model='OBS'))**2).sum(dim=['time', 'station'])/6))
+    ds_r = (np.sqrt(((ds3.sel(model=model)-ds3.sel(model='OBS'))**2).mean(dim='station')).mean(dim='time'))
     cc = ds_r.expand_dims(dim='model')
     ds_c = cc.assign_coords({'model':[model]}) 
     ds_rmse_list.append(ds_c)
 ds_rmse = xr.concat(ds_rmse_list, dim='model')
-# ds_rmse
+ds_rmse
 
-# %%
-# ds_rmse
-
-    
-
-
-
-# %%
-# ds_bias_gwd0 = (ds3.sel(model='gwd0')-ds3.sel(model='OBS')).mean(dim='time')
-# ds_bias_gwd1 = (ds3.sel(model='gwd1')-ds3.sel(model='OBS')).mean(dim='time')
-# ds_bias_gwd3 = (ds3.sel(model='gwd3')-ds3.sel(model='OBS')).mean(dim='time')
-# ds_rmse_gwd0 = xr.ufuncs.sqrt((((ds3.sel(model='gwd0')-ds3.sel(model='OBS'))**2).sum(dim='time')/3))
-# ds_rmse_gwd1 = xr.ufuncs.sqrt((((ds3.sel(model='gwd1')-ds3.sel(model='OBS'))**2).sum(dim='time')/3))
-# ds_rmse_gwd3 = xr.ufuncs.sqrt((((ds3.sel(model='gwd3')-ds3.sel(model='OBS'))**2).sum(dim='time')/3))
-
-# ds_rmse_gwd3
 
 
 
@@ -194,6 +185,7 @@ def draw(var_dic, station='zhengzhou'):
 
         
     axes[0].invert_yaxis()
+    # axes[0].legend(loc='upper center', bbox_to_anchor=(2.4,1.0,0.5,0.15), ncol=4, edgecolor='white', fontsize=18)
     axes[0].legend(loc='upper center', bbox_to_anchor=(2.4,1.0,0.5,0.15), ncol=4, edgecolor='white', fontsize=18)
     # axes[0].legend(loc='best')
     axes[0].set_ylim(1000,200)
@@ -239,6 +231,61 @@ def draw(var_dic, station='zhengzhou'):
     fig_save = os.path.join(fig_path, fig_name)
     fig.savefig(fig_save)
 
+    
+def draw_big(var_dic, station='zhengzhou'):
+
+    model_list = ['gwd0', 'gwd1', 'gwd3']
+    color_list = ['black','blue', 'red']
+    var_list = ['wind_speed', 'wind_angle']
+    fig = plt.figure(figsize=[10,10])
+    axes = [None]*2
+
+    axes[0] = fig.add_axes([0.13,0.1, 0.4,0.8])
+    axes[1] = fig.add_axes([0.58,0.1, 0.4,0.8], sharey=axes[0])
+
+    axes[1].tick_params('y', labelleft=False)
+    for model,color in zip(model_list,color_list):
+        axes[0].plot(var_dic['wind_speed'].sel(model=model).values, var_dic['wind_speed'].sel(model=model).pressure, color=color, label=model)
+        axes[1].plot(var_dic['wind_angle'].sel(model=model).values, var_dic['wind_angle'].sel(model=model).pressure, color=color, label=model)
+
+        
+    axes[0].invert_yaxis()
+    # axes[0].legend(loc='upper center', bbox_to_anchor=(2.4,1.0,0.5,0.15), ncol=4, edgecolor='white', fontsize=18)
+    # axes[0].legend(loc='upper center', bbox_to_anchor=(1.0, 1.0,0.5,0.1),ncol=3)
+    axes[0].legend(loc='upper right', fontsize=22, edgecolor='white')
+    fts = 15
+    axes[0].set_ylabel('pressure (hPa)', fontsize=fts*1.8)
+
+    axes[0].set_xlim(-5,5)
+    axes[1].set_xlim(-40,60)
+    # axes[3].set_xlim(0,20)
+
+    def set_ticks(ax, var):
+        pass
+        fts = 15
+        if var=='wind_angle':
+            var = 'wind_direction'
+        ax.set_xlabel(var, fontsize=fts*1.8)
+        ax.xaxis.set_tick_params(labelsize=fts*1.3)
+        ax.yaxis.set_tick_params(labelsize=fts*1.3)
+        ax.tick_params(which='major',length=8,width=1.0) # 控制标签大小 
+        ax.tick_params(which='minor',length=4,width=0.5)  #,colors='b')
+        if station=='bias':
+            ax.axvline(x=0, color='black')
+        return ax
+
+    i = 0
+    for var in var_list:
+        set_ticks(axes[i], var)
+        i+=1
+    fig_name=station+"_wind"
+    fig_path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_upar/sounding_upar/'
+    fig_save = os.path.join(fig_path, fig_name)
+    fig.savefig(fig_save)
+    
+    
+    
+
 if __name__ == '__main__':
 
     station_list = ['zhengzhou', 'nanyang']    
@@ -247,8 +294,12 @@ if __name__ == '__main__':
         # gd = Data(station=sta) 
         # var_dic = gd.get_var()
         # print(var_dic['q']['gwd3'].max())
-    draw(ds_rmse, station='rmse')
-    draw(ds_bias, station='bias')
+    # draw(ds_rmse, station='rmse')
+    # draw(ds_bias, station='bias')
+    # draw_big(ds_rmse, station='rmse')
+    draw_big(ds_bias, station='bias')
     
 
 
+
+# %%

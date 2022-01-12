@@ -22,6 +22,7 @@ from matplotlib.cm import get_cmap
 import cartopy.crs as crs
 from cartopy.feature import NaturalEarthFeature
 import cmaps
+plt.rcParams['axes.unicode_minus']=False 
 # from ..Data.read_vertical_cross import CrossData
 
 # %%
@@ -49,6 +50,15 @@ def draw_contour(ax, da):
     levels=np.arange(342, 372, 4)
     cs = ax.contour(xs, ys, smooth2d(da.values, passes=16), levels=levels, colors='black')
     ax.clabel(cs, inline=True, fontsize=10)
+
+def draw_contour2(ax,da):
+    xs = np.arange(0, da.shape[-1], 1)
+    ys = da.coords['vertical'].values
+    # levels=np.arange(342, 372, 4)
+    cs = ax.contour(xs, ys, smooth2d(da.values*10**4, passes=16), colors='red')
+    ax.clabel(cs, inline=True, fontsize=10)
+
+
 
 def draw_contourf(fig, ax_cross, da, ter_line):
 
@@ -95,7 +105,7 @@ def draw_contourf(fig, ax_cross, da, ter_line):
 
 
 def drop_na(da):
-    """处理数据
+    """处理数据, 这一步是必须要的，不然好像画不出来图
     """
     for i in range(da.shape[-1]):
         column_vals = da[:,i].values
@@ -120,9 +130,11 @@ def draw(t='2021-07-20 09', flpath='/mnt/zfm_18T/fengxiang/HeNan/Data/1900_90m/'
     u = ds['ua_cross']
     v = ds['va_cross']
     theta_e = ds['theta_e_cross']
+    div = ds['div_cross']
 
     wa = drop_na(wa)
     theta_e = drop_na(theta_e)
+    div = drop_na(div)
 
     fig = plt.figure(figsize=(10,8), dpi=400)
     ax_cross = fig.add_axes([0.2, 0.2, 0.75, 0.7])
@@ -134,7 +146,8 @@ def draw(t='2021-07-20 09', flpath='/mnt/zfm_18T/fengxiang/HeNan/Data/1900_90m/'
     ax_cross.set_title(title_model, loc='right', fontsize=18)
 
     draw_contour(ax_cross, theta_e)
-    draw_contourf(fig, ax_cross, wa, ter_line)
+    # draw_contour2(ax_cross, div)
+    draw_contourf(fig, ax_cross, div*10**4, ter_line)
     draw_quiver(ax_cross,u,v)
 
     fig_path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_cross/'
@@ -143,7 +156,7 @@ def draw(t='2021-07-20 09', flpath='/mnt/zfm_18T/fengxiang/HeNan/Data/1900_90m/'
     plt.clf()
 
 def draw_1time(t='2021-07-20 09'):
-    path_main ='/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/'
+    path_main ='/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/'
     # model_list = ['1900_90m', '1900_900m','1912_90m', '1912_900m']
     # model_list = ['1912_90m', '1912_90m_OGWD']
     model_list = ['gwd0', 'gwd1', 'gwd3']
@@ -152,9 +165,9 @@ def draw_1time(t='2021-07-20 09'):
         draw(t=t, flpath=fl)
 
 def draw_mtime():
-    # time_list = pd.date_range('2021-07-20 00', '2021-07-21 00', freq='1H')
+    time_list = pd.date_range('2021-07-20 00', '2021-07-20 00', freq='1H')
     # time_list = pd.date_range('2021-07-20 06', '2021-07-20 06', freq='1H')
-    time_list = pd.date_range('2021-07-20 08', '2021-07-20 08', freq='1H')
+    # time_list = pd.date_range('2021-07-20 08', '2021-07-20 08', freq='1H')
     for t in time_list:
         draw_1time(t)
     pass

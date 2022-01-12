@@ -49,28 +49,14 @@ class Bias():
         ws1 = ds_obs['wind_speed']
         wa1 = ds_obs['wind_angle']
 
-        ##-----------------------
-        ## 保留时间序列
-        # bias_ws = (ws2-ws1).mean(dim='sta')
-        # rmse_ws = np.sqrt(((ws2-ws1)**2).mean(dim='sta'))
-        # bias_wa = (wa2-wa1).mean(dim='sta')
-        # rmse_wa = np.sqrt(((wa2-wa1)**2).mean(dim='sta'))
-        # dic = {
-        #     'bias_ws':bias_ws.values.round(2),
-        #     'bias_wa':bias_wa.values.round(2),
-        #     'rmse_ws':rmse_ws.values.round(2),
-        #     'rmse_wa':rmse_wa.values.round(2),
-        # }
-        ##-----------------------
-
         ## 所有时次的平均值(对时间做平均, 只保留一个值)
         # bias_ws = (ws2-ws1).mean(dim=['time', 'sta'])
         bias_ws = (ws2-ws1).mean(dim='time').mean(dim='sta')
-        mae_ws = np.absolute((ws2-ws1)).mean(dim='time').mean(dim='sta')
-        rmse_ws = np.sqrt(((ws2-ws1)**2).mean(dim='time')).mean(dim='sta')
+        mae_ws = np.absolute((ws2-ws1)).mean(dim='sta').mean(dim='time')
+        rmse_ws = np.sqrt(((ws2-ws1)**2).mean(dim='sta')).mean(dim='time')
         # bias_wa = (wa2-wa1).mean(dim=['time', 'sta'])
         bias_wa = (wa2-wa1).mean(dim='time').mean(dim='sta')
-        mae_wa = np.absolute((wa2-wa1)).mean(dim='time').mean(dim='sta')
+        mae_wa = np.absolute((wa2-wa1)).mean(dim='sta').mean(dim='time')
         rmse_wa = np.sqrt(((wa2-wa1)**2).mean(dim='sta')).mean(dim='time')
         ## 风素的, 二选一
         if self.wind_diag == 'wind_speed':
@@ -163,8 +149,8 @@ class Bias():
         df4 = reshape_df(df2,df3)
         return df4
 
-# bias = Bias('wind_direction')
-bias = Bias('wind_speed')
+bias = Bias('wind_direction')
+# bias = Bias('wind_speed')
 df = bias.get_bias_dual()
 df
 ddf = bias.caculate_delta(df)

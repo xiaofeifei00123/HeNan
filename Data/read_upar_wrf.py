@@ -45,17 +45,13 @@ class GetUpar():
     """获得wrfout高空数据，原始投影
     """
     def get_upar_one(self, fl):
-        # dds_list = []
-        # pre_level = [1000, 925, 850, 700, 500, 200]
-        pre_level = [1000, 925, 900, 850, 700, 500,200]
-        # pre_level = np.arange(1000, 90, -20)  # 对d03使用垂直方向10度的分辨率
-        # pre_level = np.arange(1000, 90, -50)  # 对d02使用垂直方向100度的分辨率
+        pre_level = [900, 850, 700, 500,350, 250, 200]
         dds = xr.Dataset()
         data_nc = nc.Dataset(fl)
         print(fl[-19:])
         p = wrf.getvar(data_nc, 'pressure', squeeze=False)
 
-        for var in ['ua', 'va', 'td', 'temp', 'theta_e', 'height_agl', 'geopt']:
+        for var in ['ua', 'va', 'wa','td', 'temp', 'theta','theta_e', 'height_agl', 'z','geopt']:
             da = wrf.getvar(data_nc, var, squeeze=False)
             # dds[var] = da.expand_dims(dim='Time')
             dds[var] = wrf.interplevel(da, p, pre_level, squeeze=False)
@@ -131,7 +127,7 @@ def combine_one(model='1912_90m'):
     将wrfout数据中需要的变量聚合成一个文件，并进行相关的垂直插值, 和诊断量的计算
     处理两种模式，不同时次的数据
     """
-    path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/'
+    path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/'
     # path_main = os.path.join(path_main, model)
     gu = GetUpar()
     # path_wrfout = path_main+'1912_90m'
@@ -156,64 +152,27 @@ def combine():
     for model in model_list:
         combine_one(model)
 
-
-
-
-
-        
-
-# def regrid():
-#     """
-#     将combine得到的数据，插值到latlon格点上
-#     将二维的latlon坐标水平插值到一维的latlon坐标上
-#     """
-#     time_list = ['1800', '1812', '1900', '1912']
-#     initial_file_list = ['ERA5', 'GDAS']
-#     for f in initial_file_list:
-#         # time_list = ['1800']
-#         # path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/ERA5/'
-#         path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/'+f+'/'
-#         # gu = GetUpar()
-#         area = {
-#             'lon1':107-1,
-#             'lon2':135+1,
-#             'lat1':20-1,
-#             'lat2':40+1,
-#             'interval':0.5,
-#         }
-#         for t in time_list:
-#             # path_wrfout = path_main+'YSU_'+t+'/'
-#             # ds = gu.get_upar(path_wrfout)
-#             flnm = 'YSU_'+t
-#             path_in = path_main+flnm+'_upar_d02.nc'
-#             ds = xr.open_dataset(path_in)
-#             ds_out = regrid_xesmf(ds, area)
-#             path_out = path_main+flnm+'_upar_d02_latlon.nc'
-#             ds_out = ds_out.rename({'ua':'u', 'va':'v', 'geopt':'height'})
-#             ds_out.to_netcdf(path_out)
-
-            
 def regrid_one(model='1900_90m'):
     """
     将combine得到的数据，插值到latlon格点上
     将二维的latlon坐标水平插值到一维的latlon坐标上
     """
-    # ax2.set_extent([110, 116, 32, 37], crs=ccrs.PlateCarree())
     area = {
-        'lon1':110-1,
-        'lon2':116+1,
-        'lat1':32-1,
-        'lat2':36+1,
-        'interval':0.125,
+        'lon1':110.5,
+        'lon2':116,
+        'lat1':32,
+        'lat2':36.5,
+        'interval':0.05,
     }
-    path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/'
+    path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/'
     flnm = 'upar.nc'
     path_in = path_main+model+'/'+flnm
     ds = xr.open_dataset(path_in)
-    ds_out = regrid_xesmf(ds, area)
+    # ds_out = regrid_xesmf(ds, area)
+    ds_out = regrid_xesmf(ds, area, rd=1)
     path_out = path_main+model+'/'+'upar_latlon.nc'
     # ds_out = ds_out.rename({'ua':'u', 'va':'v', 'geopt':'height'})
-    ds_out = ds_out.rename({'ua':'u', 'va':'v'})
+    ds_out = ds_out.rename({'ua':'u', 'va':'v', 'wa':'w'})
     ds_out.to_netcdf(path_out)
 
 def regrid_dual():
@@ -228,7 +187,7 @@ def regrid_dual():
 if __name__ == '__main__':
     ### combine和regrid一般不同时进行
     combine()
-    # regrid_dual()
+    regrid_dual()
     # combine_one()
     # regrid_one()
     # combine() 
