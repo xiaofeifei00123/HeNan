@@ -3,6 +3,7 @@
 '''
 Description:
 不同模式d04区域， 850hPa水汽通量的比较
+水平的图
 各模式的图
 各模式的差值的图
 绘制的要素:
@@ -139,14 +140,14 @@ def draw(ds):
     draw_quiver(u,v,ax)
     fig_path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_upar/'
     # fig_name = str(fig_path)+str(dic['model'])+'_'+str(dic['level'])+'_'+(dic['time']).strftime('%Y%m%d%H')
-    fig_name = fig_path + 'wind.png'
+    fig_name = fig_path + 'wind_900.png'
     # fig.savefig('test.png')
     fig.savefig(fig_name)
 
 if __name__ == '__main__':
     flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd0/upar.nc'
     ds = xr.open_dataset(flnm)
-    ds1 = ds.sel(time='2021-07-20 00').sel(pressure=500)
+    ds1 = ds.sel(time='2021-07-20 00').sel(pressure=900)
     draw(ds1)
 
 

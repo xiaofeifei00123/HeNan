@@ -33,7 +33,9 @@ class CrossData():
         pass
         ## Create the start point and end point for the cross section
         self.cross_start = CoordPair(lat=33, lon=111)
-        self.cross_end = CoordPair(lat=35.5, lon=114.5)
+        # self.cross_end = CoordPair(lat=35.5, lon=114.5)
+        # self.cross_end = CoordPair(lat=36, lon=115.5)
+        self.cross_end = CoordPair(lat=34.0, lon=112.5)
         ## read the ncfile
         # wrf_file = '/mnt/zfm_18T/fengxiang/HeNan/Data/1900_90m/wrfout_d03_2021-07-20_08:00:00'
         self.ncfile = Dataset(wrf_file)

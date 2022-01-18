@@ -3,6 +3,9 @@
 '''
 Description:
 绘制剖面图
+散度场
+风场
+相当位温
 -----------------------------------------
 Time             :2021/11/09 20:51:01
 Author           :Forxd
@@ -32,24 +35,33 @@ def draw_quiver(ax, u,v):
     '''
     绘制风矢图
     '''
-    x = u.cross_line_idx.values[::10]
+    x = u.cross_line_idx.values[::3]
+    # x = u.cross_line_idx.values
     # u = u[::3,::10]
     # v = v[::3,::10]
+    # u = u[::2,::10]
+    # v = v[::2,::10]
+    u = u[::3,::3]
+    v = v[::3,::3]
     # u = u[::9,::30]
     # v = v[::9,::30]
-    u = u[::3,::10]
-    v = v[::3,::10]
+    # u = u[::3,::10]
+    # v = v[::3,::10]
     y = u.coords['vertical'].values
-    Q = ax.quiver(x, y, u.values,v.values,units='inches',scale=30,pivot='middle', zorder=2)  # 绘制风矢
+    # Q = ax.quiver(x, y, u.values,v.values,units='inches',scale=10,pivot='middle', zorder=2)  # 绘制风矢
+    Q = ax.quiver(x, y, u.values,v.values,units='inches',scale=40,pivot='tip',minlength=0.001, width=0.02,zorder=2)  # 绘制风矢
+    # Q = ax.quiver(x, y, u.values,v.values,units='width',scale=20,pivot='tip', width=0.03,zorder=2)  # 绘制风矢
 
 def draw_contour(ax, da):
     pass
 
     xs = np.arange(0, da.shape[-1], 1)
     ys = da.coords['vertical'].values
-    levels=np.arange(342, 372, 4)
+    # levels=np.arange(342, 372, 4)
+    # levels=np.arange(342, 372, 2)
+    levels=np.arange(336, 372, 2)
     cs = ax.contour(xs, ys, smooth2d(da.values, passes=16), levels=levels, colors='black')
-    ax.clabel(cs, inline=True, fontsize=10)
+    ax.clabel(cs, inline=True, fontsize=18)
 
 def draw_contour2(ax,da):
     xs = np.arange(0, da.shape[-1], 1)
@@ -67,7 +79,8 @@ def draw_contourf(fig, ax_cross, da, ter_line):
     ys = da.coords['vertical'].values
     colordict=['#191970','#005ffb','#5c9aff','#98ff98','#ddfddd','#FFFFFF','#fffde1','#ffff9e', '#ffc874','#ffa927', '#ff0000']#颜色列表
     # colorlevel=[-80, -30, -20, -10, -5, -1, 1, 5, 10, 20, 30, 80]#雨量等级
-    colorlevel=[-120, -50, -30, -10, -5, -1, 1, 5, 10, 30, 50, 120]#雨量等级
+    # colorlevel=[-280, -60, -30, -10, -5, -1, 1, 5, 10, 30, 60, 280]#雨量等级
+    colorlevel=[-380, -80, -40, -15, -5, -1, 1, 5, 15, 40, 80, 380]#雨量等级
     # colorticks=[-30, -20, -10, -5, -1, 1, 5, 10, 20, 30]#雨量等级
     colorticks = colorlevel[1:-1]
     dbz_contours = ax_cross.contourf(xs,
@@ -99,8 +112,9 @@ def draw_contourf(fig, ax_cross, da, ter_line):
 
     # ht_fill = ax_cross.fill_between(xs, 0, wrf.to_np(ter_line),
     #                                 facecolor="saddlebrown", zorder=2)
+    ## 画山
     ht_fill = ax_cross.fill_between(xs, 0, wrf.to_np(ter_line),
-                                    facecolor="#434343", zorder=2)
+                                    facecolor="#434343", zorder=3)
 
 
 
@@ -124,35 +138,59 @@ def draw(t='2021-07-20 09', flpath='/mnt/zfm_18T/fengxiang/HeNan/Data/1900_90m/'
     flnm = flpath+'cross.nc'
     ds = xr.open_dataset(flnm)
     ds = ds.sel(time=t)
+    # print(ds)
+    # ds = ds[:,0:70]
+    # ds = ds.isel(cross_line_idx=np.arange(0,100,1))
 
-    wa = ds['wa_cross']
+    w = ds['wa_cross']
     ter_line = ds['ter']
     u = ds['ua_cross']
     v = ds['va_cross']
     theta_e = ds['theta_e_cross']
     div = ds['div_cross']
 
-    wa = drop_na(wa)
+    w = drop_na(w)
+    u = drop_na(u)
+    v = drop_na(v)
     theta_e = drop_na(theta_e)
     div = drop_na(div)
 
     fig = plt.figure(figsize=(10,8), dpi=400)
-    ax_cross = fig.add_axes([0.2, 0.2, 0.75, 0.7])
+    ax_cross = fig.add_axes([0.15, 0.2, 0.8, 0.7])
 
     title_t = ds.time.dt.strftime('%d-%H').values
     title_model = flnm.split('/')[-2]
     print('画[{}]模式[{}]时刻的图'.format(title_model,title_t))
-    ax_cross.set_title(title_t, loc='left', fontsize=18)
-    ax_cross.set_title(title_model, loc='right', fontsize=18)
+    # ax_cross.set_title(title_t, loc='left', fontsize=26)
+    ax_cross.set_title(title_model, loc='right', fontsize=26)
 
     draw_contour(ax_cross, theta_e)
     # draw_contour2(ax_cross, div)
     draw_contourf(fig, ax_cross, div*10**4, ter_line)
-    draw_quiver(ax_cross,u,v)
+    # return u,v,w
+
+
+    ## 计算剖面风
+    # hor = np.sqrt(u**2+v**2)    
+    # ver = w
+    ## 1. 计算切角
+    ldic = {
+        'lat1':33,
+        'lon1':111,
+        'lat2':36,
+        'lon2':115.5,
+    }
+    dy = (ldic['lat2']-ldic['lat1'])
+    dx = (ldic['lon2']-ldic['lon1'])
+    angle = np.arctan2(dy,dx)  # 对边和直角边, 弧度
+    hor = u*np.cos(angle)+v*np.sin(angle)
+    ver = w
+    # draw_quiver(ax_cross,u,v)
+    draw_quiver(ax_cross,hor,ver)
 
     fig_path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_cross/'
     fig_name = title_model+'_'+title_t
-    fig.savefig(fig_path+fig_name+'.png')
+    fig.savefig(fig_path+fig_name+'test.png')
     plt.clf()
 
 def draw_1time(t='2021-07-20 09'):

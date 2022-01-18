@@ -29,7 +29,29 @@ ds = xr.open_dataset(flnm)
 da = ds['div_cross']
 da = da.isel(time=0)
 # %%
-da
+
+# self.cross_start = CoordPair(lat=33, lon=111)
+# self.cross_end = CoordPair(lat=35.5, lon=114.5)
+
+ldic = {
+    'lat1':33,
+    'lon1':111,
+    'lat2':35.5,
+    'lon2':114.5,
+}
+dy = (ldic['lat2']-ldic['lat1'])
+dx = (ldic['lon2']-ldic['lon1'])
+angle = np.arctan2(dy,dx)  # 对边和直角边, 弧度
+
+# np.cos(angle)
+# deg = 180.0/np.pi # 角度和弧度之间的转换
+# rad = np.pi/180.0
+
+
+# angle
+# np.arctan(dy/dx)
+
+
 
 
 # %%

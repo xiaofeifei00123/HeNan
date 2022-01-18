@@ -4,6 +4,8 @@
 Description:
 绘制重力波拖曳应力
 读取剖面数据
+两类试验，一个是gwd1,一个是gwd3
+
 绘图
 -----------------------------------------
 Time             :2021/11/23 10:29:43
@@ -17,6 +19,7 @@ import pandas as pd
 import wrf
 from wrf import getvar, CoordPair, vertcross, get_cartopy, smooth2d
 from netCDF4 import Dataset
+import os
 
 
 import matplotlib.pyplot as plt
@@ -24,6 +27,7 @@ from matplotlib.cm import get_cmap
 import cartopy.crs as crs
 from cartopy.feature import NaturalEarthFeature
 import cmaps
+plt.rcParams['axes.unicode_minus']=False 
 
 # %%
 
@@ -37,10 +41,9 @@ class CrossData():
     def __init__(self, wrf_file) -> None:
         pass
         ## Create the start point and end point for the cross section
-        self.cross_start = CoordPair(lat=33.6, lon=110.5)
-        self.cross_end = CoordPair(lat=33.6, lon=116)
-        # self.cross_start = CoordPair(lat=35.5, lon=112.5)
-        # self.cross_end = CoordPair(lat=33.5, lon=114)
+        self.cross_start = CoordPair(lat=33, lon=111)
+        # self.cross_end = CoordPair(lat=35.5, lon=114.5)
+        self.cross_end = CoordPair(lat=36, lon=115.5)
         ## read the ncfile
         # wrf_file = '/mnt/zfm_18T/fengxiang/HeNan/Data/1900_90m/wrfout_d04_2021-07-20_08:00:00'
         self.ncfile = Dataset(wrf_file)
@@ -115,9 +118,9 @@ class DrawVertical():
         '''
         绘制风矢图
         '''
-        x = u.cross_line_idx.values[::10]
-        u = u[::3,::10]
-        v = v[::3,::10]
+        x = u.cross_line_idx.values[::15]
+        u = u[::30,::15]
+        v = v[::30,::15]
         y = u.coords['vertical'].values
         Q = ax.quiver(x, y, u.values,v.values,units='inches',scale=30,pivot='middle', zorder=1)  # 绘制风矢
 
@@ -136,11 +139,22 @@ class DrawVertical():
         xs = np.arange(0, da.shape[-1], 1)
         ys = da.coords['vertical'].values
         # colordict=['#191970','#005ffb','#5c9aff','#98ff98','#ddfddd','#FFFFFF','#fffde1','#ffff9e', '#ffc874','#ffa927', '#ff0000']#颜色列表
-        colordict=['white','#A6F28F','#3DBA3D','#61BBFF','#0000FF','#FA00FA','#800040', '#EE0000']#颜色列表
-        # colorlevel=[-80, -30, -20, -10, -5, -1, 1, 5, 10, 20, 30, 80]#雨量等级
-        # colorlevel=np.array([-120, -50, -30, -10, -5, -1, 1, 5, 10, 30, 50, 120])#雨量等级
-        # colorlevel=np.arange(0,1,0.01)
-        colorlevel=[0, 0.01, 0.02, 0.05, 0.1, 1,  5, 10, 100]
+        # colordict=['white','#A6F28F','#3DBA3D','#61BBFF','#0000FF','#FA00FA','#800040', '#EE0000']#颜色列表
+        # colorlevel=[0, 0.01, 0.02, 0.05, 0.1, 1,  5, 10, 100]
+
+        
+        
+        colordict=['#0000fb','#3232fd','#6464fd','#a2a3fb','white','#fbbcbc', '#ff8383', '#fd4949', '#fd0000']#正负, 蓝-红
+        colorlevel=[-100,-0.1,-0.05,-0.03,-0.01, 0.01, 0.03, 0.05, 0.1, 100]
+        # colorlevel=[-100, -0.35, -0.25, -0.15,-0.05, 0.05, 0.15, 0.25, 0.35, 100]  # 总共10个数
+        
+        
+        
+        
+        
+        
+        
+
         # colorlevel=np.arange(0,10,0.5)
         # colorticks=[-30, -20, -10, -5, -1, 1, 5, 10, 20, 30]#雨量等级
         colorticks = colorlevel[1:-1]
@@ -193,34 +207,32 @@ class DrawVertical():
         return da
 
 # %%
-def draw_cross(flnm):
+def caculate_angle():
+    """计算剖面的切角
+    Returns:
+        [type]: [description]
+    """
+    ldic = {
+        'lat1':33,
+        'lon1':111,
+        'lat2':36,
+        'lon2':115.5,
+    }
+    dy = (ldic['lat2']-ldic['lat1'])
+    dx = (ldic['lon2']-ldic['lon1'])
+    angle = np.arctan2(dy,dx)  # 对边和直角边, 弧度
+    return angle
+
+def draw_cross_gwd1(flnm):
     # flnm  = '/mnt/zfm_18T/fengxiang/HeNan/Data/1912_90m_OGWD/wrfout_d04_2021-07-20_06:00:00'
     ds = xr.open_dataset(flnm)
-
     cd = CrossData(flnm)
 
     u = cd.get_vcross('DTAUX3D')
     v = cd.get_vcross('DTAUY3D')
-    da = xr.ufuncs.sqrt(u**2+v**2)
-
-    # u_list = [
-    #     'DTAUX3D_LS',
-    #     'DTAUX3D_SS',
-    #     'DTAUX3D_BL',
-    #     'DTAUX3D_FD',
-    # ]
-    # v_list = [
-    #     'DTAUY3D_LS',
-    #     'DTAUY3D_SS',
-    #     'DTAUY3D_BL',
-    #     'DTAUY3D_FD',
-    # ]
-    # da = 0
-    # for i,j in zip(u_list, v_list):
-    #     u1 = cd.get_vcross(i)
-    #     v1 = cd.get_vcross(j)
-    #     f1 = xr.ufuncs.sqrt(u1**2+v1**2)
-    #     da = da+f1
+    
+    angle = caculate_angle()
+    da = u*np.cos(angle)+v*np.sin(angle)   # 水平的拖曳力在剖面上的投影
 
     ter_line = cd.get_ter()
     dv = DrawVertical()
@@ -231,18 +243,76 @@ def draw_cross(flnm):
     ax_cross.set_title(title_t, loc='left', fontsize=18)
 
     dv.draw_contourf(fig, ax_cross, dv.drop_na(da)*10**3, ter_line)
-    fig.savefig('/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_gwd3/cross+%s_33.6_d03.png'%title_t)
+    fig.savefig('/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_gwd3/cross+%s_33.6_d01.png'%title_t)
 # %%
 
+def draw_cross_gwd3(flnm):
+    # flnm  = '/mnt/zfm_18T/fengxiang/HeNan/Data/1912_90m_OGWD/wrfout_d04_2021-07-20_06:00:00'
+    ds = xr.open_dataset(flnm)
+    cd = CrossData(flnm)
+
+    ## 计算水平拖曳力
+    u_list = [
+        'DTAUX3D_LS',
+        'DTAUX3D_SS',
+        'DTAUX3D_BL',
+        'DTAUX3D_FD',
+    ]
+    v_list = [
+        'DTAUY3D_LS',
+        'DTAUY3D_SS',
+        'DTAUY3D_BL',
+        'DTAUY3D_FD',
+    ]
+    dau = 0
+    dav = 0
+    for i,j in zip(u_list, v_list):
+        u1 = cd.get_vcross(i)
+        v1 = cd.get_vcross(j)
+        dau = dau+u1
+        dav = dav+v1
+    ## 1. 计算切角
+    angle = caculate_angle()
+    hor_drag = dau*np.cos(angle)+dav*np.sin(angle)   # 水平的拖曳力在剖面上的投影
+    ## 计算地形高度
+    ter_line = cd.get_ter()
+
+    ## 画图
+    dv = DrawVertical()
+    fig = plt.figure(figsize=(10,8), dpi=400)
+    ax_cross = fig.add_axes([0.2, 0.2, 0.75, 0.7])
+    dv.draw_contourf(fig, ax_cross, dv.drop_na(hor_drag)*10**3, ter_line)
+
+    # title_t = ds.XTIME.dt.strftime('%d-%H').values[0]
+    title_t = 'gwd3'
+    ax_cross.set_title(title_t, loc='left', fontsize=18)
+    fig.savefig('/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_gwd3/cross+%s_33.6_d01.png'%title_t)
+
+
+
 def main():
-    fl_path ='/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/gwd1/wrfout_d03_' # 2021-07-20_05:00:00'
-    # fl_path ='/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/gwd3-BL/wrfout_d04_' # 2021-07-20_05:00:00'
+    # fl_path ='/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd1/wrfout_d03_' # 2021-07-20_05:00:00'
+    # fl_path ='/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd3/wrfout_d03_' # 2021-07-20_05:00:00'
     # tt = pd.date_range('2021-07-20 00', '2021-07-21 00', freq='1H')
     # tt = pd.date_range('2021-07-20 05', '2021-07-20 06', freq='1H')
     tt = pd.date_range('2021-07-20 00', '2021-07-20 00', freq='1H')
-    for t in tt:
-        flnm = fl_path+t.strftime('%Y-%m-%d_%H:%M:%S')
-        draw_cross(flnm)
+    # fl_path = /
+    fl_path ='/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/'
+
+    model_list = ['gwd1', 'gwd3']
+    for model in model_list:
+        for t in tt:
+            fname = 'wrfout_d01_'+t.strftime('%Y-%m-%d_%H:%M:%S')
+            fpath = os.path.join(fl_path, model)
+            flnm = os.path.join(fpath, fname)
+            print(fname)
+            if model == 'gwd1':
+                draw_cross_gwd1(flnm)
+            elif model == 'gwd3':
+                draw_cross_gwd3(flnm)
+            # '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd1/'
+
+    # flnm_gwd1 = ''
 
 if __name__ == '__main__':
     main()
