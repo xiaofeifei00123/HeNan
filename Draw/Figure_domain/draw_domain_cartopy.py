@@ -11,7 +11,6 @@ Version          :1.0
 # %%
 import xarray as xr
 import numpy as np
-import salem
 
 import cartopy.crs as ccrs
 import cartopy.feature as cfeat
@@ -28,6 +27,7 @@ import re
 from matplotlib.path import Path
 import matplotlib.patches as patches
 
+# %
 
 # %%
 def draw_screen_poly(lats, lons):
@@ -39,7 +39,7 @@ def draw_screen_poly(lats, lons):
     x, y = lons, lats
     xy = list(zip(x, y))
     # print(xy)
-    poly = plt.Polygon(xy, edgecolor="black", fc="none", lw=.8, alpha=1)
+    poly = plt.Polygon(xy, edgecolor="black", fc="none", lw=1, alpha=1)
     plt.gca().add_patch(poly)
 
 
@@ -83,8 +83,8 @@ def create_map(info):
         alpha=1.)
 
     Henan = cfeat.ShapelyFeature(
-        # Reader('/mnt/zfm_18T/fengxiang/DATA/SHP/Province_shp/henan.shp').geometries(),
-        Reader('/mnt/zfm_18T/fengxiang/DATA/SHP/shp_henan/henan.shp').geometries(),
+        Reader('/mnt/zfm_18T/fengxiang/DATA/SHP/Province_shp/henan.shp').geometries(),
+        # Reader('/mnt/zfm_18T/fengxiang/DATA/SHP/shp_henan/henan.shp').geometries(),
         proj,
         edgecolor='black',
         lw=1.,
@@ -101,9 +101,11 @@ def create_map(info):
         alpha=1.)
     ## 将青藏高原地形文件加到地图中区
     # ax.add_feature(Province, linewidth=0.5, zorder=2, linestyle=':')
-    # ax.add_feature(Henan, linewidth=0.5, zorder=2)
-    ax.add_feature(city, linewidth=0.5, zorder=2)
-    ax.coastlines(linestyle=':')
+    ax.add_feature(Province, linewidth=0.5, zorder=2, alpha=0.5)
+    # ax.add_feature(Henan, linewidth=0.6, zorder=2)
+    # ax.add_feature(city, linewidth=0.5, zorder=2)
+    ax.coastlines(linestyle=':', linewidth=0.5, alpha=0.7)
+    # ax.coastlines()
     # import cartopy.feature as cfeature
     # ax.add_feature(cfeature.BORDERS, linestyle=':')
 
@@ -111,41 +113,43 @@ def create_map(info):
     gl = ax.gridlines(draw_labels=True,
                       dms=True,
                       linestyle=":",
-                      linewidth=0.3,
+                      linewidth=0.2,
                       x_inline=False,
                       y_inline=False,
-                      color='k')
+                      color='k',)
     # # gl=ax.gridlines(draw_labels=True,linestyle=":",linewidth=0.3 , auto_inline=True,x_inline=False, y_inline=False,color='k')
 
     ## 关闭上面和右边的经纬度显示
     gl.top_labels = False  #关闭上部经纬标签
-    # gl.bottom_labels = False
-    # # gl.left_labels = False
     gl.right_labels = False
     ## 这个东西还挺重要的，对齐坐标用的
     gl.rotate_labels = None
-
-    gl.xformatter = LONGITUDE_FORMATTER  #使横坐标转化为经纬度格式
-    gl.yformatter = LATITUDE_FORMATTER
-    gl.xlocator = mticker.FixedLocator(np.arange(90, 140, 5))
+    ## 坐标的范围
+    # gl.xlocator = mticker.FixedLocator(np.arange(90, 140, 5))
+    gl.xlocator = mticker.FixedLocator(np.arange(70, 150, 5))
+    
     gl.ylocator = mticker.FixedLocator(np.arange(10, 50, 5))
+    ## 坐标标签的大小
     gl.xlabel_style = {'size': 10}  #修改经纬度字体大小
     gl.ylabel_style = {'size': 10}
-    ax.spines['geo'].set_linewidth(0.6)  #调节边框粗细
-    # ax.set_extent([60, 120, 10, 60], crs=proj)
-    # ax.set_extent([0, 2237500*2, 0, 1987500*2], crs=proj_lambert)
+    ## 坐标标签样式
+    gl.xformatter = LongitudeFormatter(degree_symbol="${^\circ}$")
+    gl.yformatter = LatitudeFormatter(degree_symbol="${^\circ}$")
+
+    ax.spines['geo'].set_linewidth(1.0)  #调节图片边框粗细
+
+    ## 画d02
     ax.set_extent([0, false_easting * 2, 0, false_northing * 2],
                   crs=proj_lambert)
 
     # 标注d01, 这个位置需要根据经纬度手动调整
-    # ax.text(65,
-    #         50,
-    #         'd01',
-    #         transform=ccrs.PlateCarree(),
-    #         fontdict={
-    #             'size': 14,
-    #         })
-
+    ax.text(75, # 经度
+            45,  # 纬度
+            'd01',
+            transform=ccrs.PlateCarree(),
+            fontdict={
+                'size': 14,
+            })
     return ax
 
 
@@ -289,6 +293,15 @@ def draw_d02(info):
 
         draw_screen_poly(lat, lon)
 
+        ## 标注d03
+        # plt.text(lon[0] * 1+100000, lat[0] * 1. - 225000, "d02", fontdict={'size':14})
+        plt.text(lon[3] * 1 ,
+                 lat[3] * 1. - 200000,
+                 "d03",
+                 fontdict={'size': 14})
+        
+
+
 
     if max_dom >= 4:
 
@@ -330,34 +343,6 @@ def draw_station(ax):
             'lat': 21.1,
             'lon': 112.9,
         },
-        # 'LS': {
-        #     'lat': 29.6,
-        #     'lon': 91.1
-        # },
-        # 'TTH': {
-        #     'lat': 34.2,
-        #     'lon': 92.4
-        # },
-        # 'GZ': {
-        #     'lat': 32.3,
-        #     'lon': 84.0
-        # },
-        # 'SZ': {
-        #     'lat': 30.9,
-        #     'lon': 88.7
-        # },
-        # 'SQH': {
-        #     'lat': 32.4,
-        #     'lon': 80.1
-        # },
-        # 'JinChuan': {
-        #     'lat': 31.29,
-        #     'lon': 102.04
-        # },
-        # 'JinLong': {
-        #     'lat': 29.00,
-        #     'lon': 101.50
-        # },
     }
     values = station.values()
     station_name = list(station.keys())
@@ -378,23 +363,17 @@ def draw_station(ax):
                s=12)
     ## 给站点加注释
     for i in range(len(x)):
-        # print(x[i])
-        if station_name[i] == 'LS':
-            # x[i] = x[i]
-            y[i] = y[i] - 2.0
-        if station_name[i] == 'SQH':
-            x[i] = x[i] - 0.5
-        plt.text(x[i] - 1,
+        ax.text(x[i] - 1,
                  y[i] + 0.5,
                  station_name[i],
                  transform=ccrs.PlateCarree(),
                  fontdict={
-                     'size': 9,
+                     'size': 10,
                  })
 def draw():
     pass
     file_folder = "/mnt/zfm_18T/fengxiang/HeNan/Figure_domain/"
-    file_name = "namelist.wps.yyx"
+    file_name = "namelist.wps"
     flnm = file_folder + file_name
 
     info = get_information(flnm)  # 获取namelist.wps文件信息
@@ -406,7 +385,7 @@ def draw():
 
     draw_station(ax)
     # print("标注站点完毕")
-    fig_name = file_folder+'domainyyx.png'
+    fig_name = file_folder+'domain_gwd.png'
     plt.savefig(fig_name)
 
 if __name__ == '__main__':
