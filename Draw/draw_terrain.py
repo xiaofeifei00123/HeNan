@@ -14,7 +14,11 @@ import xarray as xr
 import netCDF4 as nc
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
+import cartopy.feature as cfeat
+from cartopy.mpl.ticker import LongitudeFormatter, LatitudeFormatter
+from cartopy.io.shapereader import Reader, natural_earth
 import matplotlib.pyplot as plt
+import matplotlib.ticker as mticker
 import numpy as np
 import cmaps
 from baobao.map import Map
@@ -51,37 +55,15 @@ def draw_contourf(rain, pic_dic):
     da.max()
     rain = da.sel(time=slice('2021-07-20 00', '2021-07-20 12')).sum(dim='time')
     """
-    from nmc_met_graphics.plot import mapview
-    mb = mapview.BaseMap()
-    fig = plt.figure(figsize=[12, 10], dpi=600)
-    # ax = fig.add_axes([0.1, 0.1, 0.8, 0.8], projection=ccrs.LambertConformal(central_latitude=34, central_longitude=113))
-    # ax = fig.add_axes([0.1,0.1,0.85,0.85], projection=proj)
-    ax = fig.add_axes([0.1, 0.1, 0.85, 0.8], projection=ccrs.PlateCarree())
-    # ax.plot(rain.lon.values, rain.lat.values, 'ko',ms=3,zorder=2, transform=ccrs.PlateCarree())
+    # from nmc_met_graphics.plot import mapview
+    # mb = mapview.BaseMap()
+    fig = plt.figure(figsize=[3.4, 3.2], dpi=300)
+    ax = fig.add_axes([0.1, 0.1, 0.8, 0.8], projection=ccrs.LambertConformal(central_latitude=34, central_longitude=113))
     mp = Map()
-    map_dic = {
-        'proj':ccrs.PlateCarree(),
-        # 'extent':[110.5, 116, 32, 36.5],
-        # 'extent':[111, 112, 33.5, 34.5],
-        'extent':[109, 117, 31, 37],
-        'extent_interval_lat':1,
-        'extent_interval_lon':1,
-    }
 
-    ax = mp.create_map(ax, map_dic)
-    ax.set_extent(map_dic['extent'])
-
-    # colorlevel=[0, 0.1, 5, 15.0, 30, 70, 140, 700]#雨量等级
-    # colorlevel=[0, 0.1, 5, 15.0, 30, 70, 140, 700]#雨量等级
-    colorlevel = np.arange(0, 2300, 100)
-    # colorlevel = np.arange(-50, 50, 1)
-    colordict=['#F0F0F0','#A6F28F','#3DBA3D','#61BBFF','#0000FF','#FA00FA','#800040', '#EE0000',]#颜色列表
-    # cmap = cmaps.precip3_16lev
+    # colorlevel = np.arange(0, 2300, 100)
+    colorlevel = np.arange(0, 4000, 200)
     cmap = cmaps.MPL_terrain
-    # cmap = cmaps.ViBlGrWhYeOrRe
-    # cmap = cmaps.MPL_gist_yarg
-    # cs = ax.tricontour(rain.lon, rain.lat, rain, levels=colorlevel, transform=ccrs.PlateCarree())
-    # cs = ax.tricontourf(rain.lon, rain.lat, rain, levels=colorlevel,colors=colordict, transform=ccrs.PlateCarree())
     cs = ax.contourf(rain.lon, 
                     rain.lat,
                     rain,
@@ -89,134 +71,74 @@ def draw_contourf(rain, pic_dic):
                     # colors=colordict,
                     cmap=cmap,
                     transform=ccrs.PlateCarree())
-    # colorticks=[0.1,5,15,30.0,70,140]#雨量等级
     colorticks = colorlevel[1:-1][::4]
     
     cb = fig.colorbar(
         cs,
         # cax=ax6,
-        orientation='horizontal',
+        # orientation='horizontal',
+        orientation='vertical',
         ticks=colorticks,
         fraction = 0.05,  # 色标大小,相对于原图的大小
-        pad=0.07,  #  色标和子图间距离
+        pad=0.01,  #  色标和子图间距离
     )
+    cb.ax.tick_params(labelsize=10)  # 设置色标标注的大小
 
     station = {
         'ZhengZhou': {
-            'abbreviation':'ZZ',
+            'abbreviation':'郑州',
             'lat': 34.76,
             'lon': 113.65
         },
     }
-    mp.add_station(ax, station, justice=True)
-    ax.add_feature(cfeature.RIVERS, lw=2.5)
-    # ax.add_feature(cfeature.LAKES, lw=1)
-    
-    
-    
+    proj = ccrs.PlateCarree()  # 创建坐标系
+    mp.add_station(ax, station, justice=True, fontsize=10, ssize=8, dely=0.2)
 
-    # mb.cities(ax, city_type='base_station', color_style='black', 
-    #             marker_size=5, font_size=16)
-    # mb.gridlines()
-    cb.ax.tick_params(labelsize=30)  # 设置色标标注的大小
-    ax.set_title(pic_dic['title'], loc='left', fontsize=30)
+    Henan = cfeat.ShapelyFeature(
+        Reader('/mnt/zfm_18T/fengxiang/DATA/SHP/Province_shp/henan.shp').geometries(),
+        # Reader('/mnt/zfm_18T/fengxiang/DATA/SHP/shp_henan/henan.shp').geometries(),
+        proj,
+        edgecolor='black',
+        lw=1.,
+        linewidth=1.,
+        facecolor='none',
+        alpha=1.)
+    ax.add_feature(cfeature.RIVERS, lw=1)
+    ax.add_feature(Henan, linewidth=1, zorder=2)
+    ax.add_feature(cfeature.LAKES, lw=1)
+    
+    
+    gl = ax.gridlines(draw_labels=True,
+                      dms=True,
+                      linestyle=":",
+                      linewidth=0.2,
+                      x_inline=False,
+                      y_inline=False,
+                      color='k',)
+    
+    gl.top_labels = False  #关闭上部经纬标签
+    gl.right_labels = False
+    ## 这个东西还挺重要的，对齐坐标用的
+    gl.rotate_labels = None
+    ## 坐标的范围
+    gl.xlocator = mticker.FixedLocator(np.arange(100, 120, 2))
+    gl.ylocator = mticker.FixedLocator(np.arange(20, 40, 2))
+    ## 坐标标签的大小
+    gl.xlabel_style = {'size': 10}  #修改经纬度字体大小
+    gl.ylabel_style = {'size': 10}
+    ## 坐标标签样式
+    gl.xformatter = LongitudeFormatter(degree_symbol="${^\circ}$")
+    gl.yformatter = LatitudeFormatter(degree_symbol="${^\circ}$")
+    ax.spines['geo'].set_linewidth(1.0)  #调节图片边框粗细
+    
     fig_path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_terrain/'
     fig_name = fig_path+pic_dic['title']
-    fig.savefig(fig_name)
-
-def draw_contourf_minus(rain, pic_dic):
-    """地形高度的差
-
-    Args:
-        rain ([type]): [description]
-    Example:
-    da = xr.open_dataarray('/mnt/zfm_18T/fengxiang/HeNan/Data/OBS/rain_station.nc')
-    da.max()
-    rain = da.sel(time=slice('2021-07-20 00', '2021-07-20 12')).sum(dim='time')
-    """
-    from nmc_met_graphics.plot import mapview
-    mb = mapview.BaseMap()
-    fig = plt.figure(figsize=[12, 12], dpi=600)
-    # ax = fig.add_axes([0.1, 0.1, 0.8, 0.8], projection=ccrs.LambertConformal(central_latitude=34, central_longitude=113))
-    # ax = fig.add_axes([0.1,0.1,0.85,0.85], projection=proj)
-    ax = fig.add_axes([0.1, 0.1, 0.85, 0.8], projection=ccrs.PlateCarree())
-    # ax.plot(rain.lon.values, rain.lat.values, 'ko',ms=3,zorder=2, transform=ccrs.PlateCarree())
-    mp = Map()
-    map_dic = {
-        'proj':ccrs.PlateCarree(),
-        # 'extent':[110.5, 116, 32, 36.5],
-        # 'extent':[111, 112, 33.5, 34.5],
-        'extent':[109, 117, 31, 37],
-        'extent_interval_lat':1,
-        'extent_interval_lon':1,
-    }
-
-    ax = mp.create_map(ax, map_dic)
-    ax.set_extent(map_dic['extent'])
-
-    # colorlevel=[0, 0.1, 5, 15.0, 30, 70, 140, 700]#雨量等级
-    # colorlevel=[0, 0.1, 5, 15.0, 30, 70, 140, 700]#雨量等级
-    # colorlevel = np.arange(0, 2300, 100)
-    # colorlevel = np.arange(-60, 60+5, 5)
-    colorlevel = np.arange(-160, 160+20, 20)
-    colordict=['#F0F0F0','#A6F28F','#3DBA3D','#61BBFF','#0000FF','#FA00FA','#800040', '#EE0000',]#颜色列表
-    # cmap = cmaps.precip3_16lev
-    # cmap = cmaps.MPL_terrain
-    cmap = cmaps.ViBlGrWhYeOrRe
-    # cmap = cmaps.MPL_gist_yarg
-    # cs = ax.tricontour(rain.lon, rain.lat, rain, levels=colorlevel, transform=ccrs.PlateCarree())
-    # cs = ax.tricontourf(rain.lon, rain.lat, rain, levels=colorlevel,colors=colordict, transform=ccrs.PlateCarree())
-    cs = ax.contourf(rain.lon, 
-                    rain.lat,
-                    rain,
-                    levels=colorlevel,
-                    # colors=colordict,
-                    cmap=cmap,
-                    transform=ccrs.PlateCarree())
-    # colorticks=[0.1,5,15,30.0,70,140]#雨量等级
-    colorticks = colorlevel[1:-1][::2]
-    
-    cb = fig.colorbar(
-        cs,
-        # cax=ax6,
-        orientation='horizontal',
-        ticks=colorticks,
-        fraction = 0.05,  # 色标大小,相对于原图的大小
-        pad=0.05,  #  色标和子图间距离
-    )
-    # mb.cities(ax, city_type='base_station', color_style='black', 
-    #             marker_size=5, font_size=16)
-    # mb.gridlines()
-    cb.ax.tick_params(labelsize=30)  # 设置色标标注的大小
-    ax.set_title(pic_dic['title'], loc='left', fontsize=30)
-    fig_path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_terrain/'
-    fig_name = fig_path+pic_dic['title']
-    fig.savefig(fig_name)
-
-
+    fig.savefig(fig_name, bbox_inches = 'tight')
 
 
 
 
 if __name__ == '__main__':
-    flnm_900m = '/mnt/zfm_18T/fengxiang/HeNan/Data/1900_900m/wrfout_d04_2021-07-19_01:00:00'
-    flnm_90m = '/mnt/zfm_18T/fengxiang/HeNan/Data/1900_90m/wrfout_d04_2021-07-19_01:00:00'
-    flnm_900m_met = '/mnt/zfm_18T/fengxiang/HeNan/Data/1900_900m/geo_em.d03.nc'
-    flnm_90m_met = '/mnt/zfm_18T/fengxiang/HeNan/Data/1900_90m/geo_em.d03.nc'
-
-    # h90 = get_hgt(flnm_90m)
-    # h900 = get_hgt(flnm_900m)
-    # h99 = h90-h900
-
+    flnm_90m_met = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/geo_em.d03.nc'
     met_h90 = get_hgt_met(flnm_90m_met)
-    met_h900 = get_hgt_met(flnm_900m_met)
-    met_h99 = met_h90-met_h900
-
-
-    # draw_tricontourf(h90, {'title':'90m'})
-    # draw_tricontourf(h900, {'title':'900m'})
-    # draw_tricontourf_minus(h99, {'title':'90m-900m'})
-
     draw_contourf(met_h90, {'title':'geo_90m'})
-    draw_contourf(met_h900, {'title':'geo_900m'})
-    draw_contourf_minus(met_h99, {'title':'geo_90m-900m'})
