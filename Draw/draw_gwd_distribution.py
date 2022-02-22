@@ -146,7 +146,7 @@ def draw_one(model='1900_90m'):
     pass
 
     fl_path =os.path.join('/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/', model)
-    tt = pd.date_range('2021-07-20 00', '2021-07-20 00', freq='1H')
+    tt = pd.date_range('2021-07-20 00', '2021-07-21 00', freq='1H')
     for t in tt:
         flnm = 'wrfout_d01_'+t.strftime('%Y-%m-%d_%H:%M:%S')
         flnm = os.path.join(fl_path, flnm)
@@ -169,8 +169,8 @@ def draw_one(model='1900_90m'):
         dr.draw_single(gwd_sfc, picture_dic)
 
 def draw_dual():
-    model_list = ['gwd1', 'gwd3']
-    # model_list = ['gwd3']
+    # model_list = ['gwd1', 'gwd3']
+    model_list = ['gwd3']
     for model in model_list:
         draw_one(model)
 

@@ -76,7 +76,7 @@ class Draw(object):
         Args:
             da (DataArray): 单个时次的降水
         """
-        fig = plt.figure(figsize=(12, 12), dpi=600)
+        fig = plt.figure(figsize=(4, 4), dpi=300)
         proj = ccrs.PlateCarree()  # 创建坐标系
         ax = fig.add_axes([0.1,0.1,0.85,0.85], projection=proj)
         # ax.set_extent([])
@@ -106,9 +106,9 @@ class Draw(object):
             },
         }
         mp.add_station(ax, station, justice=True)
-        ax.set_title(date, fontsize=35,)
-        ax.set_title(picture_dic['initial_time'], fontsize=30,loc='left')
-        ax.set_title(picture_dic['type'], fontsize=30,loc='right')
+        ax.set_title(date, fontsize=10,)
+        ax.set_title(picture_dic['initial_time'], fontsize=10,loc='left')
+        ax.set_title(picture_dic['type'], fontsize=10,loc='right')
         cf = self.draw_contourf_single(da, ax, dic)
         # colorticks=[0.1,5,15,30.0,70,140]#雨量等级
         colorlevel=[0, 0.1, 5, 10, 15.0, 20, 25, 30, 700]#雨量等级
@@ -120,12 +120,12 @@ class Draw(object):
             orientation='horizontal',
             ticks=colorticks,
             fraction = 0.05,  # 色标大小,相对于原图的大小
-            pad=0.05,  #  色标和子图间距离
+            pad=0.08,  #  色标和子图间距离
         )
-        cb.ax.tick_params(labelsize=30)  # 设置色标标注的大小
+        cb.ax.tick_params(labelsize=10)  # 设置色标标注的大小
         fig_name = picture_dic['type']+'_'+picture_dic['initial_time']+'_'+picture_dic['date']
         fig_path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_rain/rain_1h/'
-        fig.savefig(fig_path+fig_name)
+        fig.savefig(fig_path+fig_name, bbox_inches = 'tight')
 
 
 def draw_tricontourf(rain):
@@ -141,7 +141,7 @@ def draw_tricontourf(rain):
     """
     from nmc_met_graphics.plot import mapview
     mb = mapview.BaseMap()
-    fig = plt.figure(figsize=[12, 12], dpi=600)
+    fig = plt.figure(figsize=[4, 4], dpi=600)
     # ax = fig.add_axes([0.1, 0.1, 0.8, 0.8], projection=ccrs.LambertConformal(central_latitude=34, central_longitude=113))
     # ax = fig.add_axes([0.1,0.1,0.85,0.85], projection=proj)
     ax = fig.add_axes([0.1, 0.1, 0.85, 0.85], projection=ccrs.PlateCarree())
@@ -176,7 +176,7 @@ def draw_tricontourf(rain):
     # mb.cities(ax, city_type='base_station', color_style='black', 
     #             marker_size=5, font_size=16)
     # mb.gridlines()
-    cb.ax.tick_params(labelsize=30)  # 设置色标标注的大小
+    cb.ax.tick_params(labelsize=10)  # 设置色标标注的大小
 
 
 
@@ -194,8 +194,8 @@ def draw_tricontourf(rain):
     # ax.set_title('2021-07-20 00-12', fontsize=35,)
     pic_time = rain.time.dt.strftime('%Y%m%d-%H').values
     print("画%s时刻的图"%pic_time)
-    ax.set_title(pic_time, fontsize=35,)
-    ax.set_title('OBS', fontsize=30,loc='left')
+    ax.set_title(pic_time, fontsize=10,)
+    ax.set_title('OBS', fontsize=10,loc='left')
 
 
     # mp.add_station(ax)
@@ -238,7 +238,7 @@ def draw_one(model='1900_90m'):
     pass
 
     dr = Draw()
-    flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/'+model+'/'+'rain.nc'
+    flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/'+model+'/'+'rain.nc'
     # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/1912_900m/rain.nc'
     da = xr.open_dataarray(flnm)
     da = da.sel(time=slice('2021-07-20 00', '2021-07-21 00'))
@@ -252,8 +252,8 @@ def draw_one(model='1900_90m'):
         dr.draw_single(rain1h, picture_dic)
 
 def draw_dual():
-    # model_list = ['1900_90m', '1900_900m','1912_900m', '1912_90m', '1912_90m_OGWD']
-    model_list = ['1912_90m_gwd3']
+    model_list = ['gwd0', 'gwd3']
+    # model_list = ['1912_90m_gwd3']
     for model in model_list:
         # path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/'+model+'/'
         draw_one(model)

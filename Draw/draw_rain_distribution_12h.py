@@ -259,9 +259,9 @@ def draw_onemodel(model='1912_90m_gwd3'):
     pass
 
     dr = Draw()
-    flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/'+model+'/'+'rain.nc'
+    flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/'+model+'/'+'rain.nc'
     da = xr.open_dataarray(flnm)
-    da = da.sel(time=slice('2021-07-20 00', '2021-07-20 12'))
+    da = da.sel(time=slice('2021-07-20 01', '2021-07-20 12'))
     da = da.sum(dim='time') 
 
     picture_dic = {'date':'2021-07-20 00-12', 'type':model, 'initial_time':''}

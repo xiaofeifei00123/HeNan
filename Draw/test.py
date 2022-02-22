@@ -8,6 +8,98 @@ Time             :2022/01/12 17:01:24
 Author           :Forxd
 Version          :1.0
 '''
+# %%
+
+import xarray as xr
+import cartopy.crs as ccrs
+import matplotlib.pyplot as plt
+from cnmaps import get_map, draw_map
+from baobao.interp import regrid_xesmf
+from baobao.interp import rain_station2grid
+
+# %%
+flnm = '/home/fengxiang/HeNan/Data/OBS/rain_ec.nc'
+da2 = xr.open_dataarray(flnm)
+da2 = da2.sel(time=slice('2021-07-20 01', '2021-07-21 00'))  # 24小时逐小时降水
+da2 = da2.sel(lat=slice(32,36.5)).sel(lon=slice(110.5,116))
+da2 = da2.sum(dim='time')
+
+
+# %%
+# da1
+area = {
+    'lon1':110.5,
+    'lon2':116,
+    'lat1':32,
+    'lat2':36.5,
+    'interval':0.125,
+}
+da = xr.open_dataarray('/mnt/zfm_18T/fengxiang/HeNan/Data/OBS/rain.nc')
+da1 = rain_station2grid(da, area)
+da1 = da1.sel(time=slice('2021-07-20 01', '2021-07-21 00'))  # 24小时逐小时降水
+da1 = da1.sum(dim='time')
+# %%
+# ddc.lat
+# da2.lat
+# dd
+da2-da1
+
+
+
+# da1-da_rain
+# type(da_rain.dims)
+# da_rain.plot()
+# dd = da_rain.sum(dim='time').plot()
+# dd
+# da
+# flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/'+model+'/'+'rain.nc'
+# flnm3 = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd3/rain.nc'
+# flnm0 = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd0/rain.nc'
+
+# %%
+# flnm3 = 
+flnm3 = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd3/rain_latlon.nc'
+flnm0 = '/mnt/zfm_18T/fengxiang/HeNan/Data/OBS/rain_latlon.nc'
+# flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d04/'+model+'/'+'rain.nc'
+da3 = xr.open_dataarray(flnm3)
+da3 = da3.sel(time=slice('2021-07-20 01', '2021-07-21 00'))
+da3 = da3.sum(dim='time') 
+da0 = xr.open_dataarray(flnm0)
+da0 = da0.sel(time=slice('2021-07-20 01', '2021-07-21 00'))
+da0 = da0.sum(dim='time') 
+da0
+# %%
+# da0
+# da3-da0
+# da3.lat.values
+da = da3.values-da0.values
+# da = xr.DataArray
+da
+# %%
+dda = xr.DataArray(
+    da,
+    coords={
+        'lat':da3.lat.values,
+        'lon':da3.lon.values,
+    },
+    dims=['lat', 'lon']
+    )
+dda
+
+
+
+
+# da0
+# k
+# da0
+
+
+
+
+
+
+
+
 
 
 # %%

@@ -133,7 +133,7 @@ class Draw(Vp):
         ax.legend(fontsize=24, edgecolor='white')
         ax.set_xlabel('Drag ($m/s^2$)', fontsize=26)
         ax.set_ylabel('Model Level', fontsize=26)
-        fig.savefig('/mnt/zfm_18T/fengxiang/HeNan/Draw/aa.png')
+        fig.savefig('/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_gwd/aa.png')
 
     def draw_dual(self,ds):
         """水平反向合力的图

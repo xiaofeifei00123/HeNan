@@ -12,6 +12,7 @@ Version          :1.0
 '''
 
 # %%
+from cmath import pi
 import sys,os
 import xarray as xr
 import numpy as np
@@ -71,7 +72,8 @@ class Draw(object):
         Args:
             da (DataArray): 单个时次的降水
         """
-        fig = plt.figure(figsize=(12, 10), dpi=600)
+        cm = round(1/2.54, 2)
+        fig = plt.figure(figsize=(8*cm, 8*cm), dpi=300)
         proj = ccrs.PlateCarree()  # 创建坐标系
         ax = fig.add_axes([0.1,0.08,0.85,0.85], projection=proj)
         date = picture_dic['date']
@@ -92,36 +94,42 @@ class Draw(object):
 
         station = {
             'ZhengZhou': {
-                'abbreviation':'ZZ',
+                'abbreviation':'郑州',
                 'lat': 34.76,
                 'lon': 113.65
             },
             'NanYang': {
-                'abbreviation':'NY',
+                'abbreviation':'南阳',
                 'lat': 33.1,
                 'lon': 112.49,
             },
             'LuShi': {
-                'abbreviation':'LS',
+                'abbreviation':'卢氏',
                 'lat': 34.08,
                 'lon': 111.07,
             },
         }
-        mp.add_station(ax, station, justice=True, delx=0.1)
+        mp.add_station(ax, station, justice=True, delx=-0.1)
         # mp.add_station(ax, station)
         # ax.set_title(date, fontsize=35,)
 
         
-        # rain_max = da.max(dim=['south_north', 'west_east'])        
+        if 'south_north' in da.dims:
+            rain_max = da.max(dim=['south_north', 'west_east'])        
+        elif 'lat' in da.dims:
+            rain_max = da.max(dim=['lat', 'lon'])        
+        else:
+            print("出错啦")
+            
         # rain_mean = da.mean(dim=['south_north', 'west_east'])        
         # # ax.set_title('Max = %s, Avg = %s'%(rain_max.values.round(2),rain_mean.values.round(2)), fontsize=35,loc='left')
-        # ax.set_title('Max = %s'%(rain_max.values.round(1)), fontsize=30,loc='left')
+        ax.set_title('Max = %s'%(rain_max.values.round(1)), fontsize=10,loc='left')
         
-        
-        
-
         # ax.set_title(picture_dic['initial_time'], fontsize=30,loc='left')
-        ax.set_title(picture_dic['type'], fontsize=30,loc='right')
+        if picture_dic['type'] == 'gwd0':
+            picture_dic['type'] = 'no-gwd'
+
+        ax.set_title(picture_dic['type'], fontsize=10,loc='right')
         cf = self.draw_contourf_single(da, ax, dic)
         colorlevel=[0, 0.1, 10, 25.0, 50, 100, 250,  700]#雨量等级
         colorticks = colorlevel[1:-1]
@@ -131,13 +139,13 @@ class Draw(object):
             # cax=ax6,
             orientation='horizontal',
             ticks=colorticks,
-            fraction = 0.055,  # 色标大小,相对于原图的大小
-            pad=0.08,  #  色标和子图间距离
+            fraction = 0.05,  # 色标大小,相对于原图的大小
+            pad=0.1,  #  色标和子图间距离
         )
-        cb.ax.tick_params(labelsize=30)  # 设置色标标注的大小
+        cb.ax.tick_params(labelsize=10)  # 设置色标标注的大小
         fig_name = picture_dic['type']+'_'+picture_dic['initial_time']
         fig_path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_rain/rain_24h_gwd/'
-        fig.savefig(fig_path+fig_name)
+        fig.savefig(fig_path+fig_name, bbox_inches = 'tight')
 
 
 def draw_tricontourf(rain):
@@ -151,11 +159,12 @@ def draw_tricontourf(rain):
     da.max()
     rain = da.sel(time=slice('2021-07-20 00', '2021-07-20 12')).sum(dim='time')
     """
-    from nmc_met_graphics.plot import mapview
-    mb = mapview.BaseMap()
-    fig = plt.figure(figsize=[12, 10], dpi=600)
-    ax = fig.add_axes([0.1, 0.1, 0.85, 0.85], projection=ccrs.PlateCarree())
-    # ax.plot(rain.lon.values, rain.lat.values, 'ko',ms=3,zorder=2, transform=ccrs.PlateCarree())
+    # from nmc_met_graphics.plot import mapview
+    # mb = mapview.BaseMap()
+    # fig = plt.figure(figsize=[3.8, 3.7], dpi=300)
+    cm = round(1/2.54,2)
+    fig = plt.figure(figsize=[8*cm, 8*cm], dpi=300)
+    ax = fig.add_axes([0.1,0.08,0.85,0.85], projection=ccrs.PlateCarree())
     mp = Map()
     map_dic = {
         'proj':ccrs.PlateCarree(),
@@ -179,24 +188,24 @@ def draw_tricontourf(rain):
         orientation='horizontal',
         ticks=colorticks,
         fraction = 0.05,  # 色标大小,相对于原图的大小
-        pad=0.07,  #  色标和子图间距离
+        pad=0.1,  #  色标和子图间距离
     )
-    cb.ax.tick_params(labelsize=30)  # 设置色标标注的大小
+    cb.ax.tick_params(labelsize=10)  # 设置色标标注的大小
 
     mp = Map()
     station = {
         'ZhengZhou': {
-            'abbreviation':'ZZ',
+            'abbreviation':'郑州',
             'lat': 34.76,
             'lon': 113.65
         },
         'NanYang': {
-            'abbreviation':'NY',
+            'abbreviation':'南阳',
             'lat': 33.1,
             'lon': 112.49,
         },
         'LuShi': {
-            'abbreviation':'LS',
+            'abbreviation':'卢氏',
             'lat': 34.08,
             'lon': 111.07,
         },
@@ -205,15 +214,15 @@ def draw_tricontourf(rain):
 
 
     rain_max = rain.max()        
-    ax.set_title('Max = %s'%(rain_max.values.round(1)), fontsize=30,loc='left')
+    ax.set_title('Max = %s'%(rain_max.values.round(1)), fontsize=10,loc='left')
     # ax.set_title('2021-07 20/00--21/00', fontsize=35,)
-    ax.set_title('OBS', fontsize=30,loc='right')
+    ax.set_title('OBS', fontsize=10,loc='right')
 
 
     # mp.add_station(ax)
     fig_name = 'obs_distribution' 
     fig_path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_rain/rain_24h_gwd/'
-    fig.savefig(fig_path+fig_name)
+    fig.savefig(fig_path+fig_name, bbox_inches = 'tight')
 
 
 def draw_obs():
@@ -252,8 +261,27 @@ def draw_dual_model():
         draw_onemodel(model)
 
 
+
+def draw_EC(model='gwd3'):
+    """绘制EC细网格降水
+
+    Args:
+        model (str, optional): _description_. Defaults to 'gwd3'.
+    """
+    pass
+
+    dr = Draw()
+    flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/OBS/rain_ec.nc'
+    da = xr.open_dataarray(flnm)
+    da = da.sel(time=slice('2021-07-20 01', '2021-07-21 00'))  # 24小时逐小时降水
+    da = da.sum(dim='time').squeeze()
+    picture_dic = {'date':'2021-07 20/01--21/00', 'type':'EC', 'initial_time':''}
+    dr.draw_single(da, picture_dic)
+
+
+
 if __name__ == '__main__':
 
-    draw_obs()
-    # draw_onemodel()
-    draw_dual_model()
+    # draw_obs()
+    # draw_dual_model()
+    draw_EC()

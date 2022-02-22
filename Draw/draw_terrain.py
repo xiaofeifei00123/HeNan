@@ -44,9 +44,10 @@ def get_hgt(flnm):
     h = h.rename({'XLAT':'lat', 'XLONG':'lon'})
     return h
 # %%
-def draw_contourf(rain, pic_dic):
+def draw_contourf_lambert(rain, pic_dic):
 
     """rain[lon, lat, data],离散格点的DataArray数据
+    使用lambert投影画这个地形图
 
     Args:
         rain ([type]): [description]
@@ -57,7 +58,8 @@ def draw_contourf(rain, pic_dic):
     """
     # from nmc_met_graphics.plot import mapview
     # mb = mapview.BaseMap()
-    fig = plt.figure(figsize=[3.4, 3.2], dpi=300)
+    cm = round(1/2.54, 2)
+    fig = plt.figure(figsize=[8*cm, 8*cm], dpi=300)
     ax = fig.add_axes([0.1, 0.1, 0.8, 0.8], projection=ccrs.LambertConformal(central_latitude=34, central_longitude=113))
     mp = Map()
 
@@ -107,7 +109,6 @@ def draw_contourf(rain, pic_dic):
     ax.add_feature(Henan, linewidth=1, zorder=2)
     ax.add_feature(cfeature.LAKES, lw=1)
     
-    
     gl = ax.gridlines(draw_labels=True,
                       dms=True,
                       linestyle=":",
@@ -132,13 +133,89 @@ def draw_contourf(rain, pic_dic):
     ax.spines['geo'].set_linewidth(1.0)  #调节图片边框粗细
     
     fig_path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_terrain/'
-    fig_name = fig_path+pic_dic['title']
+    fig_name = fig_path+pic_dic['title']+'_lambert'
     fig.savefig(fig_name, bbox_inches = 'tight')
 
 
+def draw_contourf_latlon(rain, pic_dic):
+
+    """rain[lon, lat, data],离散格点的DataArray数据
+    使用等经纬线投影画这地形图
+
+    Args:
+        rain ([type]): [description]
+    Example:
+    da = xr.open_dataarray('/mnt/zfm_18T/fengxiang/HeNan/Data/OBS/rain_station.nc')
+    da.max()
+    rain = da.sel(time=slice('2021-07-20 00', '2021-07-20 12')).sum(dim='time')
+    """
+    # from nmc_met_graphics.plot import mapview
+    # mb = mapview.BaseMap()
+    cm = round(1/2.54, 2)
+    fig = plt.figure(figsize=(8*cm, 8*cm), dpi=300)
+    proj = ccrs.PlateCarree()  # 创建坐标系
+    ax = fig.add_axes([0.1,0.08,0.85,0.85], projection=ccrs.PlateCarree())
+    
+
+    mp = Map()
+    map_dic = {
+        'proj':ccrs.PlateCarree(),
+        'extent':[110.5, 116, 32, 36.5],
+        'extent_interval_lat':1,
+        'extent_interval_lon':1,
+    }
+
+    ax = mp.create_map(ax, map_dic)
+    ax.set_extent(map_dic['extent'])
+    
+
+
+    colorlevel = np.arange(0, 2300, 100)
+    # colorlevel = np.arange(0, 4000, 200)
+    cmap = cmaps.MPL_terrain
+    cs = ax.contourf(rain.lon, 
+                    rain.lat,
+                    rain,
+                    levels=colorlevel,
+                    # colors=colordict,
+                    cmap=cmap,
+                    transform=ccrs.PlateCarree())
+    colorticks = colorlevel[1:-1][::4]
+
+    cb = fig.colorbar(
+        cs,
+        # cax=ax6,
+        orientation='horizontal',
+        ticks=colorticks,
+        fraction = 0.05,  # 色标大小,相对于原图的大小
+        pad=0.1,  #  色标和子图间距离
+    )
+
+    station = {
+        'ZhengZhou': {
+            'abbreviation':'郑州',
+            'lat': 34.76,
+            'lon': 113.65
+        },
+        'NanYang': {
+            'abbreviation':'南阳',
+            'lat': 33.1,
+            'lon': 112.49,
+        },
+        'LuShi': {
+            'abbreviation':'卢氏',
+            'lat': 34.08,
+            'lon': 111.07,
+        },
+    }
+    mp.add_station(ax, station, justice=True)
+    fig_path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_terrain/'
+    fig_name = fig_path+pic_dic['title']+'_latlon'
+    fig.savefig(fig_name, bbox_inches = 'tight')
 
 
 if __name__ == '__main__':
     flnm_90m_met = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/geo_em.d03.nc'
     met_h90 = get_hgt_met(flnm_90m_met)
-    draw_contourf(met_h90, {'title':'geo_90m'})
+    # draw_contourf_lambert(met_h90, {'title':'geo_90m'})
+    draw_contourf_latlon(met_h90, {'title':'geo_90m'})
