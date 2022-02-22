@@ -4,6 +4,7 @@
 Description:
 站点的高空数据
 单站数据的聚合
+区域平均值
 其实很简单，先插值到一个站点
 然后再插值到垂直层
 读取单个和多个站的wrf逐层数据
@@ -76,11 +77,19 @@ class Sounding():
         # x,y = wrf.ll_to_xy(wrfnc, 34.71, 113.66)
         # x,y = wrf.ll_to_xy(wrfnc, lat, lon)
 
+        ## south
+        # area = {
+        #     'lat1':33.2,
+        #     'lat2':34,
+        #     'lon1':111.8,
+        #     'lon2':113.2,
+        # }
+        ## north
         area = {
-            'lat1':33,
-            'lat2':34,
-            'lon1':111.5,
-            'lon2':113,
+            'lat1':34.2,
+            'lat2':35.2,
+            'lon1':113,
+            'lon2':114,
         }
         
         ## 高度， 各层海拔高度, 单位m, 和探空资料保持一致
@@ -93,15 +102,44 @@ class Sounding():
         w = wrf.getvar(wrfnc, 'wa', units='m/s').assign_attrs({'projection':pj})
         t = wrf.getvar(wrfnc, 'temp', units='degC').assign_attrs({'projection':pj})
         td = wrf.getvar(wrfnc, 'td', units='degC').assign_attrs({'projection':pj})
+        theta = wrf.getvar(wrfnc, 'theta', units='degC').assign_attrs({'projection':pj})
+        theta_e = wrf.getvar(wrfnc, 'theta_e', units='degC').assign_attrs({'projection':pj})
+
+        # dd = wrf.getvar(wrfnc, 'DTAUX3D_LS').assign_attrs({'projection':pj})
+        # print(dd)
+        
+        
+
+        d1 = wrf.getvar(wrfnc, 'DTAUX3D_LS').assign_attrs({'projection':pj})
+        d2 = wrf.getvar(wrfnc, 'DTAUX3D_SS').assign_attrs({'projection':pj})
+        d3 = wrf.getvar(wrfnc, 'DTAUX3D_BL').assign_attrs({'projection':pj})
+        d4 = wrf.getvar(wrfnc, 'DTAUX3D_FD').assign_attrs({'projection':pj})
+            # dtaux = dtaux.values+dd
+        
+        # dtaux = xr.DataArray(dtaux,
+        #                      coords=t.coords,
+        #                      dims=t.dims,
+        #                      )
+        dtaux = d1+d2+d3+d4
+        # print(dtaux)
+
+        
+        
+        
+        
+
 
         ## 计算区域平均值
-        hagl = caculate_average_wrf(hagl).round(1)
-        p = caculate_average_wrf(p).round(0)
-        u = caculate_average_wrf(u).round(1)
-        v = caculate_average_wrf(v).round(1)
-        w = caculate_average_wrf(w)
-        t = caculate_average_wrf(t).round(1)
-        td = caculate_average_wrf(td).round(1)
+        hagl = caculate_average_wrf(hagl, area=area).round(1)
+        p = caculate_average_wrf(p, area=area).round(0)
+        u = caculate_average_wrf(u, area=area).round(1)
+        v = caculate_average_wrf(v, area=area).round(1)
+        w = caculate_average_wrf(w, area=area)
+        t = caculate_average_wrf(t, area=area).round(1)
+        td = caculate_average_wrf(td, area=area).round(1)
+        theta = caculate_average_wrf(theta, area=area).round(1)
+        theta_e = caculate_average_wrf(theta_e, area=area).round(1)
+        dtaux = caculate_average_wrf(dtaux, area=area)
         
 
         
@@ -118,10 +156,11 @@ class Sounding():
         u = u.rename('u')  # 给DataArray一个名称u
         v = v.rename('v')
         w = w.rename('w')
+        dtaux = dtaux.rename('dtaux')
         
 
         # ds = xr.merge([t,td, u, v, p, hagl])
-        ds = xr.merge([t,td, u, v, w,wind_speed, wind_angle, p, hagl])
+        ds = xr.merge([t,td, u, v, w,wind_speed, wind_angle, p, hagl, theta, theta_e, dtaux])
         dds = ds.set_coords(['height', 'pressure'])
         ds_return = dds.swap_dims({'bottom_top':'pressure'})
         return ds_return
@@ -187,7 +226,7 @@ class Sounding():
 
         # self.sta_dic={'sta_num':'57083','sta_name':'zhenzhou','lon':113.66,'lat':34.71 }
         # flnm = 'sounding_'+self.sta_dic['sta_name']+'_'+self.model+'.nc'
-        flnm = 'time_height'+'_'+self.model+'.nc'
+        flnm = 'time_height'+'_'+self.model+'north.nc'
         path_save = os.path.join(self.path_save,flnm)
         ds_upar.to_netcdf(path_save)
         return ds_upar
@@ -205,7 +244,8 @@ def sounding_dual():
     处理两种模式，不同时次的数据
     多模式数据的合并
     """
-    model_list = ['gwd0', 'gwd1', 'gwd3']
+    # model_list = ['gwd0', 'gwd1', 'gwd3']
+    model_list = ['gwd3']
 
     # sta_dic_list = [
     #     {'sta_num':'57083','sta_name':'zhengzhou','lon':113.66,'lat':34.71 },
@@ -225,7 +265,7 @@ def combine():
     """将不同模式，不同站点的数据聚合到一起
     """
 
-    model_list = ['gwd0', 'gwd1', 'gwd3']
+    model_list = ['gwd3']
     sta_dic_list = [
         {'sta_num':'57083','sta_name':'zhengzhou','lon':113.66,'lat':34.71 },
         {'sta_num':'57178','sta_name':'nanyang','lon':112.4,'lat':33.1 }, 

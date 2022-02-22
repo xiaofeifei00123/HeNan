@@ -30,7 +30,10 @@ def get_rain_ec():
 
         ## 获得世界时
         str_time_delta = str(grd.dtime[0].values)+'H'
-        tt = grd.time+pd.Timedelta(str_time_delta)
+        # print(grd.time)
+        # print(str_time_delta)
+        tt = grd.time+pd.Timedelta(str_time_delta)-pd.Timedelta('8H')  # 数据是北京时的，化为世界时
+        print(tt)
         
         ## 获得精简过后的数据
         aa = grd.squeeze()

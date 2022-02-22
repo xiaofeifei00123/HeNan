@@ -45,14 +45,17 @@ class GetUpar():
     """获得wrfout高空数据，原始投影
     """
     def get_upar_one(self, fl):
-        pre_level = [900, 850, 700, 500,350, 250, 200]
+        pre_level = [900, 925, 850, 700, 500, 200]
         dds = xr.Dataset()
         data_nc = nc.Dataset(fl)
         print(fl[-19:])
         p = wrf.getvar(data_nc, 'pressure', squeeze=False)
 
         for var in ['ua', 'va', 'wa','td', 'temp', 'theta','theta_e', 'height_agl', 'z','geopt']:
-            da = wrf.getvar(data_nc, var, squeeze=False)
+            if var in ['temp', 'td', 'theta', 'theta_e']:
+                da = wrf.getvar(data_nc, var, squeeze=False, units='degC')
+            else:
+                da = wrf.getvar(data_nc, var, squeeze=False)
             # dds[var] = da.expand_dims(dim='Time')
             dds[var] = wrf.interplevel(da, p, pre_level, squeeze=False)
             ## 试图添加投影
@@ -169,7 +172,7 @@ def regrid_one(model='1900_90m'):
     path_in = path_main+model+'/'+flnm
     ds = xr.open_dataset(path_in)
     # ds_out = regrid_xesmf(ds, area)
-    ds_out = regrid_xesmf(ds, area, rd=1)
+    ds_out = regrid_xesmf(ds, area)  # 保留一位小数
     path_out = path_main+model+'/'+'upar_latlon.nc'
     # ds_out = ds_out.rename({'ua':'u', 'va':'v', 'geopt':'height'})
     ds_out = ds_out.rename({'ua':'u', 'va':'v', 'wa':'w'})
@@ -186,7 +189,7 @@ def regrid_dual():
 # %%
 if __name__ == '__main__':
     ### combine和regrid一般不同时进行
-    combine()
+    # combine()
     regrid_dual()
     # combine_one()
     # regrid_one()
