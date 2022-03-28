@@ -46,7 +46,7 @@ ds = xr.open_dataset(flnm)
 # %%
 ds
 # %%
-t = '2021-07-20 00'
+t = '2021-07-20 12'
 ds1 = ds.sel(time=t)
 u = ds1['u']
 v = ds1['v']

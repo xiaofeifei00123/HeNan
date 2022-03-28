@@ -32,10 +32,22 @@ class CrossData():
     def __init__(self, wrf_file) -> None:
         pass
         ## Create the start point and end point for the cross section
-        self.cross_start = CoordPair(lat=33, lon=111)
-        # self.cross_end = CoordPair(lat=35.5, lon=114.5)
-        # self.cross_end = CoordPair(lat=36, lon=115.5)
-        self.cross_end = CoordPair(lat=34.0, lon=112.5)
+        # 伏牛山
+        self.cross_start = CoordPair(lat=34, lon=110.5)
+        self.cross_end = CoordPair(lat=33.5, lon=113)
+
+
+        # 嵩山
+        # self.cross_start = CoordPair(lat=34.5, lon=112.5)
+        # self.cross_end = CoordPair(lat=34, lon=115)
+
+
+
+        # self.cross_start = CoordPair(lat=36, lon=111)
+        # self.cross_end = CoordPair(lat=32.5, lon=113)
+
+        # self.cross_start = CoordPair(lat=35.5, lon=113)
+        # self.cross_end = CoordPair(lat=33.5, lon=113.5)
         ## read the ncfile
         # wrf_file = '/mnt/zfm_18T/fengxiang/HeNan/Data/1900_90m/wrfout_d03_2021-07-20_08:00:00'
         self.ncfile = Dataset(wrf_file)
@@ -66,7 +78,7 @@ class CrossData():
 
         ## 改变xy_loc的coords的存储格式
         coord_pairs = var_vcross.coords["xy_loc"].values
-        x_labels = [pair.latlon_str(fmt="{:.1f}, {:.1f}")
+        x_labels = [pair.latlon_str(fmt="{:.3f}, {:.3f}")
                     for pair in coord_pairs]
         var_vcross = var_vcross.assign_coords({'xy_loc':('cross_line_idx',x_labels)})
         return var_vcross
@@ -127,6 +139,7 @@ def save_one_model():
     for fl in fl_list:
         print(fl[-19:])
         cd = CrossData(fl)
+        var_list = []
         ds = cd.get_cross_data()
         ds_list.append(ds)
     ds = xr.concat(ds_list, dim='Time')    
@@ -136,7 +149,7 @@ def save_one_model():
     ds['ter'] = ter
 
     ds = ds.rename({'Time':'time'})
-    save_name = path+'cross.nc'
+    save_name = path+'cross1.nc'
     ds.to_netcdf(save_name)
 
 
@@ -184,13 +197,13 @@ def save_one_model_mp(path='/mnt/zfm_18T/fengxiang/HeNan/Data/1900_90m/'):
     ds['ter'] = ter
 
     ds = ds.rename({'Time':'time'})
-    save_name = path+'cross.nc'
+    save_name = path+'cross2.nc'
     ds.to_netcdf(save_name)
 
 def save_all_model():
     # model_list = ['1900_90m', '1900_900m','1912_90m', '1912_900m']
     # model_list = ['gwd3-NO','gwd3-CTL','gwd3-FD', 'gwd3-BL','gwd3-SS', 'gwd3-LS']
-    model_list = ['gwd0', 'gwd1', 'gwd3']
+    model_list = ['gwd0', 'gwd3']
     path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/'
     for model in model_list:
         path = path_main+model+'/'

@@ -82,7 +82,7 @@ class RainStation():
                 'lon2':116,
                 'lat1':32,
                 'lat2':36.5,
-                'interval':0.05,
+                'interval':0.125,
             }
             # area = {
             #     'lon1':111.5,
@@ -117,7 +117,7 @@ class RainGrid():
             'lon2':116,
             'lat1':32,
             'lat2':36.5,
-            'interval':0.05,
+            'interval':0.125,
         }
         ddc = rain_station2grid(da, area)
         return ddc

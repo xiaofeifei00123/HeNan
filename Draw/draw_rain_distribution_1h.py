@@ -252,7 +252,8 @@ def draw_one(model='1900_90m'):
         dr.draw_single(rain1h, picture_dic)
 
 def draw_dual():
-    model_list = ['gwd0', 'gwd3']
+    # model_list = ['gwd0', 'gwd3']
+    model_list = ['gwd0','gwd1', 'gwd3', 'gwd3-LS', 'gwd3-BL', 'gwd3-SS', 'gwd3-FD']
     # model_list = ['1912_90m_gwd3']
     for model in model_list:
         # path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/'+model+'/'

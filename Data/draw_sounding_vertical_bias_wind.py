@@ -28,8 +28,10 @@ class Data():
         flnm2 = '/mnt/zfm_18T/fengxiang/HeNan/Data/OBS/micaps_sounding_station_all.nc'
         self.ds1 = xr.open_dataset(flnm1)
         self.ds2 = xr.open_dataset(flnm2)
-        self.model_list = ['OBS', 'gwd0', 'gwd1', 'gwd3']
-        self.color_list = ['black',  'blue','green', 'red']
+        # self.model_list = ['OBS', 'gwd0', 'gwd1', 'gwd3']
+        # self.color_list = ['black',  'blue','green', 'red']
+        self.model_list = ['OBS', 'gwd0',  'gwd3']
+        self.color_list = ['black',  'blue', 'red']
         self.station = station
         self.time = data_time
 
@@ -93,7 +95,7 @@ def get_bias_data():
         '2021-07-20 12',
         '2021-07-21 00',
         ])
-    model_list = ['OBS', 'gwd0', 'gwd1', 'gwd3']
+    model_list = ['OBS', 'gwd0', 'gwd3']
     ds2_list = []
     for t in tt:
 
@@ -118,7 +120,8 @@ ds3
 # ds3
 ## 计算偏差
 
-model_list_new = ['gwd0', 'gwd1', 'gwd3']
+# model_list_new = ['gwd0', 'gwd1', 'gwd3']
+model_list_new = ['gwd0',  'gwd3']
 
 ds_bias_list = []
 for model in model_list_new:
@@ -151,13 +154,14 @@ ds_rmse
 def draw(var_dic, station='zhengzhou'):
 
     # model_list = ['OBS', 'gwd0', 'gwd1', 'gwd3']
-    model_list = ['gwd0', 'gwd1', 'gwd3']
-    color_list = ['blue','green', 'red']
+    model_list = ['gwd0',  'gwd3']
+    color_list = ['blue', 'red']
     var_list = ['u', 'v', 'wind_speed', 'wind_angle']
     # var_list = ['temp', 'theta_v', 'rh', 'q']
     
 
-    fig = plt.figure(figsize=[12,8])
+    cm = round(1/2.54, 2)
+    fig = plt.figure(figsize=[9*cm,9*cm], dpi=600)
     axes = [None]*4
 
     axes[0] = fig.add_subplot(141)
@@ -178,19 +182,24 @@ def draw(var_dic, station='zhengzhou'):
         # axes[1].plot(var_dic['theta_v'].sel(model=model).values, var_dic['theta_v'].sel(model=model).pressure, color=color, label=model)
         # axes[2].plot(var_dic['rh'].sel(model=model).values, var_dic['rh'].sel(model=model).pressure, color=color, label=model)
         # axes[3].plot(var_dic['q'].sel(model=model).values, var_dic['q'].sel(model=model).pressure, color=color, label=model)
-        axes[0].plot(var_dic['u'].sel(model=model).values, var_dic['u'].sel(model=model).pressure, color=color, label=model)
-        axes[1].plot(var_dic['v'].sel(model=model).values, var_dic['v'].sel(model=model).pressure, color=color, label=model)
-        axes[2].plot(var_dic['wind_speed'].sel(model=model).values, var_dic['wind_speed'].sel(model=model).pressure, color=color, label=model)
-        axes[3].plot(var_dic['wind_angle'].sel(model=model).values, var_dic['wind_angle'].sel(model=model).pressure, color=color, label=model)
+        label = model
+        if model == 'gwd0':
+            label = 'no_gwd'
+        
+
+        axes[0].plot(var_dic['u'].sel(model=model).values, var_dic['u'].sel(model=model).pressure, color=color, label=label)
+        axes[1].plot(var_dic['v'].sel(model=model).values, var_dic['v'].sel(model=model).pressure, color=color, label=label)
+        axes[2].plot(var_dic['wind_speed'].sel(model=model).values, var_dic['wind_speed'].sel(model=model).pressure, color=color, label=label)
+        axes[3].plot(var_dic['wind_angle'].sel(model=model).values, var_dic['wind_angle'].sel(model=model).pressure, color=color, label=label)
 
         
     axes[0].invert_yaxis()
     # axes[0].legend(loc='upper center', bbox_to_anchor=(2.4,1.0,0.5,0.15), ncol=4, edgecolor='white', fontsize=18)
-    axes[0].legend(loc='upper center', bbox_to_anchor=(2.4,1.0,0.5,0.15), ncol=4, edgecolor='white', fontsize=18)
+    axes[0].legend(loc='upper center', bbox_to_anchor=(2.4,1.0,0.5,0.15), ncol=4, edgecolor='white', fontsize=10)
     # axes[0].legend(loc='best')
     axes[0].set_ylim(1000,200)
-    fts = 12
-    axes[0].set_ylabel('pressure (hPa)', fontsize=fts*1.5)
+    fts = 10
+    axes[0].set_ylabel('pressure (hPa)', fontsize=fts)
 
     # axes[0].set_xlim(-5,5)
     # axes[1].set_xlim(-10,10)
@@ -198,12 +207,12 @@ def draw(var_dic, station='zhengzhou'):
 
     def set_ticks(ax, var):
         pass
-        fts = 12
+        fts = 10
         if var=='wind_angle':
             var = 'wind_direction'
-        ax.set_xlabel(var, fontsize=fts*1.8)
-        ax.xaxis.set_tick_params(labelsize=fts*1.3)
-        ax.yaxis.set_tick_params(labelsize=fts*1.3)
+        ax.set_xlabel(var, fontsize=fts)
+        ax.xaxis.set_tick_params(labelsize=fts)
+        ax.yaxis.set_tick_params(labelsize=fts)
         ax.tick_params(which='major',length=8,width=1.0) # 控制标签大小 
         ax.tick_params(which='minor',length=4,width=0.5)  #,colors='b')
         if station=='bias':
@@ -229,15 +238,18 @@ def draw(var_dic, station='zhengzhou'):
     fig_name=station+"_wind"
     fig_path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_upar/sounding_upar/'
     fig_save = os.path.join(fig_path, fig_name)
-    fig.savefig(fig_save)
+    fig.savefig(fig_save,bbox_inches = 'tight')
 
     
 def draw_big(var_dic, station='zhengzhou'):
 
-    model_list = ['gwd0', 'gwd1', 'gwd3']
-    color_list = ['black','blue', 'red']
+    # model_list = ['gwd0', 'gwd1', 'gwd3']
+    # color_list = ['black','blue', 'red']
+    model_list = ['gwd0',  'gwd3']
+    color_list = ['red', 'blue']
     var_list = ['wind_speed', 'wind_angle']
-    fig = plt.figure(figsize=[10,10])
+    cm = round(1/2.54, 2)
+    fig = plt.figure(figsize=[9*cm,9*cm], dpi=600)
     axes = [None]*2
 
     axes[0] = fig.add_axes([0.13,0.1, 0.4,0.8])
@@ -245,29 +257,33 @@ def draw_big(var_dic, station='zhengzhou'):
 
     axes[1].tick_params('y', labelleft=False)
     for model,color in zip(model_list,color_list):
-        axes[0].plot(var_dic['wind_speed'].sel(model=model).values, var_dic['wind_speed'].sel(model=model).pressure, color=color, label=model)
-        axes[1].plot(var_dic['wind_angle'].sel(model=model).values, var_dic['wind_angle'].sel(model=model).pressure, color=color, label=model)
+        label = model
+        if model == 'gwd0':
+            label = 'no_gwd'
+        axes[0].plot(var_dic['wind_speed'].sel(model=model).values, var_dic['wind_speed'].sel(model=model).pressure, color=color, label=label, linewidth=1)
+        axes[1].plot(var_dic['wind_angle'].sel(model=model).values, var_dic['wind_angle'].sel(model=model).pressure, color=color, label=label, linewidth=1)
 
         
     axes[0].invert_yaxis()
     # axes[0].legend(loc='upper center', bbox_to_anchor=(2.4,1.0,0.5,0.15), ncol=4, edgecolor='white', fontsize=18)
     # axes[0].legend(loc='upper center', bbox_to_anchor=(1.0, 1.0,0.5,0.1),ncol=3)
-    axes[0].legend(loc='upper right', fontsize=22, edgecolor='white')
-    fts = 15
-    axes[0].set_ylabel('pressure (hPa)', fontsize=fts*1.8)
+    axes[0].legend(loc='upper right', fontsize=10, edgecolor='white')
+    fts = 10
+    axes[0].set_ylabel('pressure (hPa)', fontsize=fts)
 
-    axes[0].set_xlim(-5,5)
-    axes[1].set_xlim(-40,60)
-    # axes[3].set_xlim(0,20)
+    axes[0].set_xlim(0,6)
+    axes[1].set_xlim(10,70)
+    # axes[0].set_xlim(-5,5)
+    # axes[1].set_xlim(-40,40)
 
     def set_ticks(ax, var):
         pass
-        fts = 15
+        fts = 10
         if var=='wind_angle':
             var = 'wind_direction'
-        ax.set_xlabel(var, fontsize=fts*1.8)
-        ax.xaxis.set_tick_params(labelsize=fts*1.3)
-        ax.yaxis.set_tick_params(labelsize=fts*1.3)
+        ax.set_xlabel(var, fontsize=fts)
+        ax.xaxis.set_tick_params(labelsize=fts)
+        ax.yaxis.set_tick_params(labelsize=fts)
         ax.tick_params(which='major',length=8,width=1.0) # 控制标签大小 
         ax.tick_params(which='minor',length=4,width=0.5)  #,colors='b')
         if station=='bias':
@@ -281,14 +297,14 @@ def draw_big(var_dic, station='zhengzhou'):
     fig_name=station+"_wind"
     fig_path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_upar/sounding_upar/'
     fig_save = os.path.join(fig_path, fig_name)
-    fig.savefig(fig_save)
+    fig.savefig(fig_save, bbox_inches = 'tight')
     
     
     
 
 if __name__ == '__main__':
 
-    station_list = ['zhengzhou', 'nanyang']    
+    # station_list = ['zhengzhou', 'nanyang']    
 
     # for sta in station_list:
         # gd = Data(station=sta) 
@@ -296,8 +312,8 @@ if __name__ == '__main__':
         # print(var_dic['q']['gwd3'].max())
     # draw(ds_rmse, station='rmse')
     # draw(ds_bias, station='bias')
-    # draw_big(ds_rmse, station='rmse')
-    draw_big(ds_bias, station='bias')
+    draw_big(ds_rmse, station='rmse')
+    # draw_big(ds_bias, station='bias')
     
 
 

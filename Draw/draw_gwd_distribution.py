@@ -33,6 +33,13 @@ from multiprocessing import Pool
 from baobao.map import Map
 
 
+# %%
+# fl_path ='/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd3/wrfout_d03_2021-07-20_12:00:00'
+# ds = xr.open_dataset(fl_path)
+# da = ds['DTAUX3D_FD'].sel(bottom_top=0)
+# da
+# da.max()
+# ds['DUSFCG_SS'].max()
 
 # %%
 class Draw(object):
@@ -86,7 +93,8 @@ class Draw(object):
         Args:
             da (DataArray): 单个时次的降水
         """
-        fig = plt.figure(figsize=(12, 12), dpi=600)
+        cm = 1/2.54
+        fig = plt.figure(figsize=(8*cm, 8*cm), dpi=300)
         proj = ccrs.PlateCarree()  # 创建坐标系
         ax = fig.add_axes([0.1,0.1,0.85,0.85], projection=proj)
         # ax.set_extent([])
@@ -116,9 +124,9 @@ class Draw(object):
             },
         }
         mp.add_station(ax, station, justice=True)
-        ax.set_title(date, fontsize=35,)
-        ax.set_title(picture_dic['initial_time'], fontsize=30,loc='left')
-        ax.set_title(picture_dic['type'], fontsize=30,loc='right')
+        ax.set_title(date, fontsize=10,)
+        ax.set_title(picture_dic['initial_time'], fontsize=10,loc='left')
+        ax.set_title(picture_dic['type'], fontsize=10,loc='right')
         cf = self.draw_contourf_single(da, ax, dic)
         # colorticks=[0.1,5,15,30.0,70,140]#雨量等级
         # colorlevel=[0, 0.1, 5, 10, 15.0, 20, 25, 30, 700]#雨量等级
@@ -131,9 +139,9 @@ class Draw(object):
             orientation='horizontal',
             ticks=colorticks,
             fraction = 0.05,  # 色标大小,相对于原图的大小
-            pad=0.05,  #  色标和子图间距离
+            pad=0.08,  #  色标和子图间距离
         )
-        cb.ax.tick_params(labelsize=30)  # 设置色标标注的大小
+        cb.ax.tick_params(labelsize=8)  # 设置色标标注的大小
         fig_name = picture_dic['type']+'_'+picture_dic['initial_time']+'_'+picture_dic['date']
         fig_path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_gwd3/'
         fig.savefig(fig_path+fig_name)
@@ -147,8 +155,9 @@ def draw_one(model='1900_90m'):
 
     fl_path =os.path.join('/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/', model)
     tt = pd.date_range('2021-07-20 00', '2021-07-21 00', freq='1H')
+    # tt = pd.date_range('2021-07-20 12', '2021-07-20 12', freq='1H')
     for t in tt:
-        flnm = 'wrfout_d01_'+t.strftime('%Y-%m-%d_%H:%M:%S')
+        flnm = 'wrfout_d03_'+t.strftime('%Y-%m-%d_%H:%M:%S')
         flnm = os.path.join(fl_path, flnm)
     
         ds = xr.open_dataset(flnm)
@@ -158,10 +167,15 @@ def draw_one(model='1900_90m'):
             # var = 'DUSFCG'
             da = ds[var]
         elif model == 'gwd3':
-            da = ds['DVSFCG_LS']+ds['DVSFCG_SS']+ds['DVSFCG_FD']+ds['DVSFCG_BL']
-            var = 'DVSFCG'
+            # da = ds['DVSFCG_LS']+ds['DVSFCG_SS']+ds['DVSFCG_FD']+ds['DVSFCG_BL']
+            # var = 'DVSFCG'
             # da = ds['DUSFCG_LS']+ds['DUSFCG_SS']+ds['DUSFCG_FD']+ds['DUSFCG_BL']
+# ds['DTAUX3D_LS'].sel(bottom_top=0)
+            # da = ds['DTAUX3D_LS'].sel(bottom_top=0)+ds['DTAUX3D_SS'].sel(bottom_top=0)+ds['DTAUX3D_FD'].sel(bottom_top=0)+ds['DTAUX3D_BL'].sel(bottom_top=0)
             # var = 'DUSFCG'
+            da = ds['DTAUY3D_LS'].sel(bottom_top=0)+ds['DTAUY3D_SS'].sel(bottom_top=0)+ds['DTAUY3D_FD'].sel(bottom_top=0)+ds['DTAUY3D_BL'].sel(bottom_top=0)
+            var = 'DVSFCG'
+            da = da*10**2
         print(da.max())
         gwd_sfc = da.rename({'XLAT':'lat', 'XLONG':'lon', 'XTIME':'time'}).squeeze()
         dr = Draw()

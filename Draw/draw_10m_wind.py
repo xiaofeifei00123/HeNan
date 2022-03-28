@@ -30,35 +30,38 @@ import cartopy.crs as ccrs
 from baobao.map import Map
 import os
 
-
+class Wind():
+    def __init__(self):
+        pass
+        self.time = '2021-07-20 00'
+    pass
 # %%
-def get_wind_obs(flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/OBS/10m_wind_station.nc'
-):
+def get_wind_obs(flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/OBS/10m_wind_station.nc', t='2021-07-20 00'):
     # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/OBS/10m_wind_station.nc'
     ds = xr.open_dataset(flnm)
-    t = '2021-07-20 00'
+    # t = '2021-07-20 06'
     ds1 = ds.sel(time=t)
     u = ds1['u']
     v = ds1['v']
     return u,v
 
-def get_wind_wrf(flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd3/10m_wind_station.nc'):
+def get_wind_wrf(flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd3/10m_wind_station.nc', t='2021-07-20 00'):
     # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd3-test/10m_wind_station.nc'
     ds = xr.open_dataset(flnm)
     ds = ds.swap_dims({'time':'Time'})
     ds = ds.drop_vars('time')
     ds = ds.rename({'Time':'time'})
-    t = '2021-07-20 00'
+    # t = '2021-07-20 06'
     ds1 = ds.sel(time=t)
     da = ds1['uvmet10']
     u = da.sel(u_v='u')
     v = da.sel(u_v='v')
     return u,v
 # %%
-u1,v1 = get_wind_obs()
-u2, v2 = get_wind_wrf()
-u1
-u2
+# u1,v1 = get_wind_obs()
+# u2, v2 = get_wind_wrf()
+# u1
+# u2
 # %%
 
 def draw_quiver(u,v, ax):
@@ -67,28 +70,35 @@ def draw_quiver(u,v, ax):
     '''
     y = u.lat.values
     x = u.lon.values
-    Q = ax.quiver(x, y, u.values,v.values,units='inches',scale=18,pivot='middle', transform=ccrs.PlateCarree())  # 绘制风矢
-    qk = ax.quiverkey(Q, X=0.75, Y=0.12, U=10, label=r'($10 m/s$)', labelpos='E',coordinates='figure',  fontproperties={'size':22})   # 设置参考风矢
+    Q = ax.quiver(x, y, u.values,v.values,units='inches',scale=40,pivot='middle', transform=ccrs.PlateCarree())  # 绘制风矢
+    qk = ax.quiverkey(Q, X=0.75, Y=0.08, U=10, label=r'($10 m/s$)', labelpos='E',coordinates='figure',  fontproperties={'size':10})   # 设置参考风矢
     # qk = ax.quiverkey(Q, X=1.55, Y=0.05, U=10, label=r'$(\overrightarrow{qv_f}-\overrightarrow{qv_o}, 100\ g/kg \cdot m/s)$', labelpos='E',coordinates='figure',  fontproperties={'size':25})   # 设置参考风矢
 
 def draw(u,v,pic_dic={'model':'obs'}):
 
-    # u,v = get_wind_obs()    
-    # u,v = get_wind_wrf()
 
-    proj = ccrs.PlateCarree()  # 创建坐标系
-    fig = plt.figure(figsize=[10,8])
-    ax = fig.add_axes([0.15,0.05,0.8,0.9], projection=ccrs.PlateCarree())
-    mb = mapview.BaseMap()
-    # mb.set_extent('中国陆地')
-    mb.drawcoastlines(linewidths=0.8, alpha=0.5)
-    mb.drawstates(linewidths=0.8, alpha=0.5) # 省界
-    mb.set_extent([110, 116, 32, 36])
+    cm = round(1/2.54,2)
+    fig = plt.figure(figsize=[8*cm, 7*cm], dpi=300)
+    ax = fig.add_axes([0.15,0.15,0.8,0.8], projection=ccrs.PlateCarree())
+    # ax = fig.add_axes([0.1,0.08,0.85,0.85], projection=ccrs.PlateCarree())
+    # mb = mapview.BaseMap()
+    # # mb.set_extent('中国陆地')
+    # mb.drawcoastlines(linewidths=0.8, alpha=0.5)
+    # mb.drawstates(linewidths=0.8, alpha=0.5) # 省界
+    # mb.set_extent([110, 116, 32, 36])
+
+    # mp = Map()
+    # map_dic = {
+    #     'proj':ccrs.PlateCarree(),
+    #     'extent':[110.5, 116, 32, 36.5],
+    #     'extent_interval_lat':1,
+    #     'extent_interval_lon':1,
+    # }
+
+    # ax = mp.create_map(ax, map_dic)
+    # ax.set_extent(map_dic['extent'])
 
     
-    
-    
-            
     mp = Map()
     map_dic = {
         'proj':ccrs.PlateCarree(),
@@ -99,6 +109,7 @@ def draw(u,v,pic_dic={'model':'obs'}):
 
     ax = mp.create_map(ax, map_dic)
     ax.set_extent(map_dic['extent'])
+
 
     station = {
         'ZhengZhou': {
@@ -117,43 +128,41 @@ def draw(u,v,pic_dic={'model':'obs'}):
             'lon': 111.07,
         },
     }
-    mp.add_station(ax, station, justice=True, delx=0.1)
-    ax.set_title(pic_dic['model'], fontsize=30,loc='left')
-    
-    
-
+    mp.add_station(ax, station, justice=True, delx=-0.1)
+    if pic_dic['model'] == 'gwd0':
+        pic_dic['model'] = 'no-gwd'
+    ax.set_title(pic_dic['model'], fontsize=10,loc='left')
     draw_quiver(u,v,ax)
-    fig_name = '10mwind_'+pic_dic['model']
+    fig_name = '10mwind_'+pic_dic['model']+pic_dic['time']+'typhoon'
     fig_path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_10mwind/'
     fig_save = os.path.join(fig_path, fig_name)
-    fig.savefig(fig_save)
+    # fig.savefig(fig_save, bbox_inches='tight')
+    fig.savefig(fig_save,bbox_inces='tight', pad_inches=0)
 
 
-def draw_wrf():
-    # model_list = 
-    model_list = ['gwd0', 'gwd1', 'gwd3','gwd3-FD', 'gwd3-BL','gwd3-SS', 'gwd3-LS']
-    fpath = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/'
+def draw_wrf(t = '2021-07-20 12'):
+    # model_list = ['gwd0', 'gwd1', 'gwd3','gwd3-FD', 'gwd3-BL','gwd3-SS', 'gwd3-LS']
+    # model_list = ['gwd0', 'gwd3']
+    model_list = ['weak_typhoon', 'strengthen_typhoon']
+    fpath = '/mnt/zfm_18T/fengxiang/HeNan/Data/Typhoon/'
     for model in model_list:
         fname = os.path.join(fpath, model)
         flnm = os.path.join(fname, '10m_wind_station.nc')
-        u,v = get_wind_wrf(flnm)
-        pic_dic = {'model':model}
+        u,v = get_wind_wrf(flnm, t)
+        pic_dic = {'model':model, 'time':t}
         draw(u,v,pic_dic)
 
-def draw_obs():
-    # model_list = 
-    # model_list = ['gwd0', 'gwd1', 'gwd3','gwd3-test','gwd3-FD', 'gwd3-BL','gwd3-SS', 'gwd3-LS']
-    # fpath = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/'
-    # for model in model_list:
-    # fname = 
+def draw_obs(t = '2021-07-20 12'):
     flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/OBS/10m_wind_station.nc'
-    # flnm = os.path.join(fname, '10m_wind_station.nc')
-    u,v = get_wind_obs(flnm)
-    pic_dic = {'model':'obs'}
+    # t = '2021-07-20 06'
+    u,v = get_wind_obs(flnm, t)
+    pic_dic = {'model':'obs', 'time':t}
     draw(u,v,pic_dic)
+
 def main():
-    draw_obs()
-    draw_wrf()
+    t = '2021-07-20 12'
+    draw_obs(t)
+    draw_wrf(t)
 
 # %%
 if __name__ == '__main__':

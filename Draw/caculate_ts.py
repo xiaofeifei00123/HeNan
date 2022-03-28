@@ -34,7 +34,8 @@ import seaborn as sns
 # %%
 class TS():
     def __init__(self, ) -> None:
-        self.model_list = ['gwd0','gwd1', 'gwd3', 'gwd3-BL', 'gwd3-FD', 'gwd3-LS', 'gwd3-SS']
+        # self.model_list = ['gwd0','gwd1', 'gwd3', 'gwd3-BL', 'gwd3-FD', 'gwd3-LS', 'gwd3-SS']
+        self.model_list = ['gwd0', 'gwd3']
 
 class Caculate(TS):
 
@@ -242,7 +243,7 @@ class Draw(TS):
         # rain_list = ['小雨', '中雨', '大雨', '暴雨', '大暴雨', '特大暴雨']
         # threshold_list = [0.1, 5, 15, 30, 70, 140]
         # rain_list = ['小雨≥0.1', '中雨≥5', '大雨≥15', '暴雨≥30', '大暴雨≥70', '特大暴雨≥140']
-        rain_list = ['小雨≥0.1', '中雨≥10', '大雨≥25', '暴雨≥50', '大暴雨≥100', '特大暴雨≥250']
+        rain_list = ['小雨\n≥0.1', '中雨\n≥10', '大雨\n≥25', '暴雨\n≥50', '大暴雨\n≥100', '特大暴雨\n≥250']
         labels = rain_list
         x = np.arange(len(labels))
         ds = ts
@@ -257,16 +258,20 @@ class Draw(TS):
         # color_list = ['green', 'blue','orange', 'red',  'green', 'blue','orange', 'red', ]
         # color_list = ['darkgreen', 'darkblue','darkorange', 'darkred',  'green', 'cornflowerblue', 'orange', 'red',]
         # color_list = ['green', 'blue','orange', 'red',  'darkgreen', 'darkblue', 'darkorange', 'darkred',]
-        # color_list = ['green', 'blue', 'red','orange',]
+        color_list = ['red', 'blue']
         # color_list = ['#70ca70', '#116711','#0080ff', '#0009ff',  '#ff0000', 'darkblue', 'darkorange', 'darkred',]
         # color_list = ['#70ca70', '#116711','#0080ff', '#0009ff',  '#ff0000','#450e61', 'darkorange', 'darkred',]
-        color_list = ['#b0f2b0', '#49a149','#116711','#0009ff',  '#ff0000','#450e61', 'darkorange', 'darkred',]
+        # color_list = ['#b0f2b0', '#49a149','#116711','#0009ff',  '#ff0000','#450e61', 'darkorange', 'darkred',]
         # color_list = ['#f00', '#df8600','#3d85c6', '#009400','#02a1a1','#0000ff','#9900ff']
         # hatch_list = ['.','.','.','.','x','x','x','x',]
-        width = 0.12
-        fig = plt.figure(figsize=(12, 8), dpi=300)  # 创建页面
-        ax = fig.add_axes([0.05,0.1, 0.92,0.8])
-        i = -2
+        # width = 0.12
+        width = 0.22
+        # width = 0.05
+        # cm = 
+        cm = round(1/2.54, 2)
+        fig = plt.figure(figsize=(8*cm, 6*cm), dpi=600)  # 创建页面
+        ax = fig.add_axes([0.15,0.2, 0.80,0.7])
+        i = -0.5
         j = 0
         for model in model_list:
             # rects = ax.bar(x+width*i, ds[model], width, label=model, facecolor='white', edgecolor=color_list[j], hatch=hatch_list[j])
@@ -276,20 +281,29 @@ class Draw(TS):
                 i += 1
                 j += 1
                 continue
+            # if model == 'gwd0':
+            # rects = ax.bar(x+width*i, ds[model], width, label='no_gwd', color=color_list[j])
+            label = model
+            if model == 'gwd0':
+                label = 'no_gwd'
 
-            rects = ax.bar(x+width*i, ds[model], width, label=model, color=color_list[j])
+            rects = ax.bar(x+width*i, ds[model], width, label=label, color=color_list[j])
             i += 1
             j += 1
         ax.set_xticks(x)
-        ax.set_xticklabels(labels, fontsize=20)
+        ax.set_xticklabels(labels, fontsize=6)
         # ax.set_yticks(np.arange(0,1.1,0.1))
-        ax.set_yticks(np.arange(0,0.7,0.1))
-        ax.set_ylim(0,0.7)
-        # ax.set_yticklabels(fontsize=24)
-        ax.tick_params(axis='both', labelsize=20, direction='out')
-        ax.legend(fontsize=24, edgecolor='white', loc='upper right')
-        ax.set_title('ETS (24h)', fontsize=28)
-        fig.savefig('/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_rain/ETS_score_24h.png')
+        ax.set_yticks(np.arange(0,1.1,0.1))
+        ax.set_ylim(0,1)
+        # ax.spines[:].set_linewidth=0.01
+        ax.spines[:].set_linewidth(0.5)  # 设置图像边框粗细
+        ax.tick_params(axis='both', labelsize=8, direction='out', width=0.5)
+        ax.legend(fontsize=10, edgecolor='white', loc='upper right')
+        # ax.set_title('ETS (24h)', fontsize=10)
+        ax.set_ylabel('ETS', fontsize=10)
+        ax.set_xlabel('precipitation (mm)', fontsize=10)
+        # ax.spines().set_linewidth(1)
+        fig.savefig('/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_rain/ETS_score_24h.png', bbox_inches = 'tight' )
 if __name__ == '__main__':
     pass
     ts = get_ts()

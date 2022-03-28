@@ -159,8 +159,8 @@ def save_one(path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/1900_90m/'):
     }
 
     ## 合并数据
-    # da = combine_rain(path_main)
-    # da.to_netcdf(path_dic['path_rain_wrf_grid'])
+    da = combine_rain(path_main)
+    da.to_netcdf(path_dic['path_rain_wrf_grid'])
 
     ## 降低分辨率和转换投影
     # da1 = regrid_latlon(path_dic['path_rain_wrf_grid'], area)
@@ -175,11 +175,13 @@ def dual():
     """处理多个模式的数据
     """
     pass
-    model_list = ['gwd0', 'gwd1', 'gwd3','gwd3-FD', 'gwd3-BL','gwd3-SS', 'gwd3-LS']
+    # model_list = ['gwd0', 'gwd1', 'gwd3','gwd3-FD', 'gwd3-BL','gwd3-SS', 'gwd3-LS']
     # model_list = ['gwd0', 'gwd1', 'gwd3']
-    # model_list = ['gwd3-test']
+    model_list = ['weak_typhoon', 'strengthen_typhoon']
     for model in model_list:
-        path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/'+model+'/'
+        # path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/'+model+'/'
+        path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/Typhoon/'+model+'/'
+        # print(path_main)
         # path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d04/'+model+'/'
         save_one(path_main)
     

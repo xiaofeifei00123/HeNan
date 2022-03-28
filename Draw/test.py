@@ -16,7 +16,122 @@ import matplotlib.pyplot as plt
 from cnmaps import get_map, draw_map
 from baobao.interp import regrid_xesmf
 from baobao.interp import rain_station2grid
+import cv2 as cv
+import numpy as np
+import pandas as pd
+from draw_upar_850_d03_div import draw
+# %%
 
+
+def highPassFiltering(img,size):#传递参数为傅里叶变换后的频谱图和滤波尺寸
+    h, w = img.shape[0:2]#获取图像属性
+    h1,w1 = int(h/2), int(w/2)#找到傅里叶频谱图的中心点
+    img[h1-int(size/2):h1+int(size/2), w1-int(size/2):w1+int(size/2)] = 0#中心点加减滤波尺寸的一半，刚好形成一个定义尺寸的滤波大小，然后设置为0
+    return img
+
+def lowPassFiltering(img,size):#传递参数为傅里叶变换后的频谱图和滤波尺寸
+    h, w = img.shape[0:2]#获取图像属性
+    h1,w1 = int(h/2), int(w/2)#找到傅里叶频谱图的中心点
+    img2 = np.zeros((h, w), np.uint8)#定义空白黑色图像，和傅里叶变换传递的图尺寸一致
+    img2[h1-int(size/2):h1+int(size/2), w1-int(size/2):w1+int(size/2)] = 1#中心点加减滤波尺寸的一半，刚好形成一个定义尺寸的滤波大小，然后设置为1，保留低频部分
+    img3=img2*img #将定义的低通滤波与传入的傅里叶频谱图一一对应相乘，得到低通滤波
+    return img3
+
+def bandpass(img, w, radius):    
+    """_summary_
+
+    Args:
+        img (_type_): 二维的DataArray
+        w (_type_): 带宽, 
+        radius (_type_): 带中心到频率平面原点的距离
+    """
+    pass
+    rows, cols = img.shape
+    crow,ccol = int(rows/2), int(cols/2) #中心位置
+    w = w
+    radius = radius
+    mask = np.ones((rows, cols, 2), np.uint8)
+    for i in range(0, rows):
+        for j in range(0, cols):
+            # 计算(i, j)到中心点的距离
+            d = np.sqrt(pow(i - crow, 2) + pow(j - ccol, 2))
+            if radius - w / 2 < d < radius + w / 2:
+                mask[i, j, 0] = mask[i, j, 1] = 0
+            else:
+                mask[i, j, 0] = mask[i, j, 1] = 1
+    #掩膜图像和频谱图像乘积
+
+    f = img * mask[:,:,0]
+    return f
+    
+
+
+# img_path = './picture_upar/850/div/gwd3_850_2021072017w_speed.png'
+# img = cv.imread(img_path, 2)
+
+
+flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd3/upar_latlon.nc'
+ds = xr.open_dataset(flnm)
+da = ds.sel(time='2021-07-20 12').sel(pressure=850)['w']
+# da.max()
+bb = da.interpolate_na(dim='lat', method='linear',  fill_value="extrapolate")
+img = bb
+
+
+f = np.fft.fft2(img)
+#将左上角低频部分移动到中间
+fshift = np.fft.fftshift(f)
+#调用高通滤波函数
+# img1=highPassFiltering(fshift,10)
+# img1=lowPassFiltering(fshift,30)
+img1 = bandpass(fshift, w=20, radius=0)
+
+#复数化整，方便观察频谱图
+res = np.log(np.abs(img1))
+#傅里叶逆变换
+ishift = np.fft.ifftshift(img1)
+iimg = np.fft.ifft2(ishift)
+iimg = np.real(iimg)
+dda = xr.DataArray(iimg,
+                    coords=da.coords,
+                    dims=da.dims,
+                    )
+  
+
+
+# dda.max()
+
+# bb-iimg
+# plt.subplot(131), plt.imshow(img,'gray'), plt.title('原图像')
+# plt.axis('off')
+# plt.subplot(132), plt.imshow(res,'gray'), plt.title('高通滤波')
+# plt.axis('off')
+# plt.subplot(133), plt.imshow(iimg,'gray'), plt.title('高通滤波结果')
+# plt.axis('off')
+# plt.show()
+
+# print(flnm_wrf)
+dic= {
+    'model':'gwd3_once',
+    'level':850,
+    'time':pd.Timestamp('2021-07-20 16'),
+    'flnm':flnm,
+}    
+ds_wrf = xr.open_dataset(flnm)
+# ds_wrf = ds_wrf.rename({'ua':'u', 'va':'v'})
+t = dic['time']
+level = dic['level']
+ds2 = ds_wrf.sel(time=t, pressure=level)
+ds2
+draw(dda*15, ds2['u'], ds2['v'], dic)
+
+
+# %%
+# iimg.values
+
+
+
+# %%
 # %%
 flnm = '/home/fengxiang/HeNan/Data/OBS/rain_ec.nc'
 da2 = xr.open_dataarray(flnm)

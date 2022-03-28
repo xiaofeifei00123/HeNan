@@ -31,26 +31,78 @@ plt.rcParams['axes.unicode_minus']=False
 
 # %%
 
+flnm ='/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd0/cross3.nc'
+# ds = xr.open_dataset(flnm)
+# ds.sel(vertical=3000, method='nearest')
+# flnm = flpath+'cross2.nc'
+ds = xr.open_dataset(flnm)
+# ds = ds.sel(time=t)
+ds = ds.sel(vertical=3000, method='ffill',)
+# print(ds)
+# ds = ds[:,0:70]
+# ds = ds.isel(cross_line_idx=np.arange(0,100,1))
+
+w = ds['wa_cross']
+ter_line = ds['ter']
+u = ds['ua_cross']
+v = ds['va_cross']
+theta_e = ds['theta_e_cross']
+div = ds['div_cross']
+# %%
+# w.T.plot()
+div.plot()
+
+# w.max()
+# w.interpolate_na(dim='time', method='linear', fill_value='extrapolate')
+# bb = w.interpolate_na(dim='cross_line_idx', method='linear',  fill_value="extrapolate")
+# bb.plot()
+
+# %%
+def drop_na(da):
+    """处理数据, 这一步是必须要的，不然好像画不出来图
+    """
+    for i in range(da.shape[-1]):
+        column_vals = da[:,i].values
+        # Let's find the lowest index that isn't filled. The nonzero function
+        # finds all unmasked values greater than 0. Since 0 is a valid value
+        # for dBZ, let's change that threshold to be -200 dBZ instead.
+        first_idx = int(np.transpose((column_vals > -1).nonzero())[0])
+        da[0:first_idx, i] = da[first_idx, i]
+    da = da.dropna(dim='time')
+    return da
+# w.T.plot()
+aa = drop_na(div)
+aa.T.plot()
+
+
+
+
+
+
+
+
+
+
 # %%
 def draw_quiver(ax, u,v):
     '''
     绘制风矢图
     '''
-    x = u.cross_line_idx.values[::4]
+    x = u.cross_line_idx.values[::3]
     # x = u.cross_line_idx.values
     # u = u[::3,::10]
     # v = v[::3,::10]
     # u = u[::2,::10]
     # v = v[::2,::10]
-    u = u[::4,::4]
-    v = v[::4,::4]
+    u = u[::3,::3]
+    v = v[::3,::3]
     # u = u[::9,::30]
     # v = v[::9,::30]
     # u = u[::3,::10]
     # v = v[::3,::10]
     y = u.coords['vertical'].values
     # Q = ax.quiver(x, y, u.values,v.values,units='inches',scale=10,pivot='middle', zorder=2)  # 绘制风矢
-    Q = ax.quiver(x, y, u.values,v.values,units='inches',scale=50,pivot='tip',minlength=0.001, width=0.01,zorder=2)  # 绘制风矢
+    Q = ax.quiver(x, y, u.values,v.values,units='inches',scale=40,pivot='tip',minlength=0.001, width=0.02,zorder=2)  # 绘制风矢
     # Q = ax.quiver(x, y, u.values,v.values,units='width',scale=20,pivot='tip', width=0.03,zorder=2)  # 绘制风矢
 
 def draw_contour(ax, da):
@@ -61,9 +113,8 @@ def draw_contour(ax, da):
     # levels=np.arange(342, 372, 4)
     # levels=np.arange(342, 372, 2)
     levels=np.arange(336, 372, 4)
-    plt.contour
-    cs = ax.contour(xs, ys, smooth2d(da.values, passes=16), levels=levels, colors='black', linewidths=0.5)
-    ax.clabel(cs, inline=True, fontsize=10)
+    cs = ax.contour(xs, ys, smooth2d(da.values, passes=16), levels=levels, colors='black')
+    ax.clabel(cs, inline=True, fontsize=18)
 
 def draw_contour2(ax,da):
     xs = np.arange(0, da.shape[-1], 1)
@@ -93,9 +144,9 @@ def draw_contourf(fig, ax_cross, da, ter_line):
     )
     ax_cross.set_ylim(0, 10000)
     ax_cross.set_yticks(np.arange(0, 10000+1000, 1000))
-    ax_cross.tick_params(axis='both', labelsize=7, direction='out')
+    ax_cross.tick_params(axis='both', labelsize=18, direction='out')
     cb_dbz = fig.colorbar(dbz_contours, ax=ax_cross, ticks=colorticks)
-    cb_dbz.ax.tick_params(labelsize=7)
+    cb_dbz.ax.tick_params(labelsize=12)
 
     ## Set the x-ticks to use latitude and longitude labels
     coord_pairs = da.coords["xy_loc"].values
@@ -105,7 +156,7 @@ def draw_contourf(fig, ax_cross, da, ter_line):
     da1 = latlon2distance(da)    
     x_labels = da1.distance.values.astype(int)
     ax_cross.set_xticks(x_ticks[::8])
-    ax_cross.set_xticklabels(x_labels[::8], rotation=30, fontsize=7)
+    ax_cross.set_xticklabels(x_labels[::8], rotation=30, fontsize=18)
 
     # ax_cross.set_ylim(0,10000)
     
@@ -118,9 +169,8 @@ def draw_contourf(fig, ax_cross, da, ter_line):
     # ax_cross.set_xticklabels(x_labels[::thin], rotation=30, fontsize=18)
 
     ## Set the x-axis and  y-axis labels
-    # ax_cross.set_xlabel("Latitude, Longitude", fontsize=10)
-    ax_cross.set_xlabel("Distance (km)", fontsize=10)
-    ax_cross.set_ylabel("Height (m)", fontsize=10)
+    ax_cross.set_xlabel("Latitude, Longitude", fontsize=22)
+    ax_cross.set_ylabel("Height (m)", fontsize=22)
 
 
     # ht_fill = ax_cross.fill_between(xs, 0, wrf.to_np(ter_line),
@@ -206,7 +256,8 @@ def draw(t='2021-07-20 08', flpath='/mnt/zfm_18T/fengxiang/HeNan/Data/1900_90m/'
     # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/1900_90m/cross.nc'
     flnm = flpath+'cross2.nc'
     ds = xr.open_dataset(flnm)
-    ds = ds.sel(time=t)
+    # ds = ds.sel(time=t)
+    ds = ds.sel(vertical=3000, method='nearest')
     # print(ds)
     # ds = ds[:,0:70]
     # ds = ds.isel(cross_line_idx=np.arange(0,100,1))
@@ -224,21 +275,18 @@ def draw(t='2021-07-20 08', flpath='/mnt/zfm_18T/fengxiang/HeNan/Data/1900_90m/'
     theta_e = drop_na(theta_e)
     div = drop_na(div)
 
-    cm = round(1/2.54, 2)
-    fig = plt.figure(figsize=(9*cm,8*cm), dpi=600)
+    fig = plt.figure(figsize=(10,8), dpi=400)
     ax_cross = fig.add_axes([0.15, 0.2, 0.8, 0.7])
 
     title_t = ds.time.dt.strftime('%d-%H').values
     title_model = flnm.split('/')[-2]
     print('画[{}]模式[{}]时刻的图'.format(title_model,title_t))
     # ax_cross.set_title(title_t, loc='left', fontsize=26)
-    ax_cross.set_title(title_model, loc='right', fontsize=10)
+    ax_cross.set_title(title_model, loc='right', fontsize=26)
 
+    """
     draw_contour(ax_cross, theta_e)
-    # draw_contour2(ax_cross, div)
-    # draw_contourf(fig, ax_cross, div*10**4, ter_line)
     draw_contourf(fig, ax_cross, w*10, ter_line)
-    # return u,v,w
 
 
     ## 计算剖面风
@@ -261,8 +309,9 @@ def draw(t='2021-07-20 08', flpath='/mnt/zfm_18T/fengxiang/HeNan/Data/1900_90m/'
 
     fig_path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_cross/'
     fig_name = title_model+'_'+title_t
-    fig.savefig(fig_path+fig_name+'test5.png', bbox_inches = 'tight')
+    fig.savefig(fig_path+fig_name+'test5.png')
     plt.clf()
+    """
 
 def draw_1time(t='2021-07-20 09'):
     path_main ='/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/'
@@ -274,7 +323,7 @@ def draw_1time(t='2021-07-20 09'):
         draw(t=t, flpath=fl)
 
 def draw_mtime():
-    time_list = pd.date_range('2021-07-20 00', '2021-07-21 00', freq='3H')
+    time_list = pd.date_range('2021-07-20 00', '2021-07-20 00', freq='3H')
     # time_list = pd.date_range('2021-07-20 06', '2021-07-20 06', freq='1H')
     # time_list = pd.date_range('2021-07-20 08', '2021-07-20 08', freq='1H')
     for t in time_list:

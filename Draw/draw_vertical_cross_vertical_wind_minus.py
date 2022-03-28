@@ -79,10 +79,11 @@ def draw_contourf(fig, ax_cross, da, ter_line):
 
     xs = np.arange(0, da.shape[-1], 1)
     ys = da.coords['vertical'].values
-    colordict=['#191970','#005ffb','#5c9aff','#98ff98','#ddfddd','#FFFFFF','#fffde1','#ffff9e', '#ffc874','#ffa927', '#ff0000']#颜色列表
+    colordict=['#191970','#005ffb','#5c9aff','#98ff98','#FFFFFF','#ffff9e', '#ffc874','#ffa927', '#ff0000']#颜色列表
     # colorlevel=[-80, -30, -20, -10, -5, -1, 1, 5, 10, 20, 30, 80]#雨量等级
     # colorlevel=[-280, -60, -30, -10, -5, -1, 1, 5, 10, 30, 60, 280]#雨量等级
-    colorlevel=[-680, -100, -40, -15, -5, -1, 1, 5, 15, 40, 100, 680]#雨量等级
+    # colorlevel=[-680, -100, -40, -15, -5, -1, 1, 5, 15, 40, 100, 680]#雨量等级
+    colorlevel=[-680, -100, -40, -15, -5, 5, 15, 40, 100, 680]#雨量等级
     # colorticks=[-30, -20, -10, -5, -1, 1, 5, 10, 20, 30]#雨量等级
     colorticks = colorlevel[1:-1]
     dbz_contours = ax_cross.contourf(xs,
@@ -202,37 +203,38 @@ def latlon2distance(da2):
 
 
 
-def draw(t='2021-07-20 08', flpath='/mnt/zfm_18T/fengxiang/HeNan/Data/1900_90m/'):
+# def draw(t='2021-07-20 08', flpath='/mnt/zfm_18T/fengxiang/HeNan/Data/1900_90m/'):
+def draw(theta_e, u, v, w, ter_line):
     # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/1900_90m/cross.nc'
-    flnm = flpath+'cross2.nc'
-    ds = xr.open_dataset(flnm)
-    ds = ds.sel(time=t)
-    # print(ds)
-    # ds = ds[:,0:70]
-    # ds = ds.isel(cross_line_idx=np.arange(0,100,1))
+    # flnm = flpath+'cross2.nc'
+    # ds = xr.open_dataset(flnm)
+    # ds = ds.sel(time=t)
+    # # print(ds)
+    # # ds = ds[:,0:70]
+    # # ds = ds.isel(cross_line_idx=np.arange(0,100,1))
 
-    w = ds['wa_cross']
-    ter_line = ds['ter']
-    u = ds['ua_cross']
-    v = ds['va_cross']
-    theta_e = ds['theta_e_cross']
-    div = ds['div_cross']
+    # w = ds['wa_cross']
+    # ter_line = ds['ter']
+    # u = ds['ua_cross']
+    # v = ds['va_cross']
+    # theta_e = ds['theta_e_cross']
+    # div = ds['div_cross']
 
-    w = drop_na(w)
-    u = drop_na(u)
-    v = drop_na(v)
-    theta_e = drop_na(theta_e)
-    div = drop_na(div)
+    # w = drop_na(w)
+    # u = drop_na(u)
+    # v = drop_na(v)
+    # theta_e = drop_na(theta_e)
+    # div = drop_na(div)
 
     cm = round(1/2.54, 2)
     fig = plt.figure(figsize=(9*cm,8*cm), dpi=600)
     ax_cross = fig.add_axes([0.15, 0.2, 0.8, 0.7])
 
-    title_t = ds.time.dt.strftime('%d-%H').values
-    title_model = flnm.split('/')[-2]
-    print('画[{}]模式[{}]时刻的图'.format(title_model,title_t))
+    title_t = u.time.dt.strftime('%d-%H').values
+    # title_model = flnm.split('/')[-2]
+    # print('画[{}]模式[{}]时刻的图'.format(title_model,title_t))
     # ax_cross.set_title(title_t, loc='left', fontsize=26)
-    ax_cross.set_title(title_model, loc='right', fontsize=10)
+    ax_cross.set_title('minus', loc='right', fontsize=10)
 
     draw_contour(ax_cross, theta_e)
     # draw_contour2(ax_cross, div)
@@ -260,21 +262,77 @@ def draw(t='2021-07-20 08', flpath='/mnt/zfm_18T/fengxiang/HeNan/Data/1900_90m/'
     draw_quiver(ax_cross,hor,ver*10)
 
     fig_path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_cross/'
-    fig_name = title_model+'_'+title_t
-    fig.savefig(fig_path+fig_name+'test5.png', bbox_inches = 'tight')
+    fig_name = 'minus'+'_'+title_t
+    fig.savefig(fig_path+fig_name+'test6.png', bbox_inches = 'tight')
     plt.clf()
+
+
+def gt_data(t='2021-07-20 08', flpath='/mnt/zfm_18T/fengxiang/HeNan/Data/1900_90m/'):
+    # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/1900_90m/cross.nc'
+    flnm = flpath+'cross2.nc'
+    ds = xr.open_dataset(flnm)
+    ds = ds.sel(time=t)
+    # print(ds)
+    # ds = ds[:,0:70]
+    # ds = ds.isel(cross_line_idx=np.arange(0,100,1))
+
+    w = ds['wa_cross']
+    ter_line = ds['ter']
+    u = ds['ua_cross']
+    v = ds['va_cross']
+    theta_e = ds['theta_e_cross']
+    div = ds['div_cross']
+
+    w = drop_na(w)
+    u = drop_na(u)
+    v = drop_na(v)
+    theta_e = drop_na(theta_e)
+    div = drop_na(div)
+    return theta_e, u, v, w, ter_line
+
+
+
+
+
+
 
 def draw_1time(t='2021-07-20 09'):
     path_main ='/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/'
     # model_list = ['1900_90m', '1900_900m','1912_90m', '1912_900m']
     # model_list = ['1912_90m', '1912_90m_OGWD']
-    model_list = ['gwd0', 'gwd3']
-    for model in model_list:
-        fl = path_main+model+'/'
-        draw(t=t, flpath=fl)
+    # model_list = ['gwd0', 'gwd3']
+    # for model in model_list:
+    #     fl = path_main+model+'/'
+    #     draw(t=t, flpath=fl)
+    f1 = path_main+'gwd0'+'/'
+    f2 = path_main+'gwd3'+'/'
+    theta_e1, u1, v1, w1, ter_line1 = gt_data(t, f1)
+    theta_e2, u2, v2, w2, ter_line2 = gt_data(t, f2)
+
+    def minus(da1, da2):
+        da = da2.values - da1.values    
+        da = xr.DataArray(
+            da,
+            coords = da1.coords, 
+            dims = da1.dims
+        )
+        return da
+    
+    theta_e = minus(theta_e1, theta_e2)
+    u = minus(u1, u2)
+    v = minus(v1, v2)
+    w = minus(w1, w2)
+    # u = u2 - u1 
+    # v = v2 - v1
+    # w = w2 - w1
+    ter_line = ter_line1
+    draw(theta_e, u, v, w, ter_line)
+
+    
+    
 
 def draw_mtime():
-    time_list = pd.date_range('2021-07-20 00', '2021-07-21 00', freq='3H')
+    time_list = pd.date_range('2021-07-20 12', '2021-07-20 12', freq='3H')
     # time_list = pd.date_range('2021-07-20 06', '2021-07-20 06', freq='1H')
     # time_list = pd.date_range('2021-07-20 08', '2021-07-20 08', freq='1H')
     for t in time_list:

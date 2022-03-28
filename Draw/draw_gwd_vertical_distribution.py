@@ -41,11 +41,10 @@ class CrossData():
     def __init__(self, wrf_file) -> None:
         pass
         ## Create the start point and end point for the cross section
-        self.cross_start = CoordPair(lat=33, lon=111)
-        # self.cross_end = CoordPair(lat=35.5, lon=114.5)
-        self.cross_end = CoordPair(lat=36, lon=115.5)
-        ## read the ncfile
-        # wrf_file = '/mnt/zfm_18T/fengxiang/HeNan/Data/1900_90m/wrfout_d04_2021-07-20_08:00:00'
+        self.cross_start = CoordPair(lat=34, lon=110.5)
+        self.cross_end = CoordPair(lat=33.5, lon=113)
+        # self.cross_start = CoordPair(lat=35.5, lon=113)
+        # self.cross_end = CoordPair(lat=33.5, lon=113.5)
         self.ncfile = Dataset(wrf_file)
         ## 计算垂直坐标, 可以是离地高度、气压等
         # self.vert = getvar(self.ncfile, "height_agl")  # 离地高度坐标
@@ -118,9 +117,9 @@ class DrawVertical():
         '''
         绘制风矢图
         '''
-        x = u.cross_line_idx.values[::15]
-        u = u[::30,::15]
-        v = v[::30,::15]
+        x = u.cross_line_idx.values[::5]
+        u = u[::3,::5]
+        v = v[::3,::5]
         y = u.coords['vertical'].values
         Q = ax.quiver(x, y, u.values,v.values,units='inches',scale=30,pivot='middle', zorder=1)  # 绘制风矢
 
@@ -141,22 +140,11 @@ class DrawVertical():
         # colordict=['#191970','#005ffb','#5c9aff','#98ff98','#ddfddd','#FFFFFF','#fffde1','#ffff9e', '#ffc874','#ffa927', '#ff0000']#颜色列表
         # colordict=['white','#A6F28F','#3DBA3D','#61BBFF','#0000FF','#FA00FA','#800040', '#EE0000']#颜色列表
         # colorlevel=[0, 0.01, 0.02, 0.05, 0.1, 1,  5, 10, 100]
-
-        
-        
         colordict=['#0000fb','#3232fd','#6464fd','#a2a3fb','white','#fbbcbc', '#ff8383', '#fd4949', '#fd0000']#正负, 蓝-红
-        colorlevel=[-100,-0.1,-0.05,-0.03,-0.01, 0.01, 0.03, 0.05, 0.1, 100]
+        # colorlevel=[-100,-0.1,-0.05,-0.03,-0.01, 0.01, 0.03, 0.05, 0.1, 100]
+        colorlevel=[-100,-0.1,-0.05,-0.01,-0.0001, 0.0001, 0.01, 0.05, 0.1, 100]
         # colorlevel=[-100, -0.35, -0.25, -0.15,-0.05, 0.05, 0.15, 0.25, 0.35, 100]  # 总共10个数
         
-        
-        
-        
-        
-        
-        
-
-        # colorlevel=np.arange(0,10,0.5)
-        # colorticks=[-30, -20, -10, -5, -1, 1, 5, 10, 20, 30]#雨量等级
         colorticks = colorlevel[1:-1]
         dbz_contours = ax_cross.contourf(xs,
                                         ys,
@@ -243,7 +231,12 @@ def draw_cross_gwd1(flnm):
     ax_cross.set_title(title_t, loc='left', fontsize=18)
 
     dv.draw_contourf(fig, ax_cross, dv.drop_na(da)*10**3, ter_line)
-    fig.savefig('/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_gwd3/cross+%s_33.6_d01.png'%title_t)
+    # dv.draw_quiver(u,v)
+
+    u = cd.get_vcross('ua')
+    v = cd.get_vcross('va')
+    dv.draw_quiver(ax_cross,u,v)
+    fig.savefig('/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_gwd3/cross+%s_right_d03.png'%title_t)
 # %%
 
 def draw_cross_gwd3(flnm):
@@ -273,7 +266,11 @@ def draw_cross_gwd3(flnm):
         dav = dav+v1
     ## 1. 计算切角
     angle = caculate_angle()
+    print(angle)
+    print(dau.mean())
+    print(dav.mean())
     hor_drag = dau*np.cos(angle)+dav*np.sin(angle)   # 水平的拖曳力在剖面上的投影
+    # hor_drag = dau*np.sin(angle)+dav*np.cos(angle)   # 水平的拖曳力在剖面上的投影
     ## 计算地形高度
     ter_line = cd.get_ter()
 
@@ -281,12 +278,34 @@ def draw_cross_gwd3(flnm):
     dv = DrawVertical()
     fig = plt.figure(figsize=(10,8), dpi=400)
     ax_cross = fig.add_axes([0.2, 0.2, 0.75, 0.7])
-    dv.draw_contourf(fig, ax_cross, dv.drop_na(hor_drag)*10**3, ter_line)
+    # dv.draw_contourf(fig, ax_cross, dv.drop_na(hor_drag)*10**3, ter_line)
+    dv.draw_contourf(fig, ax_cross, dv.drop_na(dau)*10**3, ter_line)
 
+    u = cd.get_vcross('ua')
+    v = cd.get_vcross('va')
+    w = cd.get_vcross('wa')
+
+    # self.cross_start = CoordPair(lat=35.5, lon=113)
+    # self.cross_end = CoordPair(lat=33.5, lon=113.5)
+    ldic = {
+        'lat1':35.5,
+        'lon1':113,
+        'lat2':33.5,
+        'lon2':113.5,
+    }
+    dy = (ldic['lat2']-ldic['lat1'])
+    dx = (ldic['lon2']-ldic['lon1'])
+    angle = np.arctan2(dy,dx)  # 对边和直角边, 弧度
+    hor = u*np.cos(angle)+v*np.sin(angle)
+    ver = w
+    
+    
+    # dv.draw_quiver(ax_cross,u,ver*10)
+    # dv.draw_quiver(ax_cross,dv.drop_na(dau)*10**5,dv.drop_na(dav)*10**5)
     # title_t = ds.XTIME.dt.strftime('%d-%H').values[0]
     title_t = 'gwd3'
     ax_cross.set_title(title_t, loc='left', fontsize=18)
-    fig.savefig('/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_gwd3/cross+%s_33.6_d01.png'%title_t)
+    fig.savefig('/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_gwd3/cross+%s_right_d03.png'%title_t)
 
 
 
@@ -295,14 +314,16 @@ def main():
     # fl_path ='/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd3/wrfout_d03_' # 2021-07-20_05:00:00'
     # tt = pd.date_range('2021-07-20 00', '2021-07-21 00', freq='1H')
     # tt = pd.date_range('2021-07-20 05', '2021-07-20 06', freq='1H')
-    tt = pd.date_range('2021-07-20 00', '2021-07-20 00', freq='1H')
+    # tt = pd.date_range('2021-07-20 16', '2021-07-20 16', freq='1H')
+    tt = pd.date_range('2021-07-20 12', '2021-07-20 12', freq='1H')
     # fl_path = /
     fl_path ='/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/'
 
+    # model_list = ['gwd1', 'gwd3']
     model_list = ['gwd1', 'gwd3']
     for model in model_list:
         for t in tt:
-            fname = 'wrfout_d01_'+t.strftime('%Y-%m-%d_%H:%M:%S')
+            fname = 'wrfout_d03_'+t.strftime('%Y-%m-%d_%H:%M:%S')
             fpath = os.path.join(fl_path, model)
             flnm = os.path.join(fpath, fname)
             print(fname)

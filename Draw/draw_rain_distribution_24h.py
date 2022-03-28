@@ -35,6 +35,17 @@ from multiprocessing import Pool
 from baobao.map import Map
 
 
+# from matplotlib import rcParams
+
+# config = {
+#     "font.family": 'serif', # 衬线字体
+#     "font.size": 12, # 相当于小四大小
+#     "font.serif": ['stix'], # 宋体
+#     "mathtext.fontset": 'stix', # matplotlib渲染数学字体时使用的字体，和Times New Roman差别不大
+#     'axes.unicode_minus': False # 处理负号，即-号
+# }
+# rcParams.update(config)
+
 
 # %%
 class Draw(object):
@@ -93,6 +104,21 @@ class Draw(object):
         ax.set_extent(map_dic['extent'])
 
         station = {
+            # 'ZhengZhou': {
+            #     'abbreviation':'郑州',
+            #     'lat': 34.76,
+            #     'lon': 113.65
+            # },
+            # 'NanYang': {
+            #     'abbreviation':'南阳',
+            #     'lat': 33.1,
+            #     'lon': 112.49,
+            # },
+            # 'LuShi': {
+            #     'abbreviation':'卢氏',
+            #     'lat': 34.08,
+            #     'lon': 111.07,
+            # },
             'ZhengZhou': {
                 'abbreviation':'郑州',
                 'lat': 34.76,
@@ -143,7 +169,7 @@ class Draw(object):
             pad=0.1,  #  色标和子图间距离
         )
         cb.ax.tick_params(labelsize=10)  # 设置色标标注的大小
-        fig_name = picture_dic['type']+'_'+picture_dic['initial_time']
+        fig_name = picture_dic['type']+'_'+picture_dic['initial_time']+'typhoon'
         fig_path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_rain/rain_24h_gwd/'
         fig.savefig(fig_path+fig_name, bbox_inches = 'tight')
 
@@ -239,7 +265,8 @@ def draw_onemodel(model='gwd3'):
 
     dr = Draw()
     # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/'+model+'/'+'rain.nc'
-    flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/'+model+'/'+'rain.nc'
+    # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/'+model+'/'+'rain.nc'
+    flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/Typhoon/'+model+'/'+'rain.nc'
     # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d04/'+model+'/'+'rain.nc'
     da = xr.open_dataarray(flnm)
     da = da.sel(time=slice('2021-07-20 01', '2021-07-21 00'))
@@ -253,7 +280,8 @@ def draw_dual_model():
     """
     # model_list = ['gwd3-LS']
     # model_list = ['gwd3-BL', 'gwd3-FD', 'gwd3-LS', 'gwd3-SS']
-    model_list = ['gwd0','gwd1', 'gwd3','gwd3-BL', 'gwd3-FD', 'gwd3-LS', 'gwd3-SS']
+    # model_list = ['gwd0','gwd1', 'gwd3','gwd3-BL', 'gwd3-FD', 'gwd3-LS', 'gwd3-SS']
+    model_list = ['strengthen_typhoon', 'weak_typhoon']
     # model_list = ['gwd3-test']
     # model_list = ['gwd0', 'gwd1','gwd3']
     for model in model_list:
@@ -282,6 +310,6 @@ def draw_EC(model='gwd3'):
 
 if __name__ == '__main__':
 
-    # draw_obs()
-    # draw_dual_model()
-    draw_EC()
+    draw_obs()
+    draw_dual_model()
+    # draw_EC()

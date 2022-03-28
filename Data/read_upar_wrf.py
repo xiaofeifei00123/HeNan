@@ -45,7 +45,7 @@ class GetUpar():
     """获得wrfout高空数据，原始投影
     """
     def get_upar_one(self, fl):
-        pre_level = [900, 925, 850, 700, 500, 200]
+        pre_level = [900, 925, 850, 700, 600, 500, 200]
         dds = xr.Dataset()
         data_nc = nc.Dataset(fl)
         print(fl[-19:])
@@ -111,7 +111,8 @@ class GetUpar():
     def get_upar(self, path):
         pass
         # path = '/mnt/zfm_18T/fengxiang/HeNan/Data/ERA5/YSU_1912/'
-        fl_list = os.popen('ls {}/wrfout_d03*'.format(path))  # 打开一个管道
+        # fl_list = os.popen('ls {}/wrfout_d03*'.format(path))  # 打开一个管道
+        fl_list = os.popen('ls {}/wrfout_d01*'.format(path))  # 打开一个管道
         fl_list = fl_list.read().split()
         ## 临时测试
         # fl_list = fl_list[0:2]
@@ -130,16 +131,19 @@ def combine_one(model='1912_90m'):
     将wrfout数据中需要的变量聚合成一个文件，并进行相关的垂直插值, 和诊断量的计算
     处理两种模式，不同时次的数据
     """
-    path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/'
+    path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/Typhoon/'
     # path_main = os.path.join(path_main, model)
     gu = GetUpar()
     # path_wrfout = path_main+'1912_90m'
     path_wrfout = path_main+model
+    print(path_wrfout)
     ds = gu.get_upar(path_wrfout)
+    # print("***"*10)
+    # print(ds)
     # ds = gu.get_upar_multi(path_wrfout)
     # flnm = model+'upar.nc'
     # path_save = path_main+flnm
-    path_save = os.path.join(path_main, model, 'upar.nc')
+    path_save = os.path.join(path_main, model, 'upar1.nc')
     # path_save = os.path.join(path_save, )
     # print(path_save)
     ds.to_netcdf(path_save)
@@ -151,7 +155,8 @@ def combine():
     处理两种模式，不同时次的数据
     """
     # model_list = ['1900_90m','1900_900m', '1912_90m', '1912_900m']
-    model_list = ['gwd0','gwd1', 'gwd3']
+    # model_list = ['gwd0','gwd1', 'gwd3']
+    model_list = ['strengthen_typhoon','weak_typhoon']
     for model in model_list:
         combine_one(model)
 
@@ -168,7 +173,7 @@ def regrid_one(model='1900_90m'):
         'interval':0.05,
     }
     path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/'
-    flnm = 'upar.nc'
+    flnm = 'upar1.nc'
     path_in = path_main+model+'/'+flnm
     ds = xr.open_dataset(path_in)
     # ds_out = regrid_xesmf(ds, area)
@@ -181,7 +186,8 @@ def regrid_one(model='1900_90m'):
 def regrid_dual():
     pass
     # model_list = ['1900_90m','1900_900m', '1912_90m', '1912_900m']
-    model_list = ['gwd0', 'gwd1', 'gwd3']
+    # model_list = ['gwd0', 'gwd1', 'gwd3']
+    model_list = ['gwd0', 'gwd3']
     for model in model_list:
         regrid_one(model)
 
@@ -189,8 +195,8 @@ def regrid_dual():
 # %%
 if __name__ == '__main__':
     ### combine和regrid一般不同时进行
-    # combine()
-    regrid_dual()
+    combine()
+    # regrid_dual()
     # combine_one()
     # regrid_one()
     # combine() 

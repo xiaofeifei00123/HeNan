@@ -30,7 +30,8 @@ def main():
     # path = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d04/'
     # type_list = ['gwd3-BL', 'gwd3-FD', 'gwd3-LS', 'gwd3-SS']
     # type_list = ['gwd3', 'gwd1', 'gwd0', 'gwd3-test']
-    type_list = ['gwd3-BL', 'gwd3-FD', 'gwd3-LS', 'gwd3-SS', 'gwd3', 'gwd1', 'gwd0', 'gwd3-test']
+    type_list = ['gwd3', 'gwd0']
+    # type_list = ['gwd3-BL', 'gwd3-FD', 'gwd3-LS', 'gwd3-SS', 'gwd3', 'gwd1', 'gwd0', 'gwd3-test']
 
     ds = xr.Dataset()
     for type in type_list:

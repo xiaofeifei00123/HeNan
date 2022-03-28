@@ -98,7 +98,7 @@ def regrid_latlon(flnm_rain, area):
     """
     print("插值数据到网格点")
     ds = xr.open_dataset(flnm_rain)
-    ds_out = regrid_xesmf(ds, area, rd=1)
+    ds_out = regrid_xesmf(ds, area)
     return ds_out
     
 
@@ -117,12 +117,19 @@ def save_one(path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/1900_90m/'):
         'path_rain_wrf_station':path_main+'rain_station.nc',  # 插值到站点之后的文件名
         'path_rain_obs_station':'/mnt/zfm_18T/fengxiang/HeNan/Data/OBS/rain_station.nc', # 站点降水
     }
+    # area = {
+    #     'lon1':110.5,
+    #     'lon2':116,
+    #     'lat1':32,
+    #     'lat2':36.5,
+    #     'interval':0.05,
+    # }
     area = {
         'lon1':110.5,
         'lon2':116,
         'lat1':32,
         'lat2':36.5,
-        'interval':0.05,
+        'interval':0.125,
     }
 
     ## 合并数据
@@ -134,8 +141,8 @@ def save_one(path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/1900_90m/'):
     da1.to_netcdf(path_dic['path_rain_wrf_latlon'])
 
     ## 插值到站点
-    da2 = grid2station(path_dic['path_rain_obs_station'], path_dic['path_rain_wrf_grid'],path_dic['path_wrfout'])
-    da2.to_netcdf(path_dic['path_rain_wrf_station'])
+    # da2 = grid2station(path_dic['path_rain_obs_station'], path_dic['path_rain_wrf_grid'],path_dic['path_wrfout'])
+    # da2.to_netcdf(path_dic['path_rain_wrf_station'])
     pass
 
 def dual():
@@ -145,10 +152,12 @@ def dual():
     # model_list = ['gwd3-FD', 'gwd3-BL','gwd3-SS', 'gwd3-LS']
     # model_list = ['gwd0', 'gwd1', 'gwd3']
     # model_list = ['gwd3-test']
-    model_list = ['gwd0','gwd1', 'gwd3','gwd3-FD', 'gwd3-BL','gwd3-SS', 'gwd3-LS']
+    # model_list = ['gwd0','gwd1', 'gwd3','gwd3-FD', 'gwd3-BL','gwd3-SS', 'gwd3-LS']
+    model_list = ['strengthen_typhoon', 'weak_typhoon']
     for model in model_list:
         # path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/'+model+'/'
-        path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/'+model+'/'
+        # path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/'+model+'/'
+        path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/Typhoon/'+model+'/'
         # path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d04/'+model+'/'
         save_one(path_main)
     

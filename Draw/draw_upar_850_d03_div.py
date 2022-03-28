@@ -26,12 +26,12 @@ from cartopy.mpl.ticker import LongitudeFormatter, LatitudeFormatter
 import cartopy.feature as cfeature
 from cartopy.io.shapereader import Reader
 import xarray as xr
-import meteva.base as meb
+# import meteva.base as meb
 import numpy as np
 import os
 import pandas as pd
 from nmc_met_io.read_micaps import read_micaps_1, read_micaps_2, read_micaps_14
-import meteva.base as meb
+# import meteva.base as meb
 from nmc_met_graphics.plot import mapview
 import matplotlib.pyplot as plt
 import matplotlib as mpl
@@ -47,6 +47,7 @@ from metpy import constants
 # from caculate_diag import QvDiv
 from baobao.caculate import QvDiv
 from baobao.caculate import caculate_q_rh_thetav
+from baobao.caculate import caculate_vo_div, caculate_div
 from baobao.map import Map   # 一个类名
 # from baobao.caculate.
 
@@ -152,18 +153,6 @@ def draw_station(ax):
     #             'size': 28,
     #     })
 
-def add_ticks(ax,):
-    """添加坐标标签"""
-    # mb.set_extent([110, 116, 32, 36])
-    ax.set_yticks(np.arange(32, 36 + 1, 1))
-    ax.set_xticks(np.arange(110, 116 + 1, 1))
-    ax.xaxis.set_major_formatter(LongitudeFormatter())
-    ax.xaxis.set_minor_locator(plt.MultipleLocator(0.5))
-    ax.yaxis.set_major_formatter(LatitudeFormatter())
-    ax.yaxis.set_minor_locator(plt.MultipleLocator(0.5))
-    ax.tick_params(which='major',length=6,width=1.0) # 控制标签大小 
-    ax.tick_params(which='minor',length=3,width=0.5)  #,colors='b')
-    ax.tick_params(axis='both', labelsize=10, direction='out')
 
 def draw_south_sea(fig,):
     pass
@@ -175,37 +164,17 @@ def draw_contourf(ax, da):
     """
     x = da.lon
     y = da.lat
-    # contour_levels = [-1.5, -1.3, -1.1, -0.9, -0.7, -0.5, -0.3,  -0.1, 0.1,  0.3,  0.5, 0.7, 0.9,  1.1, 1.3, 1.5]
-    # contour_levels = [0.2, 0.6, 1.0, 1.4, 1.8, 2.2]
-    # contour_levels = np.arange(-2.6, 2.6+0.1, 0.4)
-    # contour_levels = np.arange(-5.6, 5.6+0.1, 0.4)
-    # contour_levels = np.arange(-2.6, 2.6+0.1, 0.4)*10
     # print(da.max().values, da.min().values)
-    print('最大值是{}, 最小值是{}'.format(da.max().values, da.min().values))
+    print('最大值是{}, 最小值是{}, 平均值是{}'.format(da.max().values, da.min().values, da.mean().values))
 
-    # colormap = cmaps.ViBlGrWhYeOrRe
-    # color_li = ['white', '#6CA6CD', '#436EEE', '#66CD00', '#7FFF00','#cdfd02', 'yellow','#fdaa48','#EE7600','red']
-    # crx = ax.contourf(x,
-    #                     y,
-    #                     da,
-    #                     cmap=colormap,
-    #                     # colors=color_li,
-    #                     levels=contour_levels,
-    #                     # levels=10,
-    #                     transform=ccrs.PlateCarree())
 
-    # colordict=['#191970','#005ffb','#5c9aff','#98ff98','#ddfddd','#FFFFFF','#fffde1','#ffff9e', '#ffc874','#ffa927', '#ff0000']#颜色列表
-    colordict=['#0000fb','#3232fd','#6464fd','#a2a3fb','white','#fbbcbc', '#ff8383', '#fd4949', '#fd0000']#正负, 蓝-红
-    # colorlevel= [-90,-2,-1.25,-0.75,-0.25,0.25,0.75,1.25,2,90]
-    # colorlevel= [-90,-3,-2,-1,-0.5,0.5,1,2,3,90]
-    colorlevel= [-90,-4,-3,-2,-1,1,2,3,4,90]
-    # colorlevel=[-80, -3, -2, -1, -0.5, -0.1, 0.1, 0.5, 1, 2, 3, 80]#雨量等级
-    # colorticks=[-3, -2, -1, -0.5, -0.1, 0.1, 0.5, 1, 2, 3,]#雨量等级
-    # colorlevel=[-80, -8, -6, -3, -2, -1, 1, 2, 3, 6, 8, 80]#雨量等级
-    # colorlevel=[-80, -5, -4, -3, -2, -1, 1, 2, 3,4, 5, 80]#雨量等级
-    # colorlevel=[-80, -5, -4, -3, -2, -1, 1, 2, 3,4, 5, 80]#雨量等级
-    # colorlevel=[-80, -4, -3, -2, -1, -0.5, 0.5, 1, 2, 3, 4, 80]#雨量等级
-    # colorticks=[-3, -2, -1, -0.5, -0.1, 0.1, 0.5, 1, 2, 3,]#雨量等级
+    # colordict=['#0000fb','#3232fd','#6464fd','#a2a3fb','white','white','#fbbcbc', '#ff8383', '#fd4949', '#fd0000']#正负, 蓝-红
+    colordict=['#0000fb','#3232fd','#6464fd','white','white','#fbbcbc', '#fd4949', '#fd0000']#正负, 蓝-红
+    # colordict=['#0000fb','#5a5af9','#a9a9fd','#dfdffd','white','white','#ffdbdb', '#ff8383', '#fd4949', '#fd0000']#正负, 蓝-红
+    # colorlevel= [-90,-2.5,-1.5,-0.6,-0.3,0, 0.3,0.6,1.5,2.5,90]# 散度的色标
+    # colorlevel= [-90,-12,-9,-6,-3, 0, 3,6,9,12,90]  # 垂直速度的色标
+    colorlevel= [-90,-20,-10,-3, 0, 3,10,20,90]  # 垂直速度的色标
+    # colorlevel= [-90,-4,-3,-2,-1,0,1,2,3,4,90]# 水汽通量散度的色标
     # colorticks=colorlevel[1:-2]
     crx = ax.contourf(x,
                         y,
@@ -253,7 +222,15 @@ def draw_quiver(u,v, ax):
     x = u.lon.values
 
     Q = ax.quiver(x, y, u.values,v.values,units='inches',scale=80,pivot='middle', transform=ccrs.PlateCarree())  # 绘制风矢
-    qk = ax.quiverkey(Q, X=0.75, Y=0.12, U=10, label=r'($10 m/s$)', labelpos='E',coordinates='figure',  fontproperties={'size':10})   # 设置参考风矢
+    qk = ax.quiverkey(Q,
+                      X=0.05, Y=0.15, 
+                      U=10 ,
+                      label=r'$10 m/s$', 
+                      labelpos='S',  # label在参考箭头的哪个方向
+                      labelsep=0.05, # 箭头和标签之间的距离
+                      coordinates='figure',  
+                      fontproperties={'size':8}
+                      )   # 设置参考风矢
 
 def draw(qdif, qu,qv, dic):
     """画
@@ -264,15 +241,10 @@ def draw(qdif, qu,qv, dic):
         ddf ([type]): [description]
         dic ([type]): [description]
     """
-    # fig = plt.figure(figsize=[10,8])
-    # ax = fig.add_axes([0.15,0.05,0.8,0.9], projection=ccrs.PlateCarree())
-    # mb = mapview.BaseMap()
-    # # mb.set_extent('中国陆地')
-    # mb.drawcoastlines(linewidths=0.8, alpha=0.5)
-
+    cm = round(1/2.54, 2)
+    fig = plt.figure(figsize=(8*cm, 8*cm), dpi=300)
     
-    fig = plt.figure(figsize=[3.8,3.6], dpi=300)
-    ax = fig.add_axes([0.1,0.1,0.8,0.8], projection=ccrs.PlateCarree())
+    ax = fig.add_axes([0.12,0.1,0.8,0.8], projection=ccrs.PlateCarree())
     mb = mapview.BaseMap()
     mb.drawcoastlines(linewidths=0.8, alpha=0.5)
 
@@ -288,37 +260,34 @@ def draw(qdif, qu,qv, dic):
     ax = mp.create_map(ax, map_dic)
     ax.set_extent(map_dic['extent'])
     
-    
-
     tt = (dic['time']).strftime('%Y-%m-%d %H%M')
-    # print(tt)
     ax.set_title(tt, loc='center', fontsize=10)
+    if dic['model'] == 'gwd0':
+        dic['model'] = 'no-gwd'
     ax.set_title(dic['model'], loc='left', fontsize=10)
     # ax.set_title('OBS', loc='left', fontsize=25)
     ax.set_title(str(dic['level'])+'hPa', loc='right', fontsize=10)
 
-    # mb.drawstates(linewidths=0.8, alpha=0.5) # 省界
-    # mb.set_extent([110, 116, 32, 36])
     cs, colorlevel = draw_contourf(ax,qdif)
     colorticks = colorlevel[1:-1]
-    # print(colorticks)
-    # colorticks=[-3, -2, -1, -0.5, -0.1, 0.1, 0.5, 1, 2, 3,]#雨量等级
+    # ax.set_xlabel('vertical velocity $(w, 10^{-1}m/s)$', labelpad=0.01, fontsize=8)  # 和图片的距离
+    # ax.set_xlabel('散度 $10^{-5}s^{-1}$', labelpad=0.01, fontsize=8)  # 水汽通量散度
+    ax.set_xlabel('垂直速度 $10^{-1}m \cdot s^{-1}$', labelpad=0.01, fontsize=8)  # 水汽通量散度
     cb = fig.colorbar(
         cs,
         orientation='horizontal',
-        fraction=0.06,  # 色标大小
-        pad=0.12,  # colorbar和图之间的距离
+        fraction=0.05,  # 色标大小
+        pad=0.15,  # colorbar和图之间的距离
         ticks=colorticks,
-
     )
-    cb.ax.tick_params(labelsize=10)  # 设置色标标注的大小
-    # add_ticks(ax)
+    cb.ax.tick_params(labelsize=8)  # 设置色标标注的大小
     draw_station(ax)
 
     draw_quiver(qu,qv,ax)
     fig_path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_upar/850/div/'
-    fig_name = str(fig_path)+str(dic['model'])+'_'+str(dic['level'])+'_'+(dic['time']).strftime('%Y%m%d%H')+'div'
-    fig.savefig(fig_name)
+    fig_name = str(fig_path)+str(dic['model'])+'_'+str(dic['level'])+'_'+(dic['time']).strftime('%Y%m%d%H')+'w_speed'
+    fig.savefig(fig_name, bbox_inches = 'tight')
+    # fig.savefig(fig_name,)
 
 
 def get_data(dic):
@@ -341,8 +310,9 @@ def get_data(dic):
     ds2 = ds_wrf.sel(time=t, pressure=level)
 
     ## 计算水汽通量和散度
-    qvd = QvDiv()
-    ds3 = qvd.caculate_qfdiv(ds2)
+    # qvd = QvDiv()
+    # ds3 = qvd.caculate_qfdiv(ds2)
+    ds3 = caculate_vo_div(ds2)
     ds_return = xr.merge([ds2,ds3])
     return ds_return
 
@@ -353,17 +323,21 @@ def draw_model_once():
     高度
     模式
     """
-    path_out = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd0/upar.nc'
+    path_out = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd3/upar.nc'
 
     dic_model = {
-        'model':'gwd0',
-        'level':925,
-        'time':pd.Timestamp('2021-07-20 00'),
+        'model':'gwd3_once',
+        'level':500,
+        'time':pd.Timestamp('2021-07-20 12'),
         'flnm':path_out,
     }    
     print("画 [%s] 的图"%(dic_model['model']))
     ds = get_data(dic_model)
-    draw(ds['qf_div']*10, ds['u'], ds['v'], dic_model)
+    print(ds)
+    # draw(ds['qf_div']*10, ds['u'], ds['v'], dic_model)
+    draw(ds['div']*10**3, ds['u'], ds['v'], dic_model)
+    # draw(ds['div']*10**3*10, ds['u'], ds['v'], dic_model)
+    # draw(ds['wa']*10, ds['u'], ds['v'], dic_model)
     
     
 def draw_model_dual():
@@ -375,9 +349,12 @@ def draw_model_dual():
     for model in model_list:
         fl = path_main+model+'/upar.nc'
         fl_list.append(fl)
-    t_list = pd.DatetimeIndex(['2021-07-20 00','2021-07-20 06', '2021-07-20 12'])
-    t_list = pd.date_range('2021-07-20 00', '2021-07-21 00', freq='1H')
-    level_list = [925]
+    t_list = pd.DatetimeIndex(['2021-07-20 06','2021-07-20 06'])
+    # t_list = pd.date_range('2021-07-20 00', '2021-07-21 00', freq='6H')
+    # level_list = [500, 700, 850, 900, 925]
+    # level_list = [500, 700, 850, 900, 925]
+    # level_list = [500, 850,]
+    level_list = [700,]
 
     i = 0
     for fl in fl_list:
@@ -394,10 +371,19 @@ def draw_model_dual():
                     'time':t,
                     'flnm':fl,
                 }    
+                dic_model2 = {
+                    'model':model,
+                    'level':900,
+                    'time':t,
+                    'flnm':fl,
+                }    
                 print("画北京时[%s],[%s]hPa高度, [%s]分辨率的图"%(t,level, model))
                 # draw_all(dic_model)
                 ds = get_data(dic_model)
-                draw(ds['qf_div']*10, ds['u'], ds['v'], dic_model)
+                ds2 = get_data(dic_model2)
+                # draw(ds['qf_div']*10, ds['u'], ds['v'], dic_model)
+                # draw(ds['div']*10**3, ds['u'], ds['v'], dic_model)
+                draw(ds['wa']*10, ds2['u'], ds2['v'], dic_model)
         i += 1
 
 
@@ -412,13 +398,16 @@ def draw_minus():
     f2 = path_main+'gwd3'+'/upar.nc'
         # fl_list.append(fl)
     # t_list = pd.DatetimeIndex(['2021-07-20 00','2021-07-20 06', '2021-07-20 12'])
-    t_list = pd.DatetimeIndex(['2021-07-20 00','2021-07-20 03','2021-07-20 06', '2021-07-20 09','2021-07-20 12'])
-    # t_list = pd.DatetimeIndex(['2021-07-20 00'])
-    level_list = [700, 850, 900]
-    # level_list = [925]
+    # t_list = pd.DatetimeIndex(['2021-07-20 00','2021-07-20 03','2021-07-20 06', '2021-07-20 09','2021-07-20 12'])
+    # t_list = pd.date_range('2021-07-20 01', '2021-07-21 00', freq='1H')
+    t_list = pd.DatetimeIndex(['2021-07-20 00'])
+    # level_list = [700, 850, 900]
+    level_list = [700]
 
     # i = 0
     # for fl in fl_list:
+
+    ds_list = []
     for t in t_list:
         for level in level_list:
             # path_out = path_main+fl
@@ -445,6 +434,7 @@ def draw_minus():
             # print(ds1)
             ds2 = get_data(dic_model2)
             ds = ds2-ds1
+            ds_list.append(ds)
             # print(ds)
             dic_model = {
                 'model':'minus',
@@ -453,6 +443,18 @@ def draw_minus():
                 'flnm':f1,
             }    
             draw(ds['qf_div']*10, ds['u'], ds['v'], dic_model)
+
+    # dic_model = {
+    #     'model':'mean',
+    #     'level':level,
+    #     'time':t,
+    #     'flnm':f1,
+    # }    
+    # aa = xr.concat(ds_list, dim='time')
+    # bb = aa.mean(dim='time')
+    # draw(bb['qf_div']*10, bb['u'], bb['v'], dic_model)
+    
+    # return ds_list
     # print(ds1)
     # return ds1,ds2
         # i += 1
@@ -462,5 +464,6 @@ if __name__ == '__main__':
     pass
     # draw_model_once()
     draw_model_dual()
-    # draw_minus()
-    # aa
+    # aa = draw_minus()
+
+# %%

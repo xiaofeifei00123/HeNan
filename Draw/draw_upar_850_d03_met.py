@@ -199,12 +199,12 @@ def draw_station(ax):
 def add_ticks(ax,):
     """添加坐标标签"""
     # mb.set_extent([110, 116, 32, 36])
-    ax.set_yticks(np.arange(10, 50 + 1, 10))
-    ax.set_xticks(np.arange(80, 140 + 1, 10))
+    ax.set_yticks(np.arange(32, 36 + 1, 1))
+    ax.set_xticks(np.arange(110, 116 + 1, 1))
     ax.xaxis.set_major_formatter(LongitudeFormatter())
-    ax.xaxis.set_minor_locator(plt.MultipleLocator(5))
+    ax.xaxis.set_minor_locator(plt.MultipleLocator(0.5))
     ax.yaxis.set_major_formatter(LatitudeFormatter())
-    ax.yaxis.set_minor_locator(plt.MultipleLocator(5))
+    ax.yaxis.set_minor_locator(plt.MultipleLocator(0.5))
     ax.tick_params(which='major',length=10,width=2.0) # 控制标签大小 
     ax.tick_params(which='minor',length=5,width=1.0)  #,colors='b')
     ax.tick_params(axis='both', labelsize=25, direction='out')
@@ -303,10 +303,8 @@ def draw_quiver(u,v, ax):
     '''
     绘制风矢图
     '''
-    # u = u[::15,::15]
-    # v = v[::15,::15]
-    u = u[::8,::8]
-    v = v[::8,::8]
+    u = u[::15,::15]
+    v = v[::15,::15]
     # y = u.coords['lat']
     y = u.lat.values
     x = u.lon.values
@@ -345,15 +343,14 @@ def draw(qdif, qu,qv, dic):
     tt = (dic['time']).strftime('%Y-%m-%d %H%M')
     # print(tt)
     ax.set_title(tt, loc='center', fontsize=25)
-    # ax.set_title(dic['model'], loc='left', fontsize=25)
+    ax.set_title(dic['model'], loc='left', fontsize=25)
     # ax.set_title('OBS', loc='left', fontsize=25)
     ax.set_title(str(dic['level'])+'hPa', loc='right', fontsize=25)
 
     mb.drawstates(linewidths=0.8, alpha=0.5) # 省界
     # mb.set_extent('中国陆地')
     # mb.set_extent([107, 135, 20,40])
-    # mb.set_extent([110, 116, 32, 36])
-    mb.set_extent([90, 140, 10, 60])
+    mb.set_extent([110, 116, 32, 36])
     # mb.southsea(zoom=0.3, loc='left_bottom')
 
     ## 等值线(等高线)
@@ -430,7 +427,7 @@ def draw(qdif, qu,qv, dic):
     # mb.southsea(zoom=0.3, loc='left_bottom')
     # draw_south_sea(fig)
     fig_path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_upar/850/gwd/'
-    fig_name = str(fig_path)+str(dic['model'])+'_'+str(dic['level'])+'_'+(dic['time']).strftime('%Y%m%d%H')+'typhoond01'
+    fig_name = str(fig_path)+str(dic['model'])+'_'+str(dic['level'])+'_'+(dic['time']).strftime('%Y%m%d%H')+'typhoon'
     # fig.savefig('test.png')
     fig.savefig(fig_name)
 
@@ -553,7 +550,7 @@ def draw_model_dual():
     fl_list = []
     for model in model_list:
         # fl = path_main+model+'/upar_latlon.nc'
-        fl = path_main+model+'/upar1.nc'
+        fl = path_main+model+'/upar.nc'
         fl_list.append(fl)
     ### 北京时
     t_list = pd.DatetimeIndex(['2021-07-20 00','2021-07-20 00'])

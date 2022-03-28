@@ -4,6 +4,7 @@
 Description:
 绘制重力波拖曳应力
 区域平均的廓线
+比较gwd1和gwd3的合力
 -----------------------------------------
 Time             :2021/11/23 10:29:43
 Author           :Forxd
@@ -44,8 +45,9 @@ class Vp():
         pass
         self.var_list = ['DTAUY3D']
         # self.var_list = ['DTAUX3D_LS', 'DTAUX3D_SS', 'DTAUX3D_FD', 'DTAUX3D_BL']
-        self.label_list = ['gwd1']
-        self.color_list = ['green','orange',  'red', 'blue']
+        self.label_list = ['gwd1', 'gwd3']
+        # self.color_list = ['green','orange',  'red', 'blue']
+        self.color_list = ['red', 'blue']
 
 class Data(Vp):
     def __init__(self, flnm='/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/gwd3/wrfout_d01_2021-07-20_00:00:00'):
@@ -63,20 +65,20 @@ class Data(Vp):
             [type]: [description]
         """
 
-        # area = {
-        #     'lon1':111.5,
-        #     'lon2':113,
-        #     'lat1':33,
-        #     'lat2':34,
-        #     'interval':0.125,
-        # }
         area = {
-            'lon1':113,
-            'lon2':114,
-            'lat1':34.5,
-            'lat2':35.5,
+            'lon1':111.5,
+            'lon2':113,
+            'lat1':33,
+            'lat2':34,
             'interval':0.125,
         }
+        # area = {
+        #     'lon1':113,
+        #     'lon2':114,
+        #     'lat1':34.5,
+        #     'lat2':35.5,
+        #     'interval':0.125,
+        # }
         # wrfin = Dataset(self.flnm)
         wrfin = self.wrfin
         x1, y1 = wrf.ll_to_xy(wrfin,area['lat1'], area['lon1']).values
@@ -93,21 +95,46 @@ class Data(Vp):
             dds[var] = self.get_da_vertical(da)
         return dds
 
-    def get_da_dual(self,):
+    def get_da_dual(self, flag):
+        """获取合力
+
+        Args:
+            flag (_type_): 'gwd1' or 'gwd3'
+
+        Returns:
+            _type_: _description_
+        """
         ds = xr.open_dataset(self.flnm)
         dds = xr.Dataset()
-        # var_list1 = ['DTAUY3D_LS', 'DTAUY3D_SS', 'DTAUY3D_FD', 'DTAUY3D_BL']
-        # var_list2 = ['DTAUX3D_LS', 'DTAUX3D_SS', 'DTAUX3D_FD', 'DTAUX3D_BL']
-        var_list1 = ['DTAUY3D']
-        var_list2 = ['DTAUX3D']
-        for var1,var2,label in zip(var_list1,var_list2, self.label_list):
-            da1 = ds[var1].squeeze()
-            # da1 = self.get_da_vertical(da1)
-            da2 = ds[var2].squeeze()
-            # da2 = self.get_da_vertical(da2)
-            da = np.sqrt(da1**2+da2**2)
-            da = self.get_da_vertical(da)  # 可以先求合力，再插值, 比较大小是可以的
-            dds[label] = da
+        if flag == 'gwd1':
+            var_list1 = ['DTAUY3D']
+            var_list2 = ['DTAUX3D']
+            # label_list = ['gwd1']
+            da3 = 0
+            for var1,var2 in zip(var_list1,var_list2):
+                da1 = ds[var1].squeeze()
+                # da1 = self.get_da_vertical(da1)
+                da2 = ds[var2].squeeze()
+                # da2 = self.get_da_vertical(da2)
+                da = np.sqrt(da1**2+da2**2)
+                da = self.get_da_vertical(da)  # 可以先求合力，再插值, 比较大小是可以的
+                da3 = da3+da
+            dds['gwd1'] = da3
+
+        elif flag == 'gwd3': 
+            var_list1 = ['DTAUY3D_LS', 'DTAUY3D_SS', 'DTAUY3D_FD', 'DTAUY3D_BL']
+            var_list2 = ['DTAUX3D_LS', 'DTAUX3D_SS', 'DTAUX3D_FD', 'DTAUX3D_BL']
+            # label_list = ['LS-GWD', 'SS-GWD', 'TOFD', 'BL']
+            da3 = 0
+            for var1,var2 in zip(var_list1,var_list2):
+                da1 = ds[var1].squeeze()
+                # da1 = self.get_da_vertical(da1)
+                da2 = ds[var2].squeeze()
+                # da2 = self.get_da_vertical(da2)
+                da = np.sqrt(da1**2+da2**2)
+                da = self.get_da_vertical(da)  # 可以先求合力，再插值, 比较大小是可以的
+                da3 = da3+da
+            dds['gwd3'] = da3
         return dds
 
 def get_drag_gwd0():
@@ -188,28 +215,33 @@ class Draw(Vp):
         ax.set_title(self.pic_dic['time'], loc='right', fontsize=22)
         
         # fig.savefig('/mnt/zfm_18T/fengxiang/HeNan/Draw/aa.png')
-        fig.savefig(self.fig_name+'right')
+        fig.savefig(self.fig_name+'leftt111')
         plt.close()
 
 def main():
-    # f_path = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd3/'
-    f_path = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd1/'
+    f_path_gwd3 = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd3/'
+    f_path_gwd1 = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd1/'
     domain_list = ['d01', 'd02', 'd03']
-    time_range = pd.date_range('2021-07-20 1600', '2021-07-20 1600', freq='3H')
+    time_range = pd.date_range('2021-07-20 1200', '2021-07-20 1200', freq='3H')
     for t in time_range:
         for d in domain_list:
             f_name = 'wrfout_'+d+'_'+t.strftime('%Y-%m-%d_%H:%M:%S')
-            flnm = f_path+f_name
+            flnm_gwd1 = f_path_gwd1+f_name
+            flnm_gwd3 = f_path_gwd3+f_name
 
             pic_dic = {'time':t.strftime('%d-%H'), 'domain':d}            
             print(pic_dic['domain']+pic_dic['time']+'gwd1')
             
 
     
-            dt = Data(flnm)
-            ds = dt.get_da_dual()
+            dt1 = Data(flnm_gwd1)
+            dt3 = Data(flnm_gwd3)
+            ds1 = dt1.get_da_dual(flag='gwd1')
+            ds3 = dt3.get_da_dual(flag='gwd3')
+            ds4 = xr.merge([ds1, ds3])
+            # print(ds4['gwd1'])
             dr = Draw(pic_dic)
-            dr.draw_dual(ds)
+            dr.draw_dual(ds4)
     
     
 
