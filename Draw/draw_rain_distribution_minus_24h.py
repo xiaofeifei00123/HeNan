@@ -147,7 +147,7 @@ class Draw(object):
         cb.ax.tick_params(labelsize=10)  # 设置色标标注的大小
         fig_name = picture_dic['type']+'_'+picture_dic['initial_time']
         fig_path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_rain/rain_24h_gwd/'
-        fig.savefig(fig_path+fig_name, bbox_inches = 'tight')
+        fig.savefig(fig_path+fig_name)
 
 
 
@@ -174,7 +174,7 @@ def draw_minus(model='gwd3'):
     
     da = da3-da0
     # picture_dic = {'date':'2021-07 20/00--21/00', 'type':model, 'initial_time':''}
-    picture_dic = {'date':'2021-07 20/00--21/00', 'type':'gwd3-gwd0', 'initial_time':''}
+    picture_dic = {'date':'2021-07 20/00--21/00', 'type':'gwd3-nogwd', 'initial_time':''}
     dr.draw_single(da, picture_dic)
 
     
@@ -249,6 +249,6 @@ def draw_minus_EC(model='gwd3'):
 
 if __name__ == '__main__':
 
-    # draw_minus()
+    draw_minus()
     # draw_minus_latlon()
-    draw_minus_EC()
+    # draw_minus_EC()
