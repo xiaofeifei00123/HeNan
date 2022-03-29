@@ -40,8 +40,10 @@ from baobao.interp import rain_station2grid   # 站点插值成格点，这里�
 # %%
 class Draw(object):
 
-    def __init__(self) -> None:
+    def __init__(self, fig, ax) -> None:
         super().__init__()
+        self.fig = fig
+        self.ax = ax
         self.path_province = '/mnt/zfm_18T/fengxiang/DATA/SHP/Province_shp/henan.shp'
         self.path_henan = '/mnt/zfm_18T/fengxiang/DATA/SHP/shp_henan/henan.shp'
         self.path_city = '/mnt/zfm_18T/fengxiang/DATA/SHP/shp_henan/zhenzhou/zhenzhou_max.shp'
@@ -78,11 +80,13 @@ class Draw(object):
             da (DataArray): 单个时次的降水
         """
         # fig = plt.figure(figsize=(3.8, 3.7), dpi=300)
-        cm = round(1/2.54, 2)
-        fig = plt.figure(figsize=(8*cm, 8*cm), dpi=300)
-        # fig = plt.figure()
-        proj = ccrs.PlateCarree()  # 创建坐标系
-        ax = fig.add_axes([0.1,0.08,0.85,0.85], projection=proj)
+        # cm = round(1/2.54, 2)
+        # fig = plt.figure(figsize=(8*cm, 8*cm), dpi=600)
+        # proj = ccrs.PlateCarree()  # 创建坐标系
+        # ax = fig.add_axes([0.1,0.08,0.85,0.85], projection=proj)
+
+        fig = self.fig
+        ax = self.ax
 
         date = picture_dic['date']
         dic = {'name':'HeNan',
@@ -122,6 +126,7 @@ class Draw(object):
         cf = self.draw_contourf_single(da, ax, dic)
         colorlevel=[-700, -200, -100, -50, -20, 20, 50 , 100, 200,700 ]#雨量等级
         colorticks = colorlevel[1:-1]
+        return cf
         
         # cb = fig.colorbar(
         #     cf,
@@ -131,36 +136,33 @@ class Draw(object):
         #     pad=0.02,  #  色标和子图间距离
         # )
 
-        cb = fig.colorbar(
-            cf,
-            # cax=ax6,
-            orientation='horizontal',
-            ticks=colorticks,
-            fraction = 0.05,  # 色标大小,相对于原图的大小
-            pad=0.1,  #  色标和子图间距离
-        )
+        # cb = fig.colorbar(
+        #     cf,
+        #     # cax=ax6,
+        #     orientation='horizontal',
+        #     ticks=colorticks,
+        #     fraction = 0.05,  # 色标大小,相对于原图的大小
+        #     pad=0.1,  #  色标和子图间距离
+        # )
         
-        
-        
-        
-
-        cb.ax.tick_params(labelsize=10)  # 设置色标标注的大小
-        fig_name = picture_dic['type']+'_'+picture_dic['initial_time']
-        fig_path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_rain/rain_24h_gwd/'
-        fig.savefig(fig_path+fig_name)
+        # cb.ax.tick_params(labelsize=10)  # 设置色标标注的大小
+        # fig_name = picture_dic['type']+'_'+picture_dic['initial_time']
+        # fig_path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_lunwen/'
+        # fig.savefig(fig_path+fig_name+'.png', rasterized=True)
 
 
 
 
-def draw_minus(model='gwd3'):
+def draw_minus(dr):
     """原始投影格式的数据，直接相减
+    gwd3-nogwd
 
     Args:
         model (str, optional): _description_. Defaults to 'gwd3'.
     """
     pass
 
-    dr = Draw()
+    # dr = Draw()
     flnm3 = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd3/rain.nc'
     flnm0 = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd0/rain.nc'
 
@@ -175,19 +177,26 @@ def draw_minus(model='gwd3'):
     da = da3-da0
     # picture_dic = {'date':'2021-07 20/00--21/00', 'type':model, 'initial_time':''}
     picture_dic = {'date':'2021-07 20/00--21/00', 'type':'gwd3-nogwd', 'initial_time':''}
-    dr.draw_single(da, picture_dic)
+    cf = dr.draw_single(da, picture_dic)
+    return cf
 
     
-def draw_minus_latlon(model='gwd3'):
+def draw_minus_latlon(dr, model):
     """插值过后的数据相减
+    gwd3-obs
+    gwd0-obs
+
 
     Args:
         model (str, optional): _description_. Defaults to 'gwd3'.
     """
     pass
 
-    dr = Draw()
-    flnm3 = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd3/rain_latlon.nc'
+    # dr = Draw()
+    if model == 'gwd3':
+        flnm3 = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd3/rain_latlon.nc'
+    elif model == 'gwd0':
+        flnm3 = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd0/rain_latlon.nc'
     flnm0 = '/mnt/zfm_18T/fengxiang/HeNan/Data/OBS/rain_latlon.nc'
     da3 = xr.open_dataarray(flnm3)
     da3 = da3.sel(time=slice('2021-07-20 01', '2021-07-21 00'))
@@ -208,18 +217,20 @@ def draw_minus_latlon(model='gwd3'):
         dims=['lat', 'lon']
         )
     picture_dic = {'date':'2021-07 20/00--21/00', 'type':'gwd3-obs', 'initial_time':''}
-    dr.draw_single(da, picture_dic)
+    cf = dr.draw_single(da, picture_dic)
+    return cf
     
 
-def draw_minus_EC(model='gwd3'):
-    """原始投影格式的数据，直接相减
+def draw_minus_EC(dr):
+    """EC和观测插值过后的数据相减
+    EC-OBS
 
     Args:
         model (str, optional): _description_. Defaults to 'gwd3'.
     """
     pass
 
-    dr = Draw()
+    # dr = Draw()
 
     flnm = '/home/fengxiang/HeNan/Data/OBS/rain_ec.nc'
     da2 = xr.open_dataarray(flnm)
@@ -242,13 +253,39 @@ def draw_minus_EC(model='gwd3'):
     
     da = da2-da1
     # picture_dic = {'date':'2021-07 20/00--21/00', 'type':model, 'initial_time':''}
-    picture_dic = {'date':'2021-07 20/00--21/00', 'type':'EC-OBS', 'initial_time':''}
-    dr.draw_single(da, picture_dic)
+    picture_dic = {'date':'2021-07 20/01--21/00', 'type':'EC-OBS', 'initial_time':''}
+    cf = dr.draw_single(da, picture_dic)
+    return cf
 
 
 
 if __name__ == '__main__':
 
-    draw_minus()
-    # draw_minus_latlon()
-    # draw_minus_EC()
+    cm = round(1/2.54, 2)
+    fig = plt.figure(figsize=(8*cm, 8*cm), dpi=600)
+    proj = ccrs.PlateCarree()  # 创建坐标系
+    ax = fig.add_axes([0.1,0.08,0.85,0.85], projection=proj)
+
+    dr = Draw(fig, ax)
+
+    cf = draw_minus(dr)
+    draw_minus_latlon(dr, 'gwd3')
+    draw_minus_EC(dr)
+
+
+    colorlevel=[-700, -200, -100, -50, -20, 20, 50 , 100, 200,700 ]#雨量等级
+    colorticks = colorlevel[1:-1]
+    cb = fig.colorbar(
+        cf,
+        # cax=ax,
+        orientation='horizontal',
+        ticks=colorticks,
+        fraction = 0.05,  # 色标大小,相对于原图的大小
+        pad=0.1,  #  色标和子图间距离
+    )
+    
+    cb.ax.tick_params(labelsize=10)  # 设置色标标注的大小
+    fig_name = 'aaaa'
+    fig_path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_lunwen/'
+    fig.savefig(fig_path+fig_name+'.png', rasterized=True)
+
