@@ -158,8 +158,7 @@ class Draw():
 
     def draw_SAL(self,df, ax, title='SAL'):
 
-        # labels = ["Structure", "Amplitude", "Location"]
-        labels = ["结构S", "强度A", "位置L"]
+        labels = ["Structure", "Amplitude", "Location"]
         x = np.arange(len(labels)) * 2
         width = 0.3
 
@@ -190,8 +189,6 @@ class Draw():
 
         ax.axhline(y=0, color='black', linewidth=0.5) # 画0线
         ax.legend(fontsize=10, loc='upper left', edgecolor='white')
-        ax.set_title('(b)', loc='right', y=0.86, fontsize=8)
-        # ax.set_xlabel('SAL 评分', fontsize=10)
         # self.set_ticks(ax)
 
 
@@ -204,8 +201,7 @@ if __name__ == '__main__':
     dr = Draw()
     cm = round(1/2.54,2)
     fig = plt.figure(figsize=(8*cm,6*cm), dpi=600)
-    # ax = fig.add_axes([0.1,0.1,0.8,0.8])
-    ax = fig.add_axes([0.15,0.25, 0.80,0.7])
+    ax = fig.add_axes([0.1,0.1,0.8,0.8])
     dr.draw_SAL(bb,ax)
     fig_name = 'sal1.png'
     fig_path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_lunwen/'

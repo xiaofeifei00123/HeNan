@@ -28,9 +28,9 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 ## 显示中文
-plt.rcParams['font.family'] = ['sans-serif']
-plt.rcParams['font.sans-serif'] = ['SimHei']
-plt.rcParams['axes.unicode_minus'] = False
+# plt.rcParams['font.family'] = ['sans-serif']
+# plt.rcParams['font.sans-serif'] = ['SimHei']
+# plt.rcParams['axes.unicode_minus'] = False
 
 # %%
 
@@ -46,7 +46,7 @@ class Draw():
     
     def __init__(self,):
         self.fontsize = 10
-        self.path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_rain/time_sequence/'   # 这里要改
+        self.path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_lunwen/'   # 这里要改
 
     def draw_time_sequence(self,ax, dic, pic_dic):
         """[summary]
@@ -247,22 +247,72 @@ def draw_zhenzhou_max():
 
 def draw_zhenzhou_mean():
     pass
-    flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/Rain/rain_all_station.nc'
+    flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/Rain/rain_all_station1.nc'
     ds = xr.open_dataset(flnm)
     ds = ds.sel(time=slice('2021-07-20 00', '2021-07-21 00'))
-    area = {
-        'lon1':112,
-        'lon2':115,
-        'lat1':33,
-        'lat2':36,
-        # 'interval':0.125,
-        'interval':0.05,
-    }
+    ## 伏牛山南边south
     # area = {
-    #     'lon1':112.7,
-    #     'lon2':114.2,
-    #     'lat1':34.2,
-    #     'lat2':34.8,
+    #     'lon1':112.5,
+    #     'lon2':113.2,
+    #     'lat1':33.2,
+    #     'lat2':33.8,
+    #     'interval':0.05,
+    # }
+    ## 伏牛山北边
+    # area = {
+    #     'lon1':111.7,
+    #     'lon2':112.3,
+    #     'lat1':33.4,
+    #     'lat2':34.1,
+    #     'interval':0.125,
+    # }
+    ## 伏牛山
+    # area = {
+    #     'lon1':111.7,
+    #     'lon2':113.3,
+    #     'lat1':33.4,
+    #     'lat2':33.8,
+    #     'interval':0.125,
+    # }
+    ## 伏牛山左边
+    area = {
+        'lon1':111.7,
+        'lon2':112.4,
+        'lat1':33.4,
+        'lat2':33.8,
+        'interval':0.125,
+    }
+    ## 伏牛山右边
+    # area = {
+    #     'lon1':112.4,
+    #     'lon2':113.3,
+    #     'lat1':33.4,
+    #     'lat2':33.8,
+    #     'interval':0.125,
+    # }
+    ## 郑州范围
+    # area = {
+    #     'lon1':112.5,
+    #     'lon2':114,
+    #     'lat1':34.5,
+    #     'lat2':35,
+    #     'interval':0.125,
+    # }
+    ## 大降水范围
+    # area = {
+    #     'lon1':112.2,
+    #     'lon2':115,
+    #     'lat1':33.5,
+    #     'lat2':36,
+    #     'interval':0.125,
+    # }
+
+    ## 全局范围
+    # area = {
+    #     'lon1':110,
+    #     'lon2':116,
+    #     'lat1':32,
+    #     'lat2':37,
     #     'interval':0.125,
     # }
     index = ((ds.lat<=area['lat2']) & (ds.lat>=area['lat1']) & (ds.lon>=area['lon1']) & (ds.lon<=area['lon2']))
@@ -278,8 +328,8 @@ def draw_zhenzhou_mean():
 
 if __name__ == '__main__':
     # main()
-    draw_zhenzhou()
-    draw_zhenzhou_max()
+    # draw_zhenzhou()
+    # draw_zhenzhou_max()
     draw_zhenzhou_mean()
     pass
     # %%

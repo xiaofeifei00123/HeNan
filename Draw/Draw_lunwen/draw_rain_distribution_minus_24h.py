@@ -40,7 +40,6 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import geopandas
 import cmaps
-from get_cmap import get_cmap_rain2
 from multiprocessing import Pool
 from baobao.map import Map
 from baobao.interp import rain_station2grid   # 站点插值成格点，这里插到和EC网格点一样
@@ -235,20 +234,20 @@ if __name__ == '__main__':
         return dr
 
     ## EC和观测降水差值
-    dr = get_dr()
-    gd = GetData()
-    da = gd.EC_OBS()
-    cf = dr.draw_single(da)
-    cb = dr.fig.colorbar(
-        cf,
-        # cax=ax6,
-        orientation='horizontal',
-        ticks=dr.colorticks,
-        fraction = 0.05,  # 色标大小,相对于原图的大小
-        pad=0.1,  #  色标和子图间距离
-        )
-    fig_name = 'EC-OBS'
-    dr.fig.savefig(fig_path+fig_name+'.png', rasterized=True)
+    # dr = get_dr()
+    # gd = GetData()
+    # da = gd.EC_OBS()
+    # cf = dr.draw_single(da)
+    # cb = dr.fig.colorbar(
+    #     cf,
+    #     # cax=ax6,
+    #     orientation='horizontal',
+    #     ticks=dr.colorticks,
+    #     fraction = 0.05,  # 色标大小,相对于原图的大小
+    #     pad=0.1,  #  色标和子图间距离
+    #     )
+    # fig_name = 'EC-OBS'
+    # dr.fig.savefig(fig_path+fig_name+'.png', rasterized=True)
     
     ## 模式和模式降水差值
     dr = get_dr()
@@ -263,23 +262,26 @@ if __name__ == '__main__':
         fraction = 0.05,  # 色标大小,相对于原图的大小
         pad=0.1,  #  色标和子图间距离
         )
-    fig_name = 'gwd3-gwd0'
-    dr.fig.savefig(fig_path+fig_name+'.png', rasterized=True)
+    cb.ax.tick_params(labelsize=8)  # 设置色标标注的大小
+    title_name = '(a)'
+    dr.ax.set_title(title_name, loc='left', fontsize=8,y=0.98)
+    fig_name = 'gwd3-no_gwd'
+    dr.fig.savefig(fig_path+fig_name+'.png')
 
     ## 模式和观测降水差值 
-    for model in ['gwd3', 'gwd0']:
-        dr = get_dr()
-        gd = GetData()
-        da = gd.model_obs(model)
-        cf = dr.draw_single(da)
-        cb = dr.fig.colorbar(
-            cf,
-            # cax=ax6,
-            orientation='horizontal',
-            ticks=dr.colorticks,
-            fraction = 0.05,  # 色标大小,相对于原图的大小
-            pad=0.1,  #  色标和子图间距离
-            )
-        cb.ax.tick_params(labelsize=10)  # 设置色标标注的大小
-        fig_name = model+'-obs'
-        dr.fig.savefig(fig_path+fig_name+'.png', rasterized=True)
+    # for model in ['gwd3', 'gwd0']:
+    #     dr = get_dr()
+    #     gd = GetData()
+    #     da = gd.model_obs(model)
+    #     cf = dr.draw_single(da)
+    #     cb = dr.fig.colorbar(
+    #         cf,
+    #         # cax=ax6,
+    #         orientation='horizontal',
+    #         ticks=dr.colorticks,
+    #         fraction = 0.05,  # 色标大小,相对于原图的大小
+    #         pad=0.1,  #  色标和子图间距离
+    #         )
+    #     cb.ax.tick_params(labelsize=10)  # 设置色标标注的大小
+    #     fig_name = model+'-obs'
+    #     dr.fig.savefig(fig_path+fig_name+'.png', rasterized=True)

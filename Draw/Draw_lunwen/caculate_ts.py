@@ -2,7 +2,7 @@
 # -*- encoding: utf-8 -*-
 '''
 Description:
-计算TS评分，并绘制bar图
+计算TS或者ETS评分，并绘制bar图
 -----------------------------------------
 Time             :2021/10/12 10:50:16
 Author           :Forxd
@@ -23,7 +23,6 @@ import meteva.base as meb
 
 import matplotlib.pyplot as plt
 from cycler import cycler
-from global_variable import station_dic
 import seaborn as sns
 
 
@@ -77,8 +76,8 @@ class Caculate(TS):
             # print(rain_model.max())
             print("计算 %s" %model)
             hfmc = mem.hfmc(rain_obs, rain_model, grade_list=[threshold])   # 这里算的都是平均值的评分, 我想要的是评分的平均值, 也就是要算每个时次的评分
-            # TS[model] = mem.ets_hfmc(hfmc) 
-            TS[model] = mem.ts_hfmc(hfmc) 
+            TS[model] = mem.ets_hfmc(hfmc) 
+            # TS[model] = mem.ts_hfmc(hfmc) 
             Accuracy[model] = mem.pc_hfmc(hfmc)
             # POFD[model] = mem.pofd_hfmc(hfmc)
             # POFD[model] = mem.far_hfmc(hfmc)
@@ -104,84 +103,6 @@ class Caculate(TS):
         # print(df)
         # df.to_csv('/home/fengxiang/Project/Asses_PBL/Data/tt.csv')
         return df
-
-
-
-    def get_space_scale(self, rain_threshold):
-        """计算空间评分
-        """
-        rain = self.rain
-        """空间降水"""
-        # model_list = ['ACM2', 'YSU', 'QNSE', 'QNSE_EDMF', 'TEMF']
-        model_list = self.model_list
-
-        sal_list = []
-        for model in model_list:
-            pass
-            print("计算 %s" %model)
-            # tttime = pd.date_range()
-            rain_model = rain[model]
-            rain_obs  = rain['OBS']
-            grid_obs = meb.xarray_to_griddata(rain_obs)
-            grid_model = meb.xarray_to_griddata(rain_model)
-
-            look_ff = mem.mode.feature_finder(grid_obs, grid_model, smooth=10, threshold=rain_threshold/15, minsize=5)
-            look_match = mem.mode.centmatch(look_ff)
-            look_merge = mem.mode.merge_force(look_match)
-            sal = mem.sal(look_ff)
-            ssal = pd.Series(sal)
-            sal_list.append(ssal)
-        
-        df = pd.concat(sal_list, axis=1)
-        df.columns = model_list
-        return df
-
-    def get_time_scale(self, rain):
-        """计算时间序列的评分
-        rain是时间序列的降水, 就是一个一维的数组
-        """
-        # rd = rd(self.flag, self.area)
-        # rain = rd.get_rain_total()
-        # rain = rd.get_rain_times()
-        # print(rain)
-        # model_list = ['ACM2', 'YSU', 'QNSE', 'QNSE_EDMF', 'TEMF']
-        # model_list = ['1900_90m', '1900_900m','1912_90m', '1912_900m']
-        model_list = self.model_list
-
-        MAE = {} # 平均绝对误差
-        RMSE = {} # 均方根误差
-        SD = {}  # 预报标准差/观测标准差
-        CORR = {}
-        for model in model_list:
-            pass
-            rain_model = rain[model].values
-            rain_obs  = rain['obs'].values
-            # MAE[model] = mem.mae(rain_obs, rain_model)
-            sd = mem.ob_fo_std(rain_obs, rain_model)
-            SD[model] = sd[1]/sd[0]
-            RMSE[model] = mem.rmse(rain_obs, rain_model)
-            CORR[model] = mem.corr(rain_obs, rain_model)
-        # grade_list = [MAE, RMSE, SD, CORR]
-        # grade_list_name = ['MAE', 'RMSE', 'SD', 'CORR']
-        # grade_list = [RMSE, SD, CORR]
-        grade_list = [RMSE, SD]
-        # grade_list_name = ['RMSE', 'SD[Model]/SD[OBS]']
-        grade_list_name = ['RMSE', 'SD[Fcst]/SD[Obs]']
-        # grade_list_name = ['RMSE', 'SD', 'CORR']
-        # grade_list_name = ['Accuracy', 'TS', 'POFD', 'HK', 'ODR', 'BIAS']
-
-        b = []
-        for i in grade_list:
-            a = pd.Series(i)
-            b.append(a)
-            # print(a)
-        df = pd.concat(b, axis=1)
-        df.columns = grade_list_name
-        df = df.T
-        print(df)
-        # df.to_csv('/home/fengxiang/Project/Asses_PBL/Data/time_score.csv')
-        return df
-
 
 def draw_taylor(dds):
     """绘制泰勒图
@@ -269,7 +190,7 @@ class Draw(TS):
         # cm = 
         cm = round(1/2.54, 2)
         fig = plt.figure(figsize=(8*cm, 6*cm), dpi=600)  # 创建页面
-        ax = fig.add_axes([0.15,0.2, 0.80,0.7])
+        ax = fig.add_axes([0.15,0.25, 0.80,0.7])
         i = -0.5
         j = 0
         for model in model_list:
@@ -284,7 +205,7 @@ class Draw(TS):
             # rects = ax.bar(x+width*i, ds[model], width, label='no_gwd', color=color_list[j])
             label = model
             if model == 'gwd0':
-                label = 'no_gwd'
+                label = 'no-gwd'
 
             rects = ax.bar(x+width*i, ds[model], width, label=label, color=color_list[j])
             i += 1
@@ -300,9 +221,11 @@ class Draw(TS):
         ax.legend(fontsize=10, edgecolor='white', loc='upper right')
         # ax.set_title('ETS (24h)', fontsize=10)
         ax.set_ylabel('ETS', fontsize=10)
-        ax.set_xlabel('precipitation (mm)', fontsize=10)
+        # ax.set_xlabel('precipitation (mm)', fontsize=10)
+        ax.set_xlabel('降 水 (mm)', fontsize=10)
+        ax.set_title('(a)', loc='left', y=0.86, fontsize=8)
         # ax.spines().set_linewidth(1)
-        fig.savefig('/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_rain/ETS_score_24h.png', bbox_inches = 'tight' )
+        fig.savefig('/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_lunwen/ETS_score_24h.png')
 if __name__ == '__main__':
     pass
     ts = get_ts()

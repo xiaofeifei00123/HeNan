@@ -117,7 +117,8 @@ class RainGrid():
             'lon2':116,
             'lat1':32,
             'lat2':36.5,
-            'interval':0.125,
+            # 'interval':0.125,
+            'interval':0.05,
         }
         ddc = rain_station2grid(da, area)
         return ddc
@@ -127,11 +128,11 @@ class RainGrid():
         da = xr.open_dataarray('/mnt/zfm_18T/fengxiang/HeNan/Data/OBS/rain.nc')
         ## 插值为格点数据
         da_grid = self.rain_station2grid(da)
-        da_grid.to_netcdf('/mnt/zfm_18T/fengxiang/HeNan/Data/OBS/rain_latlon.nc')
+        da_grid.to_netcdf('/mnt/zfm_18T/fengxiang/HeNan/Data/OBS/rain_latlon_005.nc')
 
 def save_rain():
-    rs = RainStation()
-    rs.save_rain()
+    # rs = RainStation()
+    # rs.save_rain()
     rg = RainGrid()
     rg.save_rain_grid()
 # %%
