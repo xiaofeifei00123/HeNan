@@ -3,6 +3,7 @@
 '''
 Description:
 画时间高度廓线, 值是区域平均值(33-34N,111.5-113E)
+多子图合并为一张图
 -----------------------------------------
 Time             :2022/01/05 17:40:10
 Author           :Forxd
@@ -30,8 +31,6 @@ def draw_contour(ax, x, y,da, **kw):
     if kw:
         if kw['levels']:
             levels = kw['levels']
-    
-    
 
     crx = ax.contour(x,
                         y,
@@ -46,7 +45,7 @@ def draw_contour(ax, x, y,da, **kw):
     ax.clabel(crx, inline=1, fontsize=12, colors='blue') # 等值线的标注
     return crx
 
-def draw_quiver(ax,x,y,u,v, scale=60, ulength=10):
+def draw_quiver(ax,x,y,u,v, scale=60, ulength=10, xk=0.1, yk=0.1):
     '''
     绘制风矢图
     '''
@@ -60,22 +59,14 @@ def draw_quiver(ax,x,y,u,v, scale=60, ulength=10):
     x = x[::2]
     y = y[::8]
     Q = ax.quiver(x, y, u.values,v.values,units='inches',scale=scale,pivot='middle')  # 绘制风矢
-    qk = ax.quiverkey(Q, X=0.69, Y=0.05, U=ulength, label=r'$(v, {} m/s)$'.format(ulength), labelpos='E',coordinates='figure',  fontproperties={'size':10})   # 设置参考风矢
+    # qk = ax.quiverkey(Q, X=0.69, Y=0.05, U=ulength, label=r'$(v, {} m/s)$'.format(ulength), labelpos='E',coordinates='figure',  fontproperties={'size':10})   # 设置参考风矢
+    qk = ax.quiverkey(Q, X=xk, Y=yk, U=ulength, label=r'$(v, {} m/s)$'.format(ulength), labelpos='E',coordinates='figure',  fontproperties={'size':10})   # 设置参考风矢
 
 
-def draw_contourf(fig, ax_cross, xs,ys,da,):
+def draw_contourf(ax_cross, xs,ys,da,):
 
-    # xs = np.arange(0, da.shape[-1], 1)
-    # ys = da.coords['vertical'].values
-    # colordict=['#191970','#005ffb','#5c9aff','#98ff98','#ddfddd','#FFFFFF','#fffde1','#ffff9e', '#ffc874','#ffa927', '#ff0000']#颜色列表
     colordict=['#191970','#005ffb','#5c9aff','#98ff98','#FFFFFF','#ffff9e', '#ffc874','#ffa927', '#ff0000']#颜色列表
-    # colorlevel=[-80, -30, -20, -10, -5, -1, 1, 5, 10, 20, 30, 80]#雨量等级
-    # colorlevel=[-120, -50, -30, -10, -5, -1, 1, 5, 10, 30, 50, 120]#雨量等级
-    # colorlevel=[-120, -50, -30, -10,  -1, 1, 10, 30, 50, 120]#雨量等级
-    # colorlevel=[-120, -50, -30, -10,  -1, 1, 10, 30, 50, 120]#雨量等级
-    # colorlevel=[-80, -30, -10, -5, -1, 1, 5, 10, 30, 80]#雨量等级
     colorlevel=[-80, -8, -5, -3, -1, 1, 3, 5, 8,80]#雨量等级
-    # colorlevel=[-280, -30, -20, -10, -5,  5, 10,20, 30, 280]#雨量等级
     colorticks = colorlevel[1:-1]
     dbz_contours = ax_cross.contourf(xs,
                                     ys,
@@ -83,20 +74,21 @@ def draw_contourf(fig, ax_cross, xs,ys,da,):
                                     colors=colordict,
                                     levels=colorlevel
                                     )
+    return dbz_contours
     # ax_cross.set_ylim(1000, 200)
-    cb_dbz = fig.colorbar(dbz_contours, ax=ax_cross, ticks=colorticks)
-    cb_dbz.ax.tick_params(labelsize=10)
+    # cb_dbz = fig.colorbar(dbz_contours, ax=ax_cross, ticks=colorticks)
+    # cb_dbz.ax.tick_params(labelsize=10)
 
 
-def set_ticks(fig,ax, x,y, pdic):
+def set_ticks(ax, x,y,):
     """绘制图片的标签之类的
     """
     pass
     ## 标题之类的
     # ax.set_title('south', fontsize=10, loc='left')
-    ax.set_xlabel("Time (Day/Hour)", fontsize=10)
+    # ax.set_xlabel("Time (Day/Hour)", fontsize=10)
     # ax.set_ylabel("Pressure (hPa)", fontsize=10)
-    ax.set_ylabel("Height above ground level (km)", fontsize=10)
+    # ax.set_ylabel("Height above ground level (km)", fontsize=10)
 
     ## 坐标标签
     x_ticks = x.values
@@ -109,9 +101,9 @@ def set_ticks(fig,ax, x,y, pdic):
 
 
 
-# %%
-def draw(pdic):
-    flnm = pdic['flnm']
+def draw(ax,flnm):
+    # flnm = pdic['flnm']
+
     ds = xr.open_dataset(flnm)
     ds = ds.sel(time=slice('2021-07-20 00', '2021-07-21 00'))
     # dds = ds.interpolate_na(dim='height_agl',method='nearest')
@@ -134,27 +126,30 @@ def draw(pdic):
     y = y/1000
     wh = np.sqrt(u**2+v**2) # wind_horizontal
 
-    cm = 1/2.54
-    fig = plt.figure(figsize=[8*cm,8*cm], dpi=300)
-    ax = fig.add_axes([0.15,0.2,0.8,0.7])
+    # cm = 1/2.54
+    # fig = plt.figure(figsize=[8*cm,8*cm], dpi=300)
+    # ax = fig.add_axes([0.15,0.2,0.8,0.7])
     
-    draw_contourf(fig,ax,x,y,w*10)
+    cf = draw_contourf(ax,x,y,w*10)
     draw_quiver(ax,x,y,u,v)
     crx = draw_contour(ax,x,y,div)
     ax.set_yticks(np.arange(0,15,1))  # 这个是选择哪几个坐标画上来的了,都有只是显不显示
     ax.set_ylim(0,14)
-    set_ticks(fig,ax,x,y,pdic)
+    set_ticks(ax,x,y)
+    return cf
     
-    fig_path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_lunwen/'
-    fig_name = pdic['model']
-    fig.savefig(fig_path+fig_name+'time_cross_left.png')
+    # fig_path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_lunwen/'
+    # fig_name = pdic['model']
+    # fig.savefig(fig_path+fig_name+'time_cross_left.png')
     
     
 def draw_minus(ax, loc='left'):
     # flnm = pdic['flnm']
     pdic = {'model':'minus'}
-    flnm3 = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd3/time_height_gwd3left.nc'
-    flnm0 = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd0/time_height_gwd0left.nc'
+    # flnm3 = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd3/time_height_gwd3left.nc'
+    # flnm0 = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd0/time_height_gwd0left.nc'
+    flnm3 = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd3/time_height_gwd3'+loc+'.nc'
+    flnm0 = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd0/time_height_gwd0'+loc+'.nc'
     def get_data(flnm):
         ds = xr.open_dataset(flnm)
         ds = ds.sel(time=slice('2021-07-20 00', '2021-07-21 00'))
@@ -184,44 +179,109 @@ def draw_minus(ax, loc='left'):
     # wh = wh3-wh0
     div = div3-div0
     
-    cm = 1/2.54
-    fig = plt.figure(figsize=[8*cm,8*cm], dpi=300)
-    ax = fig.add_axes([0.15,0.2,0.8,0.7])
+    # cm = 1/2.54
+    # fig = plt.figure(figsize=[8*cm,8*cm], dpi=300)
+    # ax = fig.add_axes([0.15,0.2,0.8,0.7])
     # ax = fig.add_axes([0.15,0.15,0.8,0.8])
-    draw_contourf(fig,ax,x,y,w*10)
-    draw_quiver(ax,x,y,u,v, scale=20, ulength=5)
+    draw_contourf(ax,x,y,w*10)
+    draw_quiver(ax,x,y,u,v, scale=20, ulength=5, xk=0.9, yk=0.1)
     # crx = draw_contour(ax,x,y,wh)
     crx = draw_contour(ax,x,y,div, levels=[-16, -8,8, 16])
-    set_ticks(fig,ax,x,y,pdic)
+    ax.set_ylim(0,14)
+    set_ticks(ax,x,y)
+    ax.set_yticks(np.arange(0,15,1))
     
-    # fig_path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_lunwen/'
-    # fig_name = 'time_cross_minus'
-    # fig.savefig(fig_path+fig_name+'aaaa')
+
+        
+cm = 1/2.54
+fig = plt.figure(figsize=(19*cm, 20*cm), dpi=600)
+grid = plt.GridSpec(3,
+                    3,
+                    figure=fig,
+                    left=0.1,
+                    right=0.95,
+                    bottom=0.15,
+                    top=0.95,
+                    wspace=0.2,
+                    hspace=0.25)
+                    # hspace=0.2)
+                    # )
+num = 9
+axes = [None] * num  # 设置一个维度为8的空列表
+for i in range(num):
+    axes[i] = fig.add_subplot(grid[i])
+    
+draw_minus(axes[2],'all')
+draw_minus(axes[5],'left')
+draw_minus(axes[8],'right')
+
+# model_list = ['gwd0', 'gwd3']
+# model_list = ['gwd3']
+
+
+
+flpath = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd0/'
+fname = 'time_height_'+'gwd0'+'all.nc'
+flnm1 = os.path.join(flpath, fname)
+draw(axes[0], flnm1)
+
+
+fname = 'time_height_'+'gwd0'+'left.nc'
+flnm1 = os.path.join(flpath, fname)
+draw(axes[3], flnm1)
+
+fname = 'time_height_'+'gwd0'+'right.nc'
+flnm1 = os.path.join(flpath, fname)
+draw(axes[6], flnm1)
+
+
+flpath = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd3/'
+fname = 'time_height_'+'gwd3'+'all.nc'
+flnm1 = os.path.join(flpath, fname)
+draw(axes[1], flnm1)
+
+fname = 'time_height_'+'gwd3'+'left.nc'
+flnm1 = os.path.join(flpath, fname)
+draw(axes[4], flnm1)
+
+fname = 'time_height_'+'gwd3'+'right.nc'
+flnm1 = os.path.join(flpath, fname)
+cf = draw(axes[7], flnm1)
+
+
+axes[3].set_ylabel("Height above ground level (km)", fontsize=12)
+axes[7].set_xlabel("Time (Day/Hour)", fontsize=12)
+
+
+
+ax = fig.add_axes([0.22,0.06,0.6,0.02])
+# colorlevel=[-700, -200, -100, -50, -20, 20, 50 , 100, 200,700 ]#雨量等级
+colorlevel=[-80, -8, -5, -3, -1, 1, 3, 5, 8,80]#雨量等级
+colorticks = colorlevel[1:-1]
+cb = fig.colorbar(
+    cf,
+    cax=ax,
+    orientation='horizontal',
+    ticks=colorticks,
+    # fraction = 0.05,  # 色标大小,相对于原图的大小
+    # pad=0.1,  #  色标和子图间距离
+)
+fig.text(0.35,0.01, 'wind speed of vertical ($10^{-1} m/s$)')
+
+
+
+
+
+
+
+title_list = ['(a)', '(b)', '(c)', '(d)', '(e)', '(f)', '(g)', '(h)', '(i)']
+for i in range(9):
+    axes[i].set_title(title_list[i], y=0.98, loc='left', fontsize=10)
+fig.savefig('/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_lunwen/time_height.png')
+
+
+
+
 
 
 # %%
-
-def main():
-
-    model_list = ['gwd0', 'gwd3']
-    # model_list = ['gwd3']
-    flpath = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/'
-
-    pdic = {}
-    for model in model_list:    
-        flpath1 = os.path.join(flpath,model)
-        fname = 'time_height_'+model+'left.nc'
-
-        flnm = os.path.join(flpath1, fname)
-        pdic['flnm'] = flnm
-        pdic['model'] = model
-        draw(pdic)    
-
-        
-
-
-if __name__ == '__main__':
-    # main()
-    draw_minus()
-    
-
