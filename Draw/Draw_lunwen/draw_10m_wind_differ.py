@@ -61,7 +61,7 @@ def draw_wrf():
     cm = 1/2.54
     fig = plt.figure(figsize=[8*cm, 7*cm], dpi=300)
     ax = fig.add_axes([0.15,0.15,0.8,0.8], projection=ccrs.PlateCarree())
-    dr = d10.DrawWind(fig, ax, scale=10, Ulength=1)
+    dr = d10.DrawWind(fig, ax, scale=10, Ulength=2)
     # dw = d10.DrawWind()
     dr.draw(u,v,pic_dic)
 
