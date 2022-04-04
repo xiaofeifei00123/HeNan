@@ -170,10 +170,10 @@ def draw_contourf(ax, da):
 
     # colordict=['#0000fb','#3232fd','#6464fd','#a2a3fb','white','white','#fbbcbc', '#ff8383', '#fd4949', '#fd0000']#正负, 蓝-红
     colordict=['#0000fb','#3232fd','#6464fd','white','white','#fbbcbc', '#fd4949', '#fd0000']#正负, 蓝-红
+    colorlevel= [-90,-20,-10,-3, 0, 3,10,20,90]  # 垂直速度的色标
     # colordict=['#0000fb','#5a5af9','#a9a9fd','#dfdffd','white','white','#ffdbdb', '#ff8383', '#fd4949', '#fd0000']#正负, 蓝-红
     # colorlevel= [-90,-2.5,-1.5,-0.6,-0.3,0, 0.3,0.6,1.5,2.5,90]# 散度的色标
     # colorlevel= [-90,-12,-9,-6,-3, 0, 3,6,9,12,90]  # 垂直速度的色标
-    colorlevel= [-90,-20,-10,-3, 0, 3,10,20,90]  # 垂直速度的色标
     # colorlevel= [-90,-4,-3,-2,-1,0,1,2,3,4,90]# 水汽通量散度的色标
     # colorticks=colorlevel[1:-2]
     crx = ax.contourf(x,
