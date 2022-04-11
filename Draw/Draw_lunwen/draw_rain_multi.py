@@ -46,11 +46,11 @@ if __name__ == '__main__':
     
     cm = round(1/2.54, 2)
     proj = ccrs.PlateCarree()  # 创建坐标系
-    # fig = plt.figure(figsize=(17*cm, 28*cm), dpi=600)
-    fig = plt.figure(figsize=(17*cm, 21*cm), dpi=600)
+    fig = plt.figure(figsize=(17*cm, 28*cm), dpi=600)
+    # fig = plt.figure(figsize=(17*cm, 21*cm), dpi=600)
     # ax = fig.add_axes([0.1,0.08,0.85,0.85], projection=proj)
     # fig = plt.figure(figsize=(21, 20), dpi=400)  # 创建页面
-    grid = plt.GridSpec(3,
+    grid = plt.GridSpec(4,
                         2,
                         figure=fig,
                         left=0.05,
@@ -61,7 +61,7 @@ if __name__ == '__main__':
                         # hspace=0.25)
                         hspace=0.2)
 
-    num = 8
+    num = 4
     axes = [None] * num  # 设置一个维度为8的空列表
     for i in range(num):
         axes[i] = fig.add_subplot(grid[i], projection=proj)
