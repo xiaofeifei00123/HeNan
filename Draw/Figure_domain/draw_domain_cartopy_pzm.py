@@ -3,12 +3,14 @@
 '''
 Description:
 read in namelist.wps , draw wrf domain and plot some station
+add draw circle
 -----------------------------------------
 Time             :2021/03/28 17:28:59
 Author           :Forxd
 Version          :1.0
 '''
 # %%
+from cv2 import transform
 import xarray as xr
 import numpy as np
 
@@ -26,18 +28,66 @@ import re
 
 from matplotlib.path import Path
 import matplotlib.patches as patches
+from matplotlib.patches import Circle
+import wrf
+import netCDF4 as nc
 
-# %
-# from matplotlib import rcParams
 
-# config = {
-#     "font.family": 'serif', # 衬线字体
-#     "font.size": 12, # 相当于小四大小
-#     "font.serif": ['SimSun'], # 宋体
-#     "mathtext.fontset": 'stix', # matplotlib渲染数学字体时使用的字体，和Times New Roman差别不大
-#     'axes.unicode_minus': False # 处理负号，即-号
-# }
-# rcParams.update(config)
+
+# %%
+
+
+
+# %%
+
+def ll2xy(lat, lon, info):
+    # lat = 32
+    # lon = 112
+    x,y = wrf.ll_to_xy_proj(lat, lon, map_proj=1, 
+                            truelat1=info['true_lat1'], 
+                            truelat2=info['true_lat2'], 
+                            stand_lon=info['stand_lon'], 
+                            ref_lat=info['ref_lat'], 
+                            ref_lon=info['ref_lon'], 
+                            known_x=(int(info['e_we'][0])-1)/2-1,
+                            known_y=(int(info['e_sn'][0])-1)/2-1,
+                            dx = info['dx'],
+                            dy = info['dy'],
+                            )
+    # info
+    return x.values, y.values
+
+def draw_circle(ax, ylat, xlon):
+    """_summary_
+
+    Args:
+        ax (_type_): _description_
+        ylat (_type_): 中心点所在位置的距离, dx*格点数
+        xlon (_type_): _description_
+    """
+    pass
+    # cr = Circle(xy=(112,32), radius=30000, )
+    # ax.add_path(cr)
+    ## 根据距离画圆
+    from math import pi
+    from numpy import cos, sin
+    r = 460000
+    # a, b = 1120000, 320000
+    angles_circle = [i * pi / 180 for i in range(0, 360)]  # i先转换成double
+    x = r*cos(angles_circle)+xlon
+    y = r*sin(angles_circle)+ylat
+    ax.plot(x,y, 'black', linewidth=0.2)
+
+    ## 根据经纬度画圆
+    # r= 2    
+    # lon = 112
+    # lat=32
+    # ax.add_patch(patches.Circle(xy=[lon, lat], radius=r, color='red', alpha=0.3, transform=ccrs.PlateCarree(), fill=False, zorder=30))
+    
+    
+
+
+
 
 # %%
 def draw_screen_poly(lats, lons):
@@ -48,7 +98,7 @@ def draw_screen_poly(lats, lons):
     '''
     x, y = lons, lats
     xy = list(zip(x, y))
-    # print(xy)
+    print(xy)
     poly = plt.Polygon(xy, edgecolor="black", fc="none", lw=1, alpha=1)
     plt.gca().add_patch(poly)
 
@@ -76,12 +126,18 @@ def create_map(info):
         false_easting=false_easting,
         false_northing=false_northing,
     )
+
+    
+    # wrf.ll_to_xy_proj(32, 112, map_proj=proj_lambert)    
+    
+    
+
     # proj = ccrs.PlateCarree(central_longitude=ref_lon)  # 创建坐标系
     proj = ccrs.PlateCarree()  # 创建坐标系
     ## 创建坐标系
-    cm = 1/2.54
-    fig = plt.figure(figsize=(8*cm, 6*cm), dpi=600)  # 创建页面
-    ax = fig.add_axes([0.12, 0.08, 0.85, 0.9], projection=proj_lambert)
+    fig = plt.figure(figsize=(4, 3), dpi=300)  # 创建页面
+    ax = fig.add_axes([0.1, 0.1, 0.85, 0.85], projection=proj_lambert)
+    # ax = fig.add_axes([0.1, 0.1, 0.85, 0.85], projection=proj_lambert)
 
     ## 读取青藏高原地形文件
     Province = cfeat.ShapelyFeature(
@@ -111,11 +167,11 @@ def create_map(info):
         facecolor='none',
         alpha=1.)
     ## 将青藏高原地形文件加到地图中区
-    # ax.add_feature(Province, linewidth=0.5, zorder=2, alpha=0.3)
+    ax.add_feature(Province, linewidth=0.5, zorder=2, alpha=0.3)
 
     # ax.add_feature(Henan, linewidth=0.6, zorder=2)
     # ax.add_feature(city, linewidth=0.5, zorder=2)
-    ax.coastlines(linestyle='--', linewidth=0.5, alpha=0.7)
+    # ax.coastlines(linestyle=':', linewidth=1, alpha=0.7)
     # ax.coastlines()
     # import cartopy.feature as cfeature
     # ax.add_feature(cfeature.BORDERS, linestyle=':')
@@ -137,12 +193,12 @@ def create_map(info):
     gl.rotate_labels = None
     ## 坐标的范围
     # gl.xlocator = mticker.FixedLocator(np.arange(90, 140, 5))
-    gl.xlocator = mticker.FixedLocator(np.arange(70, 150, 10))
+    gl.xlocator = mticker.FixedLocator(np.arange(70, 150, 2))
     
-    gl.ylocator = mticker.FixedLocator(np.arange(10, 50, 5))
+    gl.ylocator = mticker.FixedLocator(np.arange(10, 50, 2))
     ## 坐标标签的大小
-    gl.xlabel_style = {'size': 8}  #修改经纬度字体大小
-    gl.ylabel_style = {'size': 8}
+    gl.xlabel_style = {'size': 10}  #修改经纬度字体大小
+    gl.ylabel_style = {'size': 10}
     ## 坐标标签样式
     gl.xformatter = LongitudeFormatter(degree_symbol="${^\circ}$")
     gl.yformatter = LatitudeFormatter(degree_symbol="${^\circ}$")
@@ -159,7 +215,7 @@ def create_map(info):
             'd01',
             transform=ccrs.PlateCarree(),
             fontdict={
-                'size': 10,
+                'size': 12,
             })
     return ax
 
@@ -189,6 +245,7 @@ def get_information(flnm):
     pattern['ref_lon'] = 'ref_lon\s*=\s*\d*.?\d*,'
     pattern['true_lat1'] = 'truelat1\s*=\s*\d*.?\d*,'
     pattern['true_lat2'] = 'truelat2\s*=\s*\d*.?\d*,'
+    pattern['stand_lon'] = 'stand_lon\s*=\s*\d*.?\d*,'
 
     f = open(flnm)
     fr = f.read()
@@ -223,6 +280,7 @@ def get_information(flnm):
         'ref_lon',
         'true_lat1',
         'true_lat2',
+        'stand_lon',
     ]
 
     for i in var_list:
@@ -279,11 +337,11 @@ def draw_d02(info):
         ## 标注d02
         # plt.text(lon[0] * 1+100000, lat[0] * 1. - 225000, "d02", fontdict={'size':14})
         # plt.text(lon[2] * 1 - 440000,
-        plt.text(lon[2] * 1 - 540000,
-                #  lat[2] * 1. - 200000,
-                 lat[2] * 1. - 300000,
-                 "d02",
-                 fontdict={'size': 10})
+        # plt.text(lon[2] * 1 - 540000,
+        #         #  lat[2] * 1. - 200000,
+        #          lat[2] * 1. - 300000,
+        #          "d02",
+        #          fontdict={'size': 12})
 
     if max_dom >= 3:
         ### domain 3
@@ -312,7 +370,7 @@ def draw_d02(info):
                 #  lat[3] * 1. - 200000,
                  lat[3] * 1. - 300000,
                  "d03",
-                 fontdict={'size': 10})
+                 fontdict={'size': 12})
         
     if max_dom >= 4:
 
@@ -337,7 +395,7 @@ def draw_d02(info):
         lon[3], lat[3] = ll_lon, ur_lat
         draw_screen_poly(lat, lon)
 
-    if max_dom >= 5:
+    if max_dom >= 4:
 
         ### domain 5
         ## 4 corners
@@ -360,24 +418,64 @@ def draw_d02(info):
         lon[3], lat[3] = ll_lon, ur_lat
         draw_screen_poly(lat, lon)
 
-def draw_station(ax):
+def draw_station(ax, info):
     """画站点
     """
     station = {
-        'ZhengZhou': {
-            'lat': 34.76,
-            'lon': 113.65,
+        'ShangQiu': {
+            'lat': 34.4072,
+            'lon': 115.6303,
+            'abbreviation':'商丘'
+        },
+        'Zhengzhou': {
+            'lat': 34.7044,
+            'lon': 113.6972,
             'abbreviation':'郑州'
         },
-        'YanHua': {
-            'lat': 22.4,
-            'lon': 132.5,
-            'abbreviation':'烟花'
+        'ZhuMaDian': {
+            'lat': 33.01,
+            'lon': 114.0203,
+            'abbreviation':'驻马店'
         },
-        'ChaPaka': {
-            'lat': 21.1,
-            'lon': 112.9,
-            'abbreviation':'查帕卡'
+        'HeFei': {
+            'lat': 31.8669,
+            'lon': 117.2581,
+            'abbreviation':'合肥'
+        },
+        'BengBu': {
+            'lat': 32.9181,
+            'lon': 117.4478,
+            'abbreviation':'蚌埠'
+        },
+        'FuYang': {
+            'lat': 32.8789,
+            'lon': 115.7408,
+            'abbreviation':'阜阳'
+        },
+        # 'JingZhou': {
+        #     'lat': 30.3517,
+        #     'lon': 112.1481,
+        #     'abbreviation':'荆州'
+        # },
+        'YiChang': {
+            'lat': 30.7,
+            'lon': 111.3,
+            'abbreviation':'宜昌'
+        },
+        'NanYang': {
+            'lat': 33.0208,
+            'lon': 112.4925,
+            'abbreviation':'南阳'
+        },
+        'SuZhou': {
+            'lat': 31.7256,
+            'lon': 113.3886,
+            'abbreviation':'随州'
+        },
+        'WuHan': {
+            'lat': 30.5167,
+            'lon': 114.3775,
+            'abbreviation':'武汉'
         },
     }
     values = station.values()
@@ -403,17 +501,45 @@ def draw_station(ax):
     ## 给站点加注释
     for i in range(len(x)):
     # for i,j in zip(len(x), values):
-        ax.text(x[i] - 1.,
-                 y[i] + 0.8,
+        ax.text(x[i]-0.5 ,
+                 y[i] + 0.2,
                  station_name[i],
                  transform=ccrs.PlateCarree(),
                  fontdict={
-                     'size': 8,
+                     'size': 5,
                  })
+
+    ## 给站点画圈
+                 
+    values = station.values()
+    for k in values:
+        print(k['abbreviation'])
+        # y.append(float(i['lat']))
+        # x.append(float(i['lon']))
+        lat = float(k['lat'])
+        lon = float(k['lon'])
+        print(lat, lon)
+        x,y = ll2xy(lat, lon, info) 
+        ylat = y*info['dx']
+        xlon = x*info['dx']
+        draw_circle(ax,ylat, xlon)
+                 
+
+    x,y = ll2xy(36.1, 107, info)
+    ylat = y*info['dx']
+    xlon = x*info['dx']
+    ax.text(xlon, ylat, 'd02')
+
+    x,y = ll2xy(40, 101, info)
+    ylat = y*info['dx']
+    xlon = x*info['dx']
+    ax.text(xlon, ylat, 'd01')
+
+
 def draw():
     pass
     file_folder = "/mnt/zfm_18T/fengxiang/HeNan/Draw/Figure_domain/"
-    file_name = "namelist.wps"
+    file_name = "namelist.wps.pzm"
     flnm = file_folder + file_name
     print(flnm)
 
@@ -424,10 +550,23 @@ def draw():
     draw_d02(info)  # 绘制domain2区域
     # print("绘制完毕")
 
-    draw_station(ax)
+    draw_station(ax, info)
     # print("标注站点完毕")
-    fig_name = file_folder+'domain.png'
+
+    # lat = 32
+    # lon = 112
+    # x,y = ll2xy(lat, lon, info) 
+    # ylat = y*info['dx']
+    # xlon = x*info['dx']
+    # draw_circle(ax,ylat, xlon)
+    
+
+    fig_name = file_folder+'domainpzm.png'
     plt.savefig(fig_name)
+
+
+
+# %%
 
 if __name__ == '__main__':
     draw()
