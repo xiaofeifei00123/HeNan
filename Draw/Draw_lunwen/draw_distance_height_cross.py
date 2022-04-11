@@ -35,7 +35,8 @@ class Draw():
     def __init__(self, ):
         pass
         self.colordict=['#191970','#005ffb','#5c9aff','#98ff98','#ddfddd','#FFFFFF','#fffde1','#ffff9e', '#ffc874','#ffa927', '#ff0000']#颜色列表
-        self.colorlevel=[-16, -4, -3, -2,  -1, -0.5, 0.5, 1, 2,3, 4,16]  # 垂直速度
+        # self.colorlevel=[-16, -4, -3, -2,  -1, -0.5, 0.5, 1, 2,3, 4,16]  # 垂直速度
+        self.colorlevel=[-16, -4, -2,  -1,-0.5,  -0.1, 0.1,0.5,  1, 2,4,16]  # 垂直速度
         # self.levels=np.arange(336, 372, 4)
 
 
@@ -43,11 +44,14 @@ class Draw():
         '''
         绘制风矢图
         '''
-        x = u.cross_line_idx.values[::3]
-        u = u[::3,::3]
-        v = v[::3,::3]
+        # x = u.cross_line_idx.values[::3]
+        # u = u[::3,::3]
+        # v = v[::3,::3]
+        x = u.cross_line_idx.values[::10]
+        u = u[::4,::10]
+        v = v[::4,::10]
         y = u.coords['vertical'].values
-        Q = ax.quiver(x, y, u.values,v.values,units='inches',scale=scale,pivot='tip',minlength=0.001, width=0.01,zorder=2)  # 绘制风矢
+        Q = ax.quiver(x, y, u.values,v.values,units='inches',scale=scale,pivot='tip',minlength=0.001, width=0.015,zorder=2)  # 绘制风矢
         qk = ax.quiverkey(Q,
                         X=0.8, Y=1.04, 
                         U=ulength ,
@@ -111,8 +115,8 @@ class Draw():
         ## set tick labels use distance
         da1 = latlon2distance(da)    
         x_labels = da1.distance.values.astype(int)
-        # ax_cross.set_xticks(x_ticks[::8])
-        # ax_cross.set_xticklabels(x_labels[::8], rotation=30, fontsize=7)
+        ax_cross.set_xticks(x_ticks[::8])
+        ax_cross.set_xticklabels(x_labels[::8], rotation=0, fontsize=7)
 
         # ax_cross.set_xlabel("Distance (km)", fontsize=10)
         ax_cross.set_ylabel("Height (km)", fontsize=10)
@@ -170,7 +174,7 @@ class GetData():
         )
         return da
 
-    def get_data(self, t='2021-07-20 12', flnm ='/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd0/cross_rain.nc'):
+    def get_data(self, t='2021-07-20 00', flnm ='/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd0/cross_zhengzhou.nc'):
         ds = xr.open_dataset(flnm)
         ds = ds.sel(time=t)
 
@@ -204,11 +208,11 @@ class GetData():
 def draw_one():
     pass
     cm = 1/2.54
-    fig = plt.figure(figsize=(8*cm,7*cm), dpi=300)
+    fig = plt.figure(figsize=(8*cm,7*cm), dpi=600)
     ax_cross = fig.add_axes([0.15, 0.2, 0.8, 0.7])
-    flnm ='/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd0/cross_rain.nc'
+    flnm ='/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd0/cross_zhengzhou.nc'
     gd = GetData()
-    dic = gd.get_data(t='2021-07-20 12', flnm=flnm)
+    dic = gd.get_data(t='2021-07-20 00', flnm=flnm)
 
     
     dr = Draw()
@@ -224,7 +228,7 @@ def multi():
     cm = 1/2.54
     # fig = plt.figure(figsize=(19*cm, 8*cm), dpi=300)
     # ax_cross = fig.add_axes([0.15, 0.2, 0.8, 0.7])
-    fig = plt.figure(figsize=(8*cm, 24*cm), dpi=300)
+    fig = plt.figure(figsize=(8*cm, 24*cm), dpi=600)
     proj = crs.PlateCarree()  # 创建坐标系
     grid = plt.GridSpec(3,
                         1,
@@ -243,11 +247,11 @@ def multi():
         axes[i] = fig.add_subplot(grid[i])
 
 
-    flnm1 ='/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd0/cross_rain.nc'
-    flnm2 ='/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd3/cross_rain.nc'
+    flnm1 ='/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd0/cross_zhengzhou.nc'
+    flnm2 ='/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd3/cross_zhengzhou.nc'
     gd = GetData()
-    dic1 = gd.get_data(t='2021-07-20 12', flnm=flnm1)
-    dic2 = gd.get_data(t='2021-07-20 12', flnm=flnm2)
+    dic1 = gd.get_data(t='2021-07-20 00', flnm=flnm1)
+    dic2 = gd.get_data(t='2021-07-20 00', flnm=flnm2)
 
 
     dr0 = Draw()
@@ -293,7 +297,8 @@ def multi():
 
 
 
-    fig.savefig('/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_lunwen/Figure8.png')
+    fig.savefig('/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_lunwen/Figure8_zz.png')
+# multi()
 
 
 

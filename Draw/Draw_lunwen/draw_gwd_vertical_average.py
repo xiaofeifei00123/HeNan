@@ -18,6 +18,14 @@ import numpy as np
 import wrf
 from netCDF4 import Dataset
 import matplotlib.pyplot as plt
+# %%
+# flnm='/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/gwd0/wrfout_d01_2021-07-20_00:00:00'
+# flnm='/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd1/wrfout_d01_2021-07-20_00:00:00'
+# ds = xr.open_dataset(flnm)
+
+# # ds
+# da = ds['DTAUX3D']
+# da
 
 # %%
 class Vp():
@@ -141,35 +149,25 @@ class Draw(Vp):
         self.fig_name = os.path.join(self.pic_path, pic_dic['time']+pic_dic['domain']+'gwd1')
 
     def draw(self,ds):
-        # plt.rcParams['font.family'] = 'Nimbus Roman No9 L' # 作用：解决图上汉字和负号显示为方框的问题 
-        # plt.rcParams['font.sans-serif'] = 'Nimbus Roman No9 L'
+        plt.rcParams['font.family'] = 'Nimbus Roman No9 L' # 作用：解决图上汉字和负号显示为方框的问题 
+        plt.rcParams['font.sans-serif'] = 'Nimbus Roman No9 L'
         cm = 1/2.54
-        fig = plt.figure(figsize=[8*cm,8*cm], dpi=600)
+        fig = plt.figure(figsize=[8*cm,8*cm])
         ax = fig.add_axes([0.1,0.1, 0.8,0.8])
         # color_list = ['green','orange',  'red', 'blue']
         for var,color,label in zip(self.var_list,self.color_list, self.label_list):
             dav = ds[var]
             ax.plot(dav.values, dav.bottom_top, label=label, lw=5, color=color)
 
-        # ax.set_xlim(10**(-10),10**(-2))
+        ax.set_xlim(10**(-10),10**(-2))
         ax.set_ylim(0,50)
-        # ax.set_xscale('log')
-        # ax.set_xticks([10^{-10}, 10^{-8}, 10^{-6}, 10^{-4}])
-        # colorlabel = ['$10^{-10}$', '$10^{-8}$', '$10^{-6}$', '$10^{-4}$', '$10^{-2}$']
-        # ax.set_xticklabels(colorlabel, fontsize=8)
-
         ax.set_xscale('log')
-        ax.set_xticks([10**(-10), 10**(-8), 10**(-6), 10**(-4), 10**(-2)])
-        colorlabel = ['$10^{-10}$', '$10^{-8}$', '$10^{-6}$', '$10^{-4}$', '$10^{-2}$']
-        ax.set_xticklabels(colorlabel, fontsize=8)
-        
 
-
-        # ax.xaxis.set_tick_params(labelsize=10)
-        # ax.yaxis.set_tick_params(labelsize=10)
+        ax.xaxis.set_tick_params(labelsize=10)
+        ax.yaxis.set_tick_params(labelsize=10)
         ax.legend(fontsize=10, edgecolor='white')
-        ax.set_xlabel('Drag ($m/s^2$)', fontsize=10)
-        ax.set_ylabel('Model Level', fontsize=10)
+        ax.set_xlabel('Drag ($m/s^2$)', fontsize=12)
+        ax.set_ylabel('Model Level', fontsize=12)
         fig.savefig('/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_lunwen/ogwd_average_distribution.png')
 
     def draw_dual(self,ds):
@@ -178,28 +176,22 @@ class Draw(Vp):
         Args:
             ds ([type]): [description]
         """
-        # plt.rcParams['font.family'] = 'Nimbus Roman No9 L' # 作用：解决图上汉字和负号显示为方框的问题 
-        # plt.rcParams['font.sans-serif'] = 'Nimbus Roman No9 L'
+        plt.rcParams['font.family'] = 'Nimbus Roman No9 L' # 作用：解决图上汉字和负号显示为方框的问题 
+        plt.rcParams['font.sans-serif'] = 'Nimbus Roman No9 L'
         cm = 1/2.54
         fig = plt.figure(figsize=[8*cm,8*cm], dpi=600)
-        ax = fig.add_axes([0.15,0.15, 0.8,0.8])
+        ax = fig.add_axes([0.2,0.2, 0.7,0.7])
         # color_list = ['green','orange',  'red', 'blue']
         # for var,color,label in zip(self.var_list,self.color_list, self.label_list):
         for label,color in zip(self.label_list,self.color_list):
             dav = ds[label]
             ax.plot(dav.values, dav.bottom_top, label=label, lw=2, color=color)
         ax.set_xlim(10**(-10),10**(-2))
-        ax.set_ylim(0,51)
-        # ax.set_xscale('log')
+        ax.set_ylim(0,50)
         ax.set_xscale('log')
-        ax.set_xticks([10**(-10), 10**(-8), 10**(-6), 10**(-4), 10**(-2)])
-        colorlabel = ['$10^{-10}$', '$10^{-8}$', '$10^{-6}$', '$10^{-4}$', '$10^{-2}$']
-        ax.set_xticklabels(colorlabel, fontsize=8)
 
-        # ax.set_yticks(np.arange(0, 51, 10))
-        # ax.set_yticklabels(colorlabel, fontsize=8)
-        # ax.xaxis.set_tick_params(labelsize=10)
-        ax.yaxis.set_tick_params(labelsize=8)
+        ax.xaxis.set_tick_params(labelsize=10)
+        ax.yaxis.set_tick_params(labelsize=10)
         ax.legend(fontsize=10, edgecolor='white')
         ax.set_xlabel('Drag ($m/s^2$)', fontsize=10)
         ax.set_ylabel('Model Level', fontsize=10)

@@ -72,7 +72,8 @@ class Draw(object):
         x = u.lon.values
 
         # Q = ax.quiver(x, y, u.values,v.values,units='inches',scale=scale,pivot='middle', transform=ccrs.PlateCarree(), zorder=3)  # 绘制风矢
-        Q = ax.quiver(x, y, u.values,v.values,units='width',scale=scale,pivot='middle', transform=ccrs.PlateCarree(), zorder=3)  # 绘制风矢
+        # Q = ax.quiver(x, y, u.values,v.values,units='width',scale=scale,pivot='middle', transform=ccrs.PlateCarree(), zorder=3)  # 绘制风矢
+        Q = ax.quiver(x, y, u.values,v.values,units='width',scale=scale,pivot='middle', width=0.005, transform=ccrs.PlateCarree(), zorder=3)  # 绘制风矢
         qk = ax.quiverkey(Q,
                         X=0.8, Y=1.04, 
                         U=ulength ,
@@ -171,7 +172,8 @@ class GetData():
 
         flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/'+model+'/'+'rain.nc'
         da = xr.open_dataarray(flnm)
-        t = '2021-07-20 12'
+        # t = '2021-07-20 12'
+        t = '2021-07-20 00'
         rain1h = da.sel(time=t)
 
         flnm_upar = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd3/upar.nc'
@@ -191,7 +193,8 @@ class GetData():
     def get_data_minus(self,):
         pass
 
-        t = '2021-07-20 12'
+        # t = '2021-07-20 12'
+        t = '2021-07-20 00'
         flnm1 = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd0/rain.nc'
         flnm2 = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd3/rain.nc'
         da1 = xr.open_dataarray(flnm1).sel(time=t)

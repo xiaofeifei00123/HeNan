@@ -11,8 +11,8 @@ from waveletFunctions import wave_signif, wavelet
 
 # %%
 def  get_data():
-    # flnm='/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd3/cross_rain.nc'
-    flnm='/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd0/cross_rain.nc'
+    flnm='/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd3/cross_rain.nc'
+    # flnm='/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd0/cross_rain.nc'
     # flnm='/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd0/cross2.nc'
     ds = xr.open_dataset(flnm)
     ds1 = ds.sel(time='2021-07-20 12')
@@ -189,4 +189,4 @@ ax4.plot(time, scale_avg, 'k')
 ax4.set_xlabel('距离(km)')
 ax4.set_ylim(0,0.7)
 ax4.set_ylabel('Avg variance $(m/s)$')
-fig.savefig('/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_wave/gwd0_cross_rain_2000.png')
+fig.savefig('/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_lunwen/gwd3_cross_rain_2000.png')

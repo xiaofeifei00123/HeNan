@@ -33,9 +33,15 @@ class CrossData():
         pass
         ## Create the start point and end point for the cross section
         ## 12时降水
-        self.cross_start = CoordPair(lat=33.8, lon=111.7)
+        
+        # 嵩山        
+        self.cross_start = CoordPair(lat=35.2, lon=112)
+        self.cross_end = CoordPair(lat=34.5, lon=115.5)
+        
 
-        self.cross_end = CoordPair(lat=33.5, lon=113.2)
+        # 伏牛山
+        # self.cross_start = CoordPair(lat=33.8, lon=111.7)
+        # self.cross_end = CoordPair(lat=33.5, lon=113.2)
 
         # 伏牛山
         # self.cross_start = CoordPair(lat=34, lon=110.5)
@@ -153,7 +159,7 @@ def save_one_model():
     ds['ter'] = ter
 
     ds = ds.rename({'Time':'time'})
-    save_name = path+'cross_rain.nc'
+    save_name = path+'cross_zhengzhou.nc'
     ds.to_netcdf(save_name)
 
 
@@ -201,7 +207,7 @@ def save_one_model_mp(path='/mnt/zfm_18T/fengxiang/HeNan/Data/1900_90m/'):
     ds['ter'] = ter
 
     ds = ds.rename({'Time':'time'})
-    save_name = path+'cross_rain.nc'
+    save_name = path+'cross_zhengzhou.nc'
     ds.to_netcdf(save_name)
 
 def save_all_model():

@@ -27,8 +27,8 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import geopandas
 import cmaps
-from get_cmap import get_cmap_rain2
-from multiprocessing import Pool
+# from get_cmap import get_cmap_rain2
+# from multiprocessing import Pool
 
 from baobao.map import Map
 
@@ -95,7 +95,7 @@ class Draw(object):
             da (DataArray): 单个时次的降水
         """
         cm = 1/2.54
-        fig = plt.figure(figsize=(8*cm, 8*cm), dpi=300)
+        fig = plt.figure(figsize=(8*cm, 8*cm), dpi=600)
         proj = ccrs.PlateCarree()  # 创建坐标系
         ax = fig.add_axes([0.1,0.1,0.85,0.85], projection=proj)
         # ax.set_extent([])
@@ -119,19 +119,20 @@ class Draw(object):
 
         station = {
             'ZhengZhou': {
-                'abbreviation':'ZZ',
+                'abbreviation':'郑州',
                 'lat': 34.76,
                 'lon': 113.65
             },
         }
         mp.add_station(ax, station, justice=True)
-        ax.set_title(date, fontsize=10,)
-        ax.set_title(picture_dic['initial_time'], fontsize=10,loc='left')
-        ax.set_title(picture_dic['type'], fontsize=10,loc='right')
+        # ax.set_title(date, fontsize=10,)
+        # ax.set_title(picture_dic['initial_time'], fontsize=10,loc='left')
+        # ax.set_title(picture_dic['type'], fontsize=10,loc='right')
         cf = self.draw_contourf_single(da, ax, dic)
         # colorticks=[0.1,5,15,30.0,70,140]#雨量等级
         # colorlevel=[0, 0.1, 5, 10, 15.0, 20, 25, 30, 700]#雨量等级
-        colorlevel=[-0.45, -0.35, -0.25, -0.15,-0.05, 0.05, 0.15, 0.25, 0.35, 0.45]
+        # colorlevel=[-0.45, -0.35, -0.25, -0.15,-0.05, 0.05, 0.15, 0.25, 0.35, 0.45]
+        colorlevel=[-100,-0.1,-0.01,-0.001,-0.0001, 0.0001, 0.001, 0.01, 0.1, 100]
         colorticks = colorlevel[1:-1]
         
         cb = fig.colorbar(
@@ -142,9 +143,11 @@ class Draw(object):
             fraction = 0.05,  # 色标大小,相对于原图的大小
             pad=0.08,  #  色标和子图间距离
         )
-        cb.ax.tick_params(labelsize=8)  # 设置色标标注的大小
+        colorlabel = ['$-10^{-1}$', '$-10^{-2}$', '$-10^{-3}$', '$-10^{-4}$', '$10^{-4}$', '$10^{-3}$', '$10^{-2}$', '$10^{-1}$']
+        cb.ax.set_xticklabels(colorlabel, fontsize=10)
+        cb.ax.tick_params(labelsize=10)  # 设置色标标注的大小
         fig_name = picture_dic['type']+'_'+picture_dic['initial_time']+'_'+picture_dic['date']
-        fig_path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_gwd3/'
+        fig_path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_lunwen/'
         fig.savefig(fig_path+fig_name)
 
 
@@ -155,7 +158,7 @@ def draw_one(model='1900_90m'):
     pass
 
     fl_path =os.path.join('/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/', model)
-    tt = pd.date_range('2021-07-20 00', '2021-07-21 00', freq='1H')
+    tt = pd.date_range('2021-07-20 12', '2021-07-20 12', freq='1H')
     # tt = pd.date_range('2021-07-20 12', '2021-07-20 12', freq='1H')
     for t in tt:
         flnm = 'wrfout_d03_'+t.strftime('%Y-%m-%d_%H:%M:%S')
@@ -172,11 +175,12 @@ def draw_one(model='1900_90m'):
             # var = 'DVSFCG'
             # da = ds['DUSFCG_LS']+ds['DUSFCG_SS']+ds['DUSFCG_FD']+ds['DUSFCG_BL']
 # ds['DTAUX3D_LS'].sel(bottom_top=0)
+
             # da = ds['DTAUX3D_LS'].sel(bottom_top=0)+ds['DTAUX3D_SS'].sel(bottom_top=0)+ds['DTAUX3D_FD'].sel(bottom_top=0)+ds['DTAUX3D_BL'].sel(bottom_top=0)
             # var = 'DUSFCG'
             da = ds['DTAUY3D_LS'].sel(bottom_top=0)+ds['DTAUY3D_SS'].sel(bottom_top=0)+ds['DTAUY3D_FD'].sel(bottom_top=0)+ds['DTAUY3D_BL'].sel(bottom_top=0)
             var = 'DVSFCG'
-            da = da*10**2
+            da = da
         print(da.max())
         gwd_sfc = da.rename({'XLAT':'lat', 'XLONG':'lon', 'XTIME':'time'}).squeeze()
         dr = Draw()
