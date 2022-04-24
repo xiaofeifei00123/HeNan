@@ -44,12 +44,12 @@ class Draw():
         '''
         绘制风矢图
         '''
-        # x = u.cross_line_idx.values[::3]
-        # u = u[::3,::3]
-        # v = v[::3,::3]
-        x = u.cross_line_idx.values[::10]
-        u = u[::4,::10]
-        v = v[::4,::10]
+        x = u.cross_line_idx.values[::3]
+        u = u[::3,::3]
+        v = v[::3,::3]
+        # x = u.cross_line_idx.values[::10]
+        # u = u[::4,::10]
+        # v = v[::4,::10]
         y = u.coords['vertical'].values
         Q = ax.quiver(x, y, u.values,v.values,units='inches',scale=scale,pivot='tip',minlength=0.001, width=0.015,zorder=2)  # 绘制风矢
         qk = ax.quiverkey(Q,
@@ -225,7 +225,7 @@ def draw_one():
     ax_cross = fig.add_axes([0.15, 0.2, 0.8, 0.7])
     flnm ='/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd0/cross_zhengzhou.nc'
     gd = GetData()
-    dic = gd.get_data(t='2021-07-20 00', flnm=flnm)
+    dic = gd.get_data(t='2021-07-20 12', flnm=flnm)
 
     
     dr = Draw()
@@ -263,8 +263,8 @@ def multi():
     flnm1 ='/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd0/cross_zhengzhou.nc'
     flnm2 ='/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd3/cross_zhengzhou.nc'
     gd = GetData()
-    dic1 = gd.get_data(t='2021-07-20 00', flnm=flnm1)
-    dic2 = gd.get_data(t='2021-07-20 00', flnm=flnm2)
+    dic1 = gd.get_data(t='2021-07-20 12', flnm=flnm1)
+    dic2 = gd.get_data(t='2021-07-20 12', flnm=flnm2)
 
 
     dr0 = Draw()

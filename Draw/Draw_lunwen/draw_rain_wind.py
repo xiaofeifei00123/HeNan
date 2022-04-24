@@ -193,8 +193,8 @@ class GetData():
     def get_data_minus(self,):
         pass
 
-        # t = '2021-07-20 12'
-        t = '2021-07-20 00'
+        t = '2021-07-20 12'
+        # t = '2021-07-20 00'
         flnm1 = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd0/rain.nc'
         flnm2 = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd3/rain.nc'
         da1 = xr.open_dataarray(flnm1).sel(time=t)

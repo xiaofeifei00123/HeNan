@@ -106,8 +106,8 @@ set_colorbar(fig, cf3, axes[4], dr3)
 flnm1 ='/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd0/cross_rain.nc'
 flnm2 ='/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd3/cross_rain.nc'
 gd = dh.GetData()
-dic1 = gd.get_data(t='2021-07-20 00', flnm=flnm1)
-dic2 = gd.get_data(t='2021-07-20 00', flnm=flnm2)
+dic1 = gd.get_data(t='2021-07-20 12', flnm=flnm1)
+dic2 = gd.get_data(t='2021-07-20 12', flnm=flnm2)
 
 
 dr0 = dh.Draw()
@@ -144,11 +144,11 @@ set_colorbar(fig, cf2, axes[5], dr2)
 
 
 ## 标注直线AB
-# y = np.linspace(33.8, 33.5, 10)
-# x = np.linspace(111.7, 113.2, 10)
-# axes[4].plot(x,y, transform=ccrs.PlateCarree(), color='black', linewidth=2)
-# axes[4].text(x[0], y[0], 'A')
-# axes[4].text(x[-1], y[-1], 'B')
+y = np.linspace(33.8, 33.5, 10)
+x = np.linspace(111.7, 113.2, 10)
+axes[4].plot(x,y, transform=ccrs.PlateCarree(), color='black', linewidth=2)
+axes[4].text(x[0], y[0], 'A')
+axes[4].text(x[-1], y[-1], 'B')
 
 
 
