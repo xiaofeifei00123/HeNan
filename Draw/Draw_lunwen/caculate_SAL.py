@@ -87,8 +87,8 @@ def get_rain_obs():
 
 
 def get_sal_one_model(flnm_model):
-    # flnm_obs = '/mnt/zfm_18T/fengxiang/HeNan/Data/OBS/rain_latlon.nc'
-    flnm_obs = '/mnt/zfm_18T/fengxiang/HeNan/Data/OBS/rain_latlon_005.nc'
+    flnm_obs = '/mnt/zfm_18T/fengxiang/HeNan/Data/OBS/rain_latlon.nc'
+    # flnm_obs = '/mnt/zfm_18T/fengxiang/HeNan/Data/OBS/rain_latlon_005.nc'
     da = xr.open_dataarray(flnm_obs)
 
     rain_obs = da.sel(time=slice('2021-07-20 01', '2021-07-21 00')).sum(dim='time')
@@ -118,7 +118,8 @@ def get_sal_dual_model():
     sal_list = []
     for model in model_list:
         pass
-        fname = model+'/rain_latlon_005.nc'
+        # fname = model+'/rain_latlon_005.nc'
+        fname = model+'/rain_latlon.nc'
         flnm = os.path.join(flpath, fname)
         # print(flnm)
         sal = get_sal_one_model(flnm)
@@ -165,8 +166,8 @@ class Draw():
         colors = ['red', 'green', 'blue', 'orange', 'cyan']
         # 画柱状图
 
-        rects1 = ax.bar(x - width * 1, df['gwd0'][0:3], width, label='no-gwd', color=colors[0])
-        rects3 = ax.bar(x, df['gwd3'][0:3], width, label='gwd3', color=colors[2])
+        rects1 = ax.bar(x - width * 1, df['gwd0'][0:3], width, label='CTRL', color=colors[0])
+        rects3 = ax.bar(x, df['gwd3'][0:3], width, label='GWD3', color=colors[2])
         # rects4 = ax.bar(x + width, df['TEMF'][0:3], width, label='TEMF', color=colors[3])
         # rects5 = ax.bar(x + width*2, df['MYJ'][0:3], width, label='MYJ', color=colors[4])
 
@@ -202,8 +203,9 @@ if __name__ == '__main__':
     cm = round(1/2.54,2)
     fig = plt.figure(figsize=(8*cm,6*cm), dpi=600)
     ax = fig.add_axes([0.1,0.1,0.8,0.8])
+    ax.set_title('(b)', loc='right', y=0.86, fontsize=10)
     dr.draw_SAL(bb,ax)
-    fig_name = 'sal1.png'
+    fig_name = 'sal.png'
     fig_path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_lunwen/'
     fig_save = os.path.join(fig_path, fig_name)
     fig.savefig(fig_save)

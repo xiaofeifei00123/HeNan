@@ -31,11 +31,107 @@ import matplotlib.patches as patches
 from matplotlib.patches import Circle
 import wrf
 import netCDF4 as nc
+from baobao.map import Map
+import cartopy.feature as cfeature
+import cartopy.feature as cfeat
 
 
 
 # %%
+def get_hgt_met(flnm):
+    # 从met文件中获取海拔高度数据
+    ds = xr.open_dataset(flnm)
+    hgt_m = ds['HGT_M'].squeeze()
+    lat = ds['XLAT_M'].squeeze()
+    lon = ds['XLONG_M'].squeeze()
 
+    hgt = hgt_m.assign_coords({'lat':(['south_north', 'west_east'],lat.values),
+                        'lon':(['south_north', 'west_east'],lon.values)})
+    return hgt
+
+def draw_contourf_lambert(terrain, ax):
+
+    """rain[lon, lat, data],离散格点的DataArray数据
+    使用lambert投影画这个地形图
+
+    Args:
+        rain ([type]): [description]
+    Example:
+    da = xr.open_dataarray('/mnt/zfm_18T/fengxiang/HeNan/Data/OBS/rain_station.nc')
+    da.max()
+    rain = da.sel(time=slice('2021-07-20 00', '2021-07-20 12')).sum(dim='time')
+    """
+    # from nmc_met_graphics.plot import mapview
+    # mb = mapview.BaseMap()
+    # cm = round(1/2.54, 2)
+    # fig = plt.figure(figsize=[8*cm, 8*cm], dpi=300)
+    # ax = fig.add_axes([0.1, 0.1, 0.8, 0.8], projection=ccrs.LambertConformal(central_latitude=34, central_longitude=113))
+    # mp = Map()
+
+    # colorlevel = np.arange(0, 2300, 100)
+    colorlevel = np.arange(0, 4000, 200)
+    cmap = cmaps.MPL_terrain
+    rain = terrain
+    
+    cs = ax.contourf(rain.lon, 
+                    rain.lat,
+                    rain,
+                    levels=colorlevel,
+                    # colors=colordict,
+                    cmap=cmap,
+                    transform=ccrs.PlateCarree())
+    
+
+    # station = {
+    #     'ZhengZhou': {
+    #         'abbreviation':'郑州',
+    #         'lat': 34.76,
+    #         'lon': 113.65
+    #     },
+    # }
+    proj = ccrs.PlateCarree()  # 创建坐标系
+    # mp.add_station(ax, station, justice=True, fontsize=10, ssize=8, dely=0.2)
+
+    Henan = cfeat.ShapelyFeature(
+        Reader('/mnt/zfm_18T/fengxiang/DATA/SHP/Province_shp/henan.shp').geometries(),
+        # Reader('/mnt/zfm_18T/fengxiang/DATA/SHP/shp_henan/henan.shp').geometries(),
+        proj,
+        edgecolor='black',
+        lw=1.,
+        linewidth=1.,
+        facecolor='none',
+        alpha=1.)
+    ax.add_feature(cfeature.RIVERS, lw=1)
+    # ax.add_feature(Henan, linewidth=1, zorder=2)
+    ax.add_feature(cfeature.LAKES, lw=1)
+    
+    gl = ax.gridlines(draw_labels=True,
+                      dms=True,
+                      linestyle=":",
+                      linewidth=0.2,
+                      x_inline=False,
+                      y_inline=False,
+                      color='k',)
+    
+    gl.top_labels = False  #关闭上部经纬标签
+    gl.right_labels = False
+    ## 这个东西还挺重要的，对齐坐标用的
+    gl.rotate_labels = None
+    ## 坐标的范围
+    gl.xlocator = mticker.FixedLocator(np.arange(100, 120, 2))
+    gl.ylocator = mticker.FixedLocator(np.arange(20, 40, 2))
+    ## 坐标标签的大小
+    gl.xlabel_style = {'size': 10}  #修改经纬度字体大小
+    gl.ylabel_style = {'size': 10}
+    ## 坐标标签样式
+    gl.xformatter = LongitudeFormatter(degree_symbol="${^\circ}$")
+    gl.yformatter = LatitudeFormatter(degree_symbol="${^\circ}$")
+    ax.spines['geo'].set_linewidth(1.0)  #调节图片边框粗细
+    
+    # fig_path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_terrain/'
+    # fig_name = fig_path+pic_dic['title']+'_lambert'
+    # fig.savefig(fig_name, bbox_inches = 'tight')
+    return cs
 
 
 # %%
@@ -135,8 +231,9 @@ def create_map(info):
     # proj = ccrs.PlateCarree(central_longitude=ref_lon)  # 创建坐标系
     proj = ccrs.PlateCarree()  # 创建坐标系
     ## 创建坐标系
-    fig = plt.figure(figsize=(4, 3), dpi=300)  # 创建页面
-    ax = fig.add_axes([0.1, 0.1, 0.85, 0.85], projection=proj_lambert)
+    cm = 1/2.54
+    fig = plt.figure(figsize=(8.5*cm, 8*cm), dpi=600)  # 创建页面
+    ax = fig.add_axes([0.12, 0.15, 0.75, 0.75], projection=proj_lambert)
     # ax = fig.add_axes([0.1, 0.1, 0.85, 0.85], projection=proj_lambert)
 
     ## 读取青藏高原地形文件
@@ -167,9 +264,9 @@ def create_map(info):
         facecolor='none',
         alpha=1.)
     ## 将青藏高原地形文件加到地图中区
-    ax.add_feature(Province, linewidth=0.5, zorder=2, alpha=0.3)
+    # ax.add_feature(Province, linewidth=0.5, zorder=2, alpha=0.3)
 
-    # ax.add_feature(Henan, linewidth=0.6, zorder=2)
+    ax.add_feature(Henan, linewidth=0.6, zorder=2)
     # ax.add_feature(city, linewidth=0.5, zorder=2)
     # ax.coastlines(linestyle=':', linewidth=1, alpha=0.7)
     # ax.coastlines()
@@ -217,7 +314,7 @@ def create_map(info):
             fontdict={
                 'size': 12,
             })
-    return ax
+    return ax,fig
 
 
 def get_information(flnm):
@@ -232,11 +329,14 @@ def get_information(flnm):
 
     ## 设置正则表达式信息
     pattern = {}
-    pattern['dx'] = 'dx\s*=\s*\d*,'
-    pattern['dy'] = 'dy\s*=\s*\d*,'
+    # pattern['dx'] = 'dx\s*=\s*\d*,'
+    # pattern['dy'] = 'dy\s*=\s*\d*,'
+    pattern['dx'] = 'dx\s*=\s*\d.?\d*,'
+    pattern['dy'] = 'dy\s*=\s*\d.?\d*,'
+    # pattern['true_lat1'] = 'truelat1\s*=\s*\d*.?\d*,'
     pattern['max_dom'] = 'max_dom\s*=\s*\d\s*,'
     pattern[
-        'parent_grid_ratio'] = 'parent_grid_ratio\s*=\s*\d,\s*\d,\s*\d,\s*\d,'
+        'parent_grid_ratio'] = 'parent_grid_ratio\s*=\s*\d,\s*\d+,\s*\d+,\s*\d,'
     pattern['j_parent_start'] = 'j_parent_start\s*=\s*\d,\s*\d*,\s*\d*,\s*\d*,'
     pattern['i_parent_start'] = 'i_parent_start\s*=\s*\d,\s*\d*,\s*\d*,\s*\d*,'
     pattern['e_sn'] = 'e_sn\s*=\s*\d*,\s*\d*,\s*\d*,\s*\d*'
@@ -285,12 +385,15 @@ def get_information(flnm):
 
     for i in var_list:
         aa = get_var(i)
+        print('{}是{}'.format(i, aa))
         if i in [
                 'parent_grid_ratio',
                 'j_parent_start',
                 'i_parent_start',
                 'e_we',
                 'e_sn',
+                # 'dx',
+                # 'dy',
         ]:
             bb = aa
             bb = [float(i) for i in bb]
@@ -366,11 +469,11 @@ def draw_d02(info):
 
         ## 标注d03
         # plt.text(lon[0] * 1+100000, lat[0] * 1. - 225000, "d02", fontdict={'size':14})
-        plt.text(lon[3] * 1+50000 ,
-                #  lat[3] * 1. - 200000,
-                 lat[3] * 1. - 300000,
-                 "d03",
-                 fontdict={'size': 12})
+        # plt.text(lon[3] * 1+50000 ,
+        #         #  lat[3] * 1. - 200000,
+        #          lat[3] * 1. - 300000,
+        #          "d03",
+        #          fontdict={'size': 12})
         
     if max_dom >= 4:
 
@@ -422,61 +525,61 @@ def draw_station(ax, info):
     """画站点
     """
     station = {
-        'ShangQiu': {
-            'lat': 34.4072,
-            'lon': 115.6303,
-            'abbreviation':'商丘'
-        },
+        # 'ShangQiu': {
+        #     'lat': 34.4072,
+        #     'lon': 115.6303,
+        #     'abbreviation':'商丘'
+        # },
         'Zhengzhou': {
             'lat': 34.7044,
             'lon': 113.6972,
             'abbreviation':'郑州'
         },
-        'ZhuMaDian': {
-            'lat': 33.01,
-            'lon': 114.0203,
-            'abbreviation':'驻马店'
-        },
-        'HeFei': {
-            'lat': 31.8669,
-            'lon': 117.2581,
-            'abbreviation':'合肥'
-        },
-        'BengBu': {
-            'lat': 32.9181,
-            'lon': 117.4478,
-            'abbreviation':'蚌埠'
-        },
-        'FuYang': {
-            'lat': 32.8789,
-            'lon': 115.7408,
-            'abbreviation':'阜阳'
-        },
-        # 'JingZhou': {
-        #     'lat': 30.3517,
-        #     'lon': 112.1481,
-        #     'abbreviation':'荆州'
+        # 'ZhuMaDian': {
+        #     'lat': 33.01,
+        #     'lon': 114.0203,
+        #     'abbreviation':'驻马店'
         # },
-        'YiChang': {
-            'lat': 30.7,
-            'lon': 111.3,
-            'abbreviation':'宜昌'
-        },
-        'NanYang': {
-            'lat': 33.0208,
-            'lon': 112.4925,
-            'abbreviation':'南阳'
-        },
-        'SuZhou': {
-            'lat': 31.7256,
-            'lon': 113.3886,
-            'abbreviation':'随州'
-        },
-        'WuHan': {
-            'lat': 30.5167,
-            'lon': 114.3775,
-            'abbreviation':'武汉'
-        },
+        # 'HeFei': {
+        #     'lat': 31.8669,
+        #     'lon': 117.2581,
+        #     'abbreviation':'合肥'
+        # },
+        # 'BengBu': {
+        #     'lat': 32.9181,
+        #     'lon': 117.4478,
+        #     'abbreviation':'蚌埠'
+        # },
+        # 'FuYang': {
+        #     'lat': 32.8789,
+        #     'lon': 115.7408,
+        #     'abbreviation':'阜阳'
+        # },
+        # # 'JingZhou': {
+        # #     'lat': 30.3517,
+        # #     'lon': 112.1481,
+        # #     'abbreviation':'荆州'
+        # # },
+        # 'YiChang': {
+        #     'lat': 30.7,
+        #     'lon': 111.3,
+        #     'abbreviation':'宜昌'
+        # },
+        # 'NanYang': {
+        #     'lat': 33.0208,
+        #     'lon': 112.4925,
+        #     'abbreviation':'南阳'
+        # },
+        # 'SuZhou': {
+        #     'lat': 31.7256,
+        #     'lon': 113.3886,
+        #     'abbreviation':'随州'
+        # },
+        # 'WuHan': {
+        #     'lat': 30.5167,
+        #     'lon': 114.3775,
+        #     'abbreviation':'武汉'
+        # },
     }
     values = station.values()
     # station_name = list(station.keys())
@@ -497,11 +600,12 @@ def draw_station(ax, info):
                color='black',
                transform=ccrs.PlateCarree(),
                linewidth=0.2,
-               s=12)
+               s=12,
+               zorder=3)
     ## 给站点加注释
     for i in range(len(x)):
     # for i,j in zip(len(x), values):
-        ax.text(x[i]-0.5 ,
+        ax.text(x[i]-0.3 ,
                  y[i] + 0.2,
                  station_name[i],
                  transform=ccrs.PlateCarree(),
@@ -522,15 +626,15 @@ def draw_station(ax, info):
         x,y = ll2xy(lat, lon, info) 
         ylat = y*info['dx']
         xlon = x*info['dx']
-        draw_circle(ax,ylat, xlon)
+        # draw_circle(ax,ylat, xlon)
                  
 
-    x,y = ll2xy(36.1, 107, info)
+    x,y = ll2xy(36, 112, info)
     ylat = y*info['dx']
     xlon = x*info['dx']
     ax.text(xlon, ylat, 'd02')
 
-    x,y = ll2xy(40, 101, info)
+    x,y = ll2xy(37.5, 110, info)
     ylat = y*info['dx']
     xlon = x*info['dx']
     ax.text(xlon, ylat, 'd01')
@@ -539,13 +643,15 @@ def draw_station(ax, info):
 def draw():
     pass
     file_folder = "/mnt/zfm_18T/fengxiang/HeNan/Draw/Figure_domain/"
-    file_name = "namelist.wps.pzm"
+    # file_name = "namelist.wps.pzm"
+    # file_name = "namelist.wps"
+    file_name = "namelist.wps_LES"
     flnm = file_folder + file_name
     print(flnm)
 
     info = get_information(flnm)  # 获取namelist.wps文件信息
     # print(info['ref_lat'])
-    ax = create_map(info)  # 在domain1区域内，添加地理信息，创建底图
+    ax,fig = create_map(info)  # 在domain1区域内，添加地理信息，创建底图
     print("创建地图完毕")
     draw_d02(info)  # 绘制domain2区域
     # print("绘制完毕")
@@ -559,9 +665,29 @@ def draw():
     # ylat = y*info['dx']
     # xlon = x*info['dx']
     # draw_circle(ax,ylat, xlon)
+    flnm_90m_met = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/geo_em.d03.nc'
+    met_h90 = get_hgt_met(flnm_90m_met)
+    cs = draw_contourf_lambert(met_h90,  ax)
+
+    colorlevel = np.arange(0, 4000, 200)
+    colorticks = colorlevel[1:-1][::4]
+    cb = fig.colorbar(
+        cs,
+        # cax=ax6,
+        # orientation='horizontal',
+        orientation='vertical',
+        ticks=colorticks,
+        fraction = 0.045,  # 色标大小,相对于原图的大小
+        pad=0.01,  #  色标和子图间距离
+    )
+    cb.ax.tick_params(labelsize=10)  # 设置色标标注的大小
     
 
-    fig_name = file_folder+'domainpzm.png'
+
+    fig_name = file_folder+'domain_LES.png'
+
+    
+
     plt.savefig(fig_name)
 
 

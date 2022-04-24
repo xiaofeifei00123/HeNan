@@ -178,7 +178,9 @@ def draw_big(var_dic, station='zhengzhou'):
     for model,color in zip(model_list,color_list):
         label = model
         if model == 'gwd0':
-            label = 'no_gwd'
+            label = 'CTRL'
+        elif model == 'gwd3':
+            label = 'GWD3'
         axes[0].plot(var_dic['wind_speed'].sel(model=model).values, var_dic['wind_speed'].sel(model=model).pressure, color=color, label=label, linewidth=1)
         axes[1].plot(var_dic['wind_angle'].sel(model=model).values, var_dic['wind_angle'].sel(model=model).pressure, color=color, label=label, linewidth=1)
 
@@ -221,7 +223,7 @@ def draw_big(var_dic, station='zhengzhou'):
     # axes[0].set_title('风速', loc='right',fontsize=10)
     axes[1].set_xlabel('RMSE (风向，$^{\circ}$)', fontsize=10)
     # axes[1].set_title('风向', loc='right',fontsize=12)
-    axes[0].set_title('(b)', loc='left',y=0.98, fontsize=8)
+    axes[0].set_title('(b)', loc='left',y=0.98, fontsize=10)
 
     fig_path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_lunwen'
     fig_save = os.path.join(fig_path, fig_name)
@@ -303,7 +305,7 @@ def draw_bias(var_dic, station='zhengzhou'):
     axes[0].set_ylabel('Pressure (hPa)', fontsize=12)
     axes[0].set_xlabel('BIAS (风速，m/s)', fontsize=10)
     axes[1].set_xlabel('BIAS(风向，$^{\circ}$)', fontsize=10)
-    axes[0].set_title('(a)', loc='left',y=0.98, fontsize=8)
+    axes[0].set_title('(a)', loc='left',y=0.98, fontsize=10)
 
     fig_path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_lunwen'
     fig_save = os.path.join(fig_path, fig_name)

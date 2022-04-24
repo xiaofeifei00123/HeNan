@@ -32,6 +32,8 @@ plt.rcParams['axes.unicode_minus']=False
 
 # %%
 
+plt.rcParams['font.family'] = 'Nimbus Roman No9 L' # 作用：解决图上汉字和负号显示为方框的问题 
+plt.rcParams['font.sans-serif'] = 'Nimbus Roman No9 L'
 
 
 class CrossData():
@@ -169,16 +171,18 @@ class DrawVertical():
         cb_dbz = fig.colorbar(dbz_contours, 
                               ax=ax_cross, 
                               ticks=colorticks,
-                              orientation='horizontal',
+                              orientation='vertical',
                               fraction = 0.05,  # 色标大小,相对于原图的大小
-                              pad=0.1,  #  色标和子图间距离
+                              pad=0.02,  #  色标和子图间距离
                               )
             
         # cb_dbz.ax.tick_params(labelsize=8)
         # cb_dbz.ax.set_xscale('log')
         # colorlabel = ['-0.1', '-0.05', '-0.01', '-0.001', '0.001', '0.01', '0.05', '0.1']
         colorlabel = ['$-10^{-1}$', '$-10^{-2}$', '$-10^{-3}$', '$-10^{-4}$', '$10^{-4}$', '$10^{-3}$', '$10^{-2}$', '$10^{-1}$']
-        cb_dbz.ax.set_xticklabels(colorlabel, fontsize=8)
+        # cb_dbz.ax.set_ticks(colorticks)
+        # print(colorticks)
+        cb_dbz.ax.set_yticklabels(colorlabel, fontsize=8)
 
         
         
@@ -200,7 +204,7 @@ class DrawVertical():
         ax_cross.set_xticklabels(x_labels[::8], fontsize=10)
         
         ## Set the x-axis and  y-axis labels
-        # ax_cross.set_xlabel("Distance (km)", fontsize=10)
+        ax_cross.set_xlabel("Distance (km)", fontsize=10)
         ax_cross.set_ylabel("Height (km)", fontsize=10)
 
 
@@ -255,7 +259,7 @@ def draw_cross_gwd1(flnm):
     dv = DrawVertical()
     cm = 1/2.54
     fig = plt.figure(figsize=(8*cm,8*cm), dpi=600)
-    ax_cross = fig.add_axes([0.15, 0.15, 0.8, 0.8])
+    ax_cross = fig.add_axes([0.2, 0.2, 0.6, 0.6])
     # title_t = ds.XTIME.dt.strftime('%d-%H').values[0]
     title_t = 'gwd1'
     # ax_cross.set_title(title_t, loc='left', fontsize=10)
@@ -308,7 +312,7 @@ def draw_cross_gwd3(flnm):
     dv = DrawVertical()
     cm = 1/2.54
     fig = plt.figure(figsize=(8*cm,8*cm), dpi=600)
-    ax_cross = fig.add_axes([0.15, 0.15, 0.8, 0.8])
+    ax_cross = fig.add_axes([0.15, 0.2, 0.7, 0.7])
     # dv.draw_contourf(fig, ax_cross, dv.drop_na(hor_drag)*10**3, ter_line)
     dv.draw_contourf(fig, ax_cross, dv.drop_na(dau)*10**3, ter_line)
 

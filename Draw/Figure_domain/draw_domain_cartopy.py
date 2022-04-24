@@ -113,7 +113,7 @@ def create_map(info):
     ## 将青藏高原地形文件加到地图中区
     # ax.add_feature(Province, linewidth=0.5, zorder=2, alpha=0.3)
 
-    # ax.add_feature(Henan, linewidth=0.6, zorder=2)
+    ax.add_feature(Henan, linewidth=0.6, zorder=2)
     # ax.add_feature(city, linewidth=0.5, zorder=2)
     ax.coastlines(linestyle='--', linewidth=0.5, alpha=0.7)
     # ax.coastlines()
@@ -176,11 +176,13 @@ def get_information(flnm):
 
     ## 设置正则表达式信息
     pattern = {}
-    pattern['dx'] = 'dx\s*=\s*\d*,'
-    pattern['dy'] = 'dy\s*=\s*\d*,'
+    # pattern['dx'] = 'dx\s*=\s*\d*,'
+    # pattern['dy'] = 'dy\s*=\s*\d*,'
+    pattern['dx'] = 'dx\s*=\s*[1-9].?[1-9]*'
+    pattern['dy'] = 'dy\s*=\s*[1-9].?[1-9]*'
     pattern['max_dom'] = 'max_dom\s*=\s*\d\s*,'
     pattern[
-        'parent_grid_ratio'] = 'parent_grid_ratio\s*=\s*\d,\s*\d,\s*\d,\s*\d,'
+        'parent_grid_ratio'] = 'parent_grid_ratio\s*=\s*\d,\s*\d,\s*\d+,\s*\d,'
     pattern['j_parent_start'] = 'j_parent_start\s*=\s*\d,\s*\d*,\s*\d*,\s*\d*,'
     pattern['i_parent_start'] = 'i_parent_start\s*=\s*\d,\s*\d*,\s*\d*,\s*\d*,'
     pattern['e_sn'] = 'e_sn\s*=\s*\d*,\s*\d*,\s*\d*,\s*\d*'
@@ -413,7 +415,8 @@ def draw_station(ax):
 def draw():
     pass
     file_folder = "/mnt/zfm_18T/fengxiang/HeNan/Draw/Figure_domain/"
-    file_name = "namelist.wps"
+    file_name = "namelist.wps_LES"
+    # file_name = "namelist.wps"
     flnm = file_folder + file_name
     print(flnm)
 
@@ -426,7 +429,7 @@ def draw():
 
     draw_station(ax)
     # print("标注站点完毕")
-    fig_name = file_folder+'domain.png'
+    fig_name = file_folder+'domain_LES.png'
     plt.savefig(fig_name)
 
 if __name__ == '__main__':

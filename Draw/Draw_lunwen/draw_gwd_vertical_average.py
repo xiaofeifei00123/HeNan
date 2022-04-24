@@ -19,13 +19,37 @@ import wrf
 from netCDF4 import Dataset
 import matplotlib.pyplot as plt
 # %%
-# flnm='/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/gwd0/wrfout_d01_2021-07-20_00:00:00'
-# flnm='/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd1/wrfout_d01_2021-07-20_00:00:00'
+# flnm='/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd3/wrfout_d03_2021-07-20_00:00:00'
+#flnm='/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/gwd3/wrfout_d01_2021-07-20_00:00:00' flnm='/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd1/wrfout_d01_2021-07-20_00:00:00'
+# flnm='/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/gwd3/wrfout_d03_2021-07-20_00:00:00'
 # ds = xr.open_dataset(flnm)
+# ds
+# wrfin = Dataset(flnm)
+# h
+# area = {
+#     'lon1':111.6,
+#     'lon2':113.3,
+#     'lat1':33.4,
+#     'lat2':33.8,
+#     'interval':0.125,
+# }
+# x1, y1 = wrf.ll_to_xy(wrfin,area['lat1'], area['lon1']).values
+# # 
+# h
+# # %%
+# # var_list1 = ['DTAUY3D_LS', 'DTAUY3D_SS', 'DTAUY3D_FD', 'DTAUY3D_BL']
+# dd1 = ds['DTAUX3D_LS']
+# h = wrf.getvar(wrfin, 'height')
+# h1 = h[:,x1,y1]
+# dc = dd1[0,:,x1,y1]
+# dcc = dc.assign_coords({'height':('bottom_top',h1.values)})
+# dcc.swap_dims({'bottom_top':'height'})
+# # h1.values
 
-# # ds
-# da = ds['DTAUX3D']
-# da
+
+# # # ds
+# # da = ds['DTAUX3D']
+# # da
 
 # %%
 class Vp():
@@ -79,6 +103,7 @@ class Data(Vp):
             'lat2':33.8,
             'interval':0.125,
         }
+        # x1, y1 = wrf.ll_to_xy(wrfin,area['lat1'], area['lon1']).values
         # area = {
         #     'lon1':113,
         #     'lon2':114,
@@ -92,6 +117,14 @@ class Data(Vp):
         x2, y2 = wrf.ll_to_xy(wrfin,area['lat2'], area['lon2']).values
         dda = da[:,y1:y2, x1:x2]
         ddda = dda.mean(dim={'south_north', 'west_east'})
+
+        h = wrf.getvar(wrfin, 'height')
+        h = h[:,y1:y2, x1:x2]
+        h = h.mean(dim={'south_north', 'west_east'})
+
+        ddda = ddda.assign_coords({'height':('bottom_top',h.values)})
+        ddda = ddda.swap_dims({'bottom_top':'height'})
+
         return ddda
 
     def get_da(self,):
@@ -157,10 +190,11 @@ class Draw(Vp):
         # color_list = ['green','orange',  'red', 'blue']
         for var,color,label in zip(self.var_list,self.color_list, self.label_list):
             dav = ds[var]
-            ax.plot(dav.values, dav.bottom_top, label=label, lw=5, color=color)
+            # ax.plot(dav.values, dav.bottom_top, label=label, lw=5, color=color)
+            ax.plot(dav.values, dav.height, label=label, lw=5, color=color)
 
         ax.set_xlim(10**(-10),10**(-2))
-        ax.set_ylim(0,50)
+        # ax.set_ylim(0,50)
         ax.set_xscale('log')
 
         ax.xaxis.set_tick_params(labelsize=10)
@@ -185,16 +219,21 @@ class Draw(Vp):
         # for var,color,label in zip(self.var_list,self.color_list, self.label_list):
         for label,color in zip(self.label_list,self.color_list):
             dav = ds[label]
-            ax.plot(dav.values, dav.bottom_top, label=label, lw=2, color=color)
+            # ax.plot(dav.values, dav.bottom_top, label=label, lw=2, color=color)
+            ax.plot(dav.values, dav.height, label=label, lw=2, color=color)
         ax.set_xlim(10**(-10),10**(-2))
-        ax.set_ylim(0,50)
+        ax.set_ylim(0,12000)
+        ylevel = np.arange(0, 13000, 1000)
+        ax.set_yticks(ylevel)
+        ax.set_yticklabels((ylevel/1000).astype('int'))
+        # ax.set_ylim(0,50)
         ax.set_xscale('log')
 
         ax.xaxis.set_tick_params(labelsize=10)
         ax.yaxis.set_tick_params(labelsize=10)
         ax.legend(fontsize=10, edgecolor='white')
-        ax.set_xlabel('Drag ($m/s^2$)', fontsize=10)
-        ax.set_ylabel('Model Level', fontsize=10)
+        ax.set_xlabel('Drag ($N/m^2$)', fontsize=10)
+        ax.set_ylabel('Height (km)', fontsize=10)
         # ax.set_title(self.pic_dic['domain'], loc='left', fontsize=22)
         # ax.set_title(self.pic_dic['time'], loc='right', fontsize=22)
         
@@ -205,7 +244,8 @@ class Draw(Vp):
 def main():
     f_path = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd3/'
     # f_path = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd1/'
-    domain_list = ['d01', 'd02', 'd03']
+    # domain_list = ['d01', 'd02', 'd03']
+    domain_list = [ 'd03']
     time_range = pd.date_range('2021-07-20 1200', '2021-07-20 1200', freq='3H')
     for t in time_range:
         for d in domain_list:

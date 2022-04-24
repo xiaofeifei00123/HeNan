@@ -217,5 +217,5 @@ def draw_contourf_latlon(rain, pic_dic):
 if __name__ == '__main__':
     flnm_90m_met = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/geo_em.d03.nc'
     met_h90 = get_hgt_met(flnm_90m_met)
-    # draw_contourf_lambert(met_h90, {'title':'geo_90m'})
-    draw_contourf_latlon(met_h90, {'title':'geo_90m'})
+    draw_contourf_lambert(met_h90, {'title':'geo_90m'})
+    # draw_contourf_latlon(met_h90, {'title':'geo_90m'})

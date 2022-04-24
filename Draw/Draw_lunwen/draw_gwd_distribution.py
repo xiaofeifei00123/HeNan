@@ -97,7 +97,7 @@ class Draw(object):
         cm = 1/2.54
         fig = plt.figure(figsize=(8*cm, 8*cm), dpi=600)
         proj = ccrs.PlateCarree()  # 创建坐标系
-        ax = fig.add_axes([0.1,0.1,0.85,0.85], projection=proj)
+        ax = fig.add_axes([0.2,0.2,0.7,0.7], projection=proj)
         # ax.set_extent([])
         print("画{}时刻的图".format(str(picture_dic['date'])))
         date = picture_dic['date']
@@ -141,7 +141,7 @@ class Draw(object):
             orientation='horizontal',
             ticks=colorticks,
             fraction = 0.05,  # 色标大小,相对于原图的大小
-            pad=0.08,  #  色标和子图间距离
+            pad=0.1,  #  色标和子图间距离
         )
         colorlabel = ['$-10^{-1}$', '$-10^{-2}$', '$-10^{-3}$', '$-10^{-4}$', '$10^{-4}$', '$10^{-3}$', '$10^{-2}$', '$10^{-1}$']
         cb.ax.set_xticklabels(colorlabel, fontsize=10)
@@ -176,10 +176,10 @@ def draw_one(model='1900_90m'):
             # da = ds['DUSFCG_LS']+ds['DUSFCG_SS']+ds['DUSFCG_FD']+ds['DUSFCG_BL']
 # ds['DTAUX3D_LS'].sel(bottom_top=0)
 
-            # da = ds['DTAUX3D_LS'].sel(bottom_top=0)+ds['DTAUX3D_SS'].sel(bottom_top=0)+ds['DTAUX3D_FD'].sel(bottom_top=0)+ds['DTAUX3D_BL'].sel(bottom_top=0)
-            # var = 'DUSFCG'
-            da = ds['DTAUY3D_LS'].sel(bottom_top=0)+ds['DTAUY3D_SS'].sel(bottom_top=0)+ds['DTAUY3D_FD'].sel(bottom_top=0)+ds['DTAUY3D_BL'].sel(bottom_top=0)
-            var = 'DVSFCG'
+            da = ds['DTAUX3D_LS'].sel(bottom_top=0)+ds['DTAUX3D_SS'].sel(bottom_top=0)+ds['DTAUX3D_FD'].sel(bottom_top=0)+ds['DTAUX3D_BL'].sel(bottom_top=0)
+            var = 'DUSFCG'
+            # da = ds['DTAUY3D_LS'].sel(bottom_top=0)+ds['DTAUY3D_SS'].sel(bottom_top=0)+ds['DTAUY3D_FD'].sel(bottom_top=0)+ds['DTAUY3D_BL'].sel(bottom_top=0)
+            # var = 'DVSFCG'
             da = da
         print(da.max())
         gwd_sfc = da.rename({'XLAT':'lat', 'XLONG':'lon', 'XTIME':'time'}).squeeze()

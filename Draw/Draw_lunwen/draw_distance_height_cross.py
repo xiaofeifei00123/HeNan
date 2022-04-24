@@ -96,6 +96,19 @@ class Draw():
                                         facecolor="#434343", zorder=3)
         return cf
 
+    def draw_contourf_no_terrain(self, ax_cross, da, xs,ys):
+
+        # xs = np.arange(0, da.shape[-1], 1)
+        # ys = da.coords['vertical'].values
+        cf = ax_cross.contourf(xs,
+                                ys,
+                                da.values,
+                                colors=self.colordict,
+                                levels=self.colorlevel
+                            )
+
+        return cf
+
     def set_ticks(self, ax_cross, da):
         pass
         ax_cross.set_ylim(0, 12000)

@@ -101,8 +101,10 @@ set_colorbar(fig, cf3, axes[4], dr3)
 
 
 ## 距离高度图
-flnm1 ='/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd0/cross_zhengzhou.nc'
-flnm2 ='/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd3/cross_zhengzhou.nc'
+# flnm1 ='/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd0/cross_zhengzhou.nc'
+# flnm2 ='/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd3/cross_zhengzhou.nc'
+flnm1 ='/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd0/cross_rain.nc'
+flnm2 ='/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd3/cross_rain.nc'
 gd = dh.GetData()
 dic1 = gd.get_data(t='2021-07-20 00', flnm=flnm1)
 dic2 = gd.get_data(t='2021-07-20 00', flnm=flnm2)
@@ -151,5 +153,5 @@ set_colorbar(fig, cf2, axes[5], dr2)
 
 
 
-fig.savefig('/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_lunwen/Figure8_zz.png')
+fig.savefig('/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_lunwen/Figure8.png')
 

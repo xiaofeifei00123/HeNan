@@ -24,9 +24,17 @@ Version          :1.0
 
 # %%
 import sys,os
+
+
+
+
+
+from matplotlib.ticker import Locator
 import xarray as xr
 import numpy as np
 import pandas as pd
+import wrf
+import netCDF4 as nc
 
 # import salem  # 插值
 import cartopy.crs as ccrs
@@ -35,6 +43,7 @@ from cartopy.mpl.ticker import LongitudeFormatter, LatitudeFormatter
 from cartopy.io.shapereader import Reader, natural_earth
 import matplotlib as mpl
 from matplotlib.path import Path
+import matplotlib.patches as patches
 import seaborn as sns
 # import matplotlib.patches as patches
 import matplotlib.pyplot as plt
@@ -44,6 +53,46 @@ from multiprocessing import Pool
 from baobao.map import Map
 from baobao.interp import rain_station2grid   # 站点插值成格点，这里插到和EC网格点一样
 
+# %%
+
+station = {
+        'ZhengZhou': {
+            # 'abbreviation':'郑州',
+            'abbreviation':'ZZ',
+            'lat': 34.76,
+            'lon': 113.65
+        },
+        'NanYang': {
+            'abbreviation':'南阳',
+            'lat': 33.1,
+            'lon': 112.49,
+        },
+        'LuShi': {
+            'abbreviation':'卢氏',
+            'lat': 34.08,
+            'lon': 111.07,
+        },
+    }
+
+# station[list(station.keys())[0]]
+# station['ZhengZhou']
+# list(station)
+
+
+
+# %%
+# flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d04/gwd0/wrfout_d04_2021-07-19_12:00:00'
+def get_hgt(
+    # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d04/gwd0/wrfout_d04_2021-07-19_12:00:00'
+    flnm='/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd0/wrfout_d02_2021-07-19_12:00:00'
+    ):
+    """从wrfout文件中获取海拔高度数据
+    """
+    pass
+    wrfnc = nc.Dataset(flnm)
+    h = wrf.getvar(wrfnc, 'ter')
+    h = h.rename({'XLAT':'lat', 'XLONG':'lon'})
+    return h
 
 
 # %%
@@ -70,6 +119,7 @@ class Draw(object):
         self.station = {
                 'ZhengZhou': {
                     'abbreviation':'郑州',
+                    # 'abbreviation':'ZZ',
                     'lat': 34.76,
                     'lon': 113.65
                 },
@@ -99,7 +149,12 @@ class Draw(object):
         ax = mp.create_map(ax, self.map_dic)
         ax.set_extent(self.map_dic['extent'])
 
-        mp.add_station(ax, self.station, justice=True, delx=-0.2)
+        # for sta in self.station.keys():
+        mp.add_station(ax, {'ZhengZhou':self.station['ZhengZhou']}, justice=False, delx=-0.2, marker='o', ssize=15)
+        mp.add_station(ax, {'NanYang':self.station['NanYang']}, justice=False, delx=-0.2, marker='s', ssize=15)
+        mp.add_station(ax, {'LuShi':self.station['LuShi']}, justice=False, delx=-0.2, marker='x', ssize=15)
+        # mp.add_station(ax, self.station['NanYang'], justice=False, delx=-0.2, marker='^')
+        # mp.add_station(ax, self.station['LuShi'], justice=False, delx=-0.2, marker='h')
 
         x = da.lon
         y = da.lat
@@ -225,8 +280,9 @@ class GetData():
 if __name__ == '__main__':
 
     fig_path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_lunwen/'
+    # %%
     def get_dr():
-        cm = round(1/2.54, 2)
+        cm = 1/2.54
         fig = plt.figure(figsize=(8*cm, 8*cm), dpi=600)
         proj = ccrs.PlateCarree()  # 创建坐标系
         ax = fig.add_axes([0.1,0.08,0.85,0.85], projection=proj)
@@ -264,9 +320,59 @@ if __name__ == '__main__':
         )
     cb.ax.tick_params(labelsize=8)  # 设置色标标注的大小
     title_name = '(a)'
-    dr.ax.set_title(title_name, loc='left', fontsize=8,y=0.98)
+    dr.ax.set_title(title_name, loc='left', fontsize=10,y=0.98)
     fig_name = 'gwd3-no_gwd'
+
+    ## 画降水变化最大的框
+    area_left = {
+        'lon1':111.6,
+        'lon2':112.4,
+        'lat1':33.4,
+        'lat2':33.8,
+        'interval':0.125,
+    }
+    ## 伏牛山右边
+    area_right = {
+        'lon1':112.4,
+        'lon2':113.3,
+        'lat1':33.4,
+        'lat2':33.8,
+        'interval':0.125,
+    }
+    def ad_patch(area):
+        xy = (area['lon1'], area['lat1'])
+        width = area['lon2']-area['lon1']
+        height = area['lat2']-area['lat1']
+        rect = patches.Rectangle(xy=xy, width=width, height=height, edgecolor='red', fill=False, lw=1.5, ) # 左下角的点的位置
+        dr.ax.add_patch(rect)
+    ad_patch(area_left)
+    ad_patch(area_right)
+
+    # mpl.font_manager._rebuild()
+    # font1 = {
+    #     # 'weight':'black',
+    #     'fontweight':'normal',
+    #     'size': 10,
+    #     'fontstyle':'oblique',
+    # }
+    dr.ax.text(111.7,33.5, '$\\bf{A}$', color='black', fontweight='bold')
+    # dr.ax.text(111.7,33.5, '$\\bf{A}$', color='black',fontdict=font1, fontweight='bold')
+    # dr.ax.text(110.7,33.5, '$\\bf{this}$', color='black',)
+    aa = dr.ax.text(112.9,33.5, '$\\bf{B}$', color='black')
+    # print(type(aa))
+    # aa.color = 'blue'
+    # aa.font_wight = 200
+    ## 画这个300m的等高线
+    h_level = [80,300,]
+    h = get_hgt()
+    CS = dr.ax.contour(h.lon,h.lat, h, levels=h_level, colors='black')    
+    manual_locaton = [(111,32.5),(112.5,35), (114,33)]  # 指定线上值的标注位置
+    # fmt = {300:'300m',80:'80m'} # 将这个值变为相关的值
+    fmt = {300:'300',80:'80'} # 将这个值变为相关的值
+    dr.ax.clabel(CS, inline=True, fontsize=10, manual=manual_locaton, fmt=fmt)
+
     dr.fig.savefig(fig_path+fig_name+'.png')
+
 
     ## 模式和观测降水差值 
     # for model in ['gwd3', 'gwd0']:
@@ -285,3 +391,6 @@ if __name__ == '__main__':
     #     cb.ax.tick_params(labelsize=10)  # 设置色标标注的大小
     #     fig_name = model+'-obs'
     #     dr.fig.savefig(fig_path+fig_name+'.png', rasterized=True)
+# %%
+
+# %%

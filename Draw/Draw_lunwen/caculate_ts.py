@@ -205,7 +205,9 @@ class Draw(TS):
             # rects = ax.bar(x+width*i, ds[model], width, label='no_gwd', color=color_list[j])
             label = model
             if model == 'gwd0':
-                label = 'no-gwd'
+                label = 'CTRL'
+            elif model == 'gwd3':
+                label = 'GWD3'
 
             rects = ax.bar(x+width*i, ds[model], width, label=label, color=color_list[j])
             i += 1
@@ -223,7 +225,7 @@ class Draw(TS):
         ax.set_ylabel('ETS', fontsize=10)
         # ax.set_xlabel('precipitation (mm)', fontsize=10)
         ax.set_xlabel('降 水 (mm)', fontsize=10)
-        ax.set_title('(a)', loc='left', y=0.86, fontsize=8)
+        ax.set_title('(a)', loc='left', y=0.86, fontsize=10)
         # ax.spines().set_linewidth(1)
         fig.savefig('/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_lunwen/ETS_score_24h.png')
 if __name__ == '__main__':

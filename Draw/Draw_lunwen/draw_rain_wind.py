@@ -172,8 +172,8 @@ class GetData():
 
         flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/'+model+'/'+'rain.nc'
         da = xr.open_dataarray(flnm)
-        # t = '2021-07-20 12'
-        t = '2021-07-20 00'
+        t = '2021-07-20 12'
+        # t = '2021-07-20 00'
         rain1h = da.sel(time=t)
 
         flnm_upar = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd3/upar.nc'

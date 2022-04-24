@@ -33,7 +33,8 @@ import xarray as xr
 import numpy as np
 import os,sys
 import pandas as pd
-from baobao.caculate import caculate_q_rh_thetav
+# from baobao.caculate import caculate_q_rh_thetav
+from baobao.caculate import caculate_q_rh_thetaev
 from nmc_met_io.read_micaps import read_micaps_5
 
 
@@ -162,7 +163,7 @@ def dual_station():
         print(da)
         ds1 = da.to_dataset(dim='vars')
 
-        cc = caculate_q_rh_thetav(ds1)
+        cc = caculate_q_rh_thetaev(ds1)
         ds2 = xr.merge([ds1, cc])
         # da = xr.merge([ds1, cc]).to_array(dim='vars')
         # print(da)

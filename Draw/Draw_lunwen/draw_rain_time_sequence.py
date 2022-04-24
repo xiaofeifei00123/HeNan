@@ -66,7 +66,8 @@ def gd_mean():
     }
 
     area_list = [area_all, area_left, area_right]
-    name_list = ['all', 'left', 'right']
+    # name_list = ['all', 'left', 'right']
+    name_list = ['A+B', 'A', 'B']
     # name_list 
     rain_dict = {}
     for area,j in zip(area_list, name_list):
@@ -142,15 +143,15 @@ def gd_mean_wrf():
     return rain_dict
 
 def set_ticks(ax):
-    fontsize = 8
+    fontsize = 10 
     ax.xaxis.set_tick_params(labelsize=fontsize)
     ax.yaxis.set_tick_params(labelsize=fontsize)
     # ax.tick_params(which='major',length=8,width=1.0) # 控制标签大小 
     # ax.tick_params(which='minor',length=4,width=0.5)  #,colors='b')
     ax.xaxis.set_minor_locator(plt.MultipleLocator(1))
     ax.yaxis.set_minor_locator(plt.MultipleLocator(1))
-    ax.set_xlabel("Date/Hour (UTC)", fontsize=fontsize)
-    ax.set_ylabel("Precipitation (mm)", fontsize=fontsize)
+    ax.set_xlabel("Date/Hour (UTC)", fontsize=fontsize*1.2)
+    ax.set_ylabel("Precipitation (mm)", fontsize=fontsize*1.2)
     # ax.legend(fontsize=fontsize, edgecolor='white')
         
 def draw_time_sequence(ax, da, label = 'obs', color='red', line_style='solid', mmarker='O'):
@@ -174,8 +175,8 @@ def draw_time_sequence(ax, da, label = 'obs', color='red', line_style='solid', m
 # rain = gd_mean_wrf()
 rain = gd_mean()
 cm = 1/2.54
-fig = plt.figure(figsize=(8*cm, 6*cm), dpi=600)  # 创建页面
-ax = fig.add_axes([0.15, 0.2, 0.82, 0.75])
+fig = plt.figure(figsize=(8*cm, 8*cm), dpi=600)  # 创建页面
+ax = fig.add_axes([0.15, 0.2, 0.82, 0.73])
 
 # for i in 
 # area_list = []
@@ -189,7 +190,8 @@ ax = fig.add_axes([0.15, 0.2, 0.82, 0.75])
 #     for model,color in zip(model_list, color_list):
 #         draw_time_sequence(ax,rain[area][model],label=area+model, color=color, line_style=lnstyle)
 
-area_list = ['all', 'left', 'right']
+# area_list = ['all', 'left', 'right']
+area_list = ['A+B', 'A', 'B']
 style_list = ['-', '--', ':']
 # model_list = ['gwd0', 'gwd3', 'OBS']
 model_list = ['gwd0', 'gwd3', ]
@@ -198,14 +200,16 @@ for area,color in zip(area_list, color_list):
     # line_style = j
     for model,lnstyle in zip(model_list, style_list):
         if model == 'gwd0':
-            label = area+'_'+'no_gwd'
+            label = area+'_'+'CTRL'
+        elif model == 'gwd3':
+            label = area+'_'+'GWD3'
         else:
             label = area+'_'+model
         draw_time_sequence(ax,rain[area][model],label=label, color=color, line_style=lnstyle)
 
-ax.set_ylim(0,22)
-ax.legend(ncol=3, fontsize=6, edgecolor='white')
-ax.set_title('(b)', loc='left', y=0.97, fontsize=8)
+ax.set_ylim(0,25)
+ax.legend(ncol=2, fontsize=10, edgecolor='white', loc='upper left')
+ax.set_title('(b)', loc='left', y=0.97, fontsize=10)
 fig_path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_lunwen/'
 fig_name = 'time_sequence'
 fig.savefig(fig_path+fig_name)

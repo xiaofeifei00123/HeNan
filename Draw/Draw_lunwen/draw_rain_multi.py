@@ -1,6 +1,3 @@
-from email import header
-
-
 #!/home/fengxiang/anaconda3/envs/wrfout/bin/python
 # -*- encoding: utf-8 -*-
 '''
@@ -13,12 +10,12 @@ Author           :Forxd
 Version          :1.0
 '''
 
+# %%
 from cmath import pi
 import sys,os
 import xarray as xr
 import numpy as np
 import pandas as pd
-
 # import salem  # 插值
 import cartopy.crs as ccrs
 import cartopy.feature as cfeat
@@ -31,26 +28,24 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import geopandas
 import cmaps
-from get_cmap import get_cmap_rain2
 from multiprocessing import Pool
 from baobao.map import Map
 
 import draw_rain_distribution_24h as dd
 import draw_rain_distribution_minus_24h as dm
 
+
 # %%
-
-
 
 if __name__ == '__main__':
     
     cm = round(1/2.54, 2)
     proj = ccrs.PlateCarree()  # 创建坐标系
-    fig = plt.figure(figsize=(17*cm, 28*cm), dpi=600)
-    # fig = plt.figure(figsize=(17*cm, 21*cm), dpi=600)
+    # fig = plt.figure(figsize=(17*cm, 28*cm), dpi=600)
+    fig = plt.figure(figsize=(17*cm, 21*cm), dpi=600)
     # ax = fig.add_axes([0.1,0.08,0.85,0.85], projection=proj)
     # fig = plt.figure(figsize=(21, 20), dpi=400)  # 创建页面
-    grid = plt.GridSpec(4,
+    grid = plt.GridSpec(3,
                         2,
                         figure=fig,
                         left=0.05,
@@ -61,7 +56,7 @@ if __name__ == '__main__':
                         # hspace=0.25)
                         hspace=0.2)
 
-    num = 4
+    num = 6
     axes = [None] * num  # 设置一个维度为8的空列表
     for i in range(num):
         axes[i] = fig.add_subplot(grid[i], projection=proj)
@@ -70,26 +65,26 @@ if __name__ == '__main__':
     gd1 = dd.GetData()
     ## 观测降水
     dr1 = dd.Draw(fig, axes[0])
-    da = gd1.obs()
-    cf = dr1.draw_tricontourf(da)    
-    dr1.ax.set_title('(a)', loc='left', y=0.85)
+    # da = gd1.obs()
+    # cf = dr1.draw_tricontourf(da)    
+    # dr1.ax.set_title('(a)', loc='left', y=0.85)
     ## EC
     da = gd1.EC()
-    dr1 = dd.Draw(fig, axes[2])
+    dr1 = dd.Draw(fig, axes[0])
     cf = dr1.draw_single(da)    
-    dr1.ax.set_title('(c)', loc='left', y=0.85)
+    dr1.ax.set_title('(a)', loc='left', y=0.85)
     ## model
     da = gd1.onemodel('gwd0')
-    dr1 = dd.Draw(fig, axes[4])
+    dr1 = dd.Draw(fig, axes[2])
     cf = dr1.draw_single(da)    
     # axes[4].set_title('(e)')
-    dr1.ax.set_title('(e)', loc='left', y=0.85)
+    dr1.ax.set_title('(c)', loc='left', y=0.85)
     ## model
     da = gd1.onemodel('gwd3')
-    dr1 = dd.Draw(fig, axes[6])
+    dr1 = dd.Draw(fig, axes[4])
     cf = dr1.draw_single(da)    
     # axes[6].set_title('(f)')
-    dr1.ax.set_title('(g)', loc='left', y=0.85)
+    dr1.ax.set_title('(e)', loc='left', y=0.85)
     ## 用单独一个子图来画色标
     ax1 = fig.add_axes([0.07,0.06,0.40,0.02])
     colorlevel=[0, 0.1, 10, 25.0, 50, 100, 250,  700]#雨量等级
@@ -107,31 +102,31 @@ if __name__ == '__main__':
 
     ### gwd3-gwd0
     da = gd2.model_model()
+    # dr2 = dm.Draw(fig, axes[1])
+    # cf = dr2.draw_single(da)
+    # dr2.ax.set_title('(b)', loc='left', y=0.85)
+    
+
+    da = gd2.EC_OBS()
     dr2 = dm.Draw(fig, axes[1])
     cf = dr2.draw_single(da)
     dr2.ax.set_title('(b)', loc='left', y=0.85)
     
-
-    da = gd2.EC_OBS()
+    ### gwd3-gwd0
+    # da = gd2.model_model()
+    # dr2 = dm.Draw(fig, axes[3])
+    # cf = dr2.draw_single(da)
+    # dr2.ax.set_title('(d)', loc='left', y=0.85)
+    
+    da = gd2.model_obs('gwd0')
     dr2 = dm.Draw(fig, axes[3])
     cf = dr2.draw_single(da)
     dr2.ax.set_title('(d)', loc='left', y=0.85)
     
-    ### gwd3-gwd0
-    da = gd2.model_model()
-    dr2 = dm.Draw(fig, axes[1])
-    cf = dr2.draw_single(da)
-    dr2.ax.set_title('(b)', loc='left', y=0.85)
-    
-    da = gd2.model_obs('gwd0')
+    da = gd2.model_obs('gwd3')
     dr2 = dm.Draw(fig, axes[5])
     cf = dr2.draw_single(da)
     dr2.ax.set_title('(f)', loc='left', y=0.85)
-    
-    da = gd2.model_obs('gwd3')
-    dr2 = dm.Draw(fig, axes[7])
-    cf = dr2.draw_single(da)
-    dr2.ax.set_title('(h)', loc='left', y=0.85)
 
     ax2 = fig.add_axes([0.55,0.06,0.40,0.02])
     colorlevel=[-700, -200, -100, -50, -20, 20, 50 , 100, 200,700 ]#雨量等级
