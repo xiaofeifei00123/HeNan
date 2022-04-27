@@ -58,7 +58,7 @@ class Draw():
                         label=r'${} m/s$'.format(ulength), 
                         labelpos='E',  # label在参考箭头的哪个方向
                         labelsep=0.05, # 箭头和标签之间的距离
-                        fontproperties={'size':8}, 
+                        fontproperties={'size':10}, 
                         coordinates='axes', # 是相对于ax的位置，还是相对于figure的位置
                         edgecolor='white',
                         facecolor='black'
@@ -117,7 +117,7 @@ class Draw():
         ax_cross.set_yticklabels(np.arange(0, 12000+1000, 1000)/1000)
 
 
-        ax_cross.tick_params(axis='both', labelsize=7, direction='out')
+        ax_cross.tick_params(axis='both', labelsize=10, direction='out')
         # cb_dbz = fig.colorbar(dbz_contours, ax=ax_cross, ticks=self.colorlevel[1:-1])
         # cb_dbz.ax.tick_params(labelsize=7)
 
@@ -129,7 +129,7 @@ class Draw():
         da1 = latlon2distance(da)    
         x_labels = da1.distance.values.astype(int)
         ax_cross.set_xticks(x_ticks[::8])
-        ax_cross.set_xticklabels(x_labels[::8], rotation=0, fontsize=7)
+        ax_cross.set_xticklabels(x_labels[::8], rotation=0, fontsize=10)
 
         # ax_cross.set_xlabel("Distance (km)", fontsize=10)
         ax_cross.set_ylabel("Height (km)", fontsize=10)

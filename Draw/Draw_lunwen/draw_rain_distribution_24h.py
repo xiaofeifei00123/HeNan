@@ -90,7 +90,10 @@ class Draw(object):
         mp = Map()
         ax = mp.create_map(ax, self.map_dic)
         ax.set_extent(self.map_dic['extent'])
-        mp.add_station(ax, self.station, justice=True, delx=-0.1)
+        # mp.add_station(ax, self.station, justice=True, delx=-0.1)
+        mp.add_station(ax, {'ZhengZhou':self.station['ZhengZhou']}, justice=False, delx=-0.2, marker='o', ssize=15)
+        mp.add_station(ax, {'NanYang':self.station['NanYang']}, justice=False, delx=-0.2, marker='s', ssize=15)
+        mp.add_station(ax, {'LuShi':self.station['LuShi']}, justice=False, delx=-0.2, marker='x', ssize=15)
 
         
         if 'south_north' in da.dims:
@@ -127,7 +130,10 @@ class Draw(object):
         ax = self.ax
         mp = Map()
         ax = mp.create_map(ax, self.map_dic)
-        mp.add_station(ax, self.station, justice=True)
+        # mp.add_station(ax, self.station, justice=True)
+        mp.add_station(ax, {'ZhengZhou':self.station['ZhengZhou']}, justice=False, delx=-0.2, marker='o', ssize=15)
+        mp.add_station(ax, {'NanYang':self.station['NanYang']}, justice=False, delx=-0.2, marker='s', ssize=15)
+        mp.add_station(ax, {'LuShi':self.station['LuShi']}, justice=False, delx=-0.2, marker='x', ssize=15)
 
         ax.set_extent(self.map_dic['extent'])
         cs = ax.tricontourf(rain.lon, rain.lat, rain, levels=self.colorlevel,colors=self.colordict, transform=ccrs.PlateCarree())

@@ -58,9 +58,11 @@ def draw_quiver(ax,x,y,u,v, scale=60, ulength=10, xk=0.1, yk=0.1):
     v = v[::8,::2]
     x = x[::2]
     y = y[::8]
-    Q = ax.quiver(x, y, u.values,v.values,units='inches',scale=scale,pivot='middle')  # 绘制风矢
+    # Q = ax.quiver(x, y, u.values,v.values,units='inches',scale=scale,pivot='middle')  # 绘制风矢
     # qk = ax.quiverkey(Q, X=0.69, Y=0.05, U=ulength, label=r'$(v, {} m/s)$'.format(ulength), labelpos='E',coordinates='figure',  fontproperties={'size':10})   # 设置参考风矢
-    qk = ax.quiverkey(Q, X=xk, Y=yk, U=ulength, label=r'$(v, {} m/s)$'.format(ulength), labelpos='E',coordinates='figure',  fontproperties={'size':10})   # 设置参考风矢
+    Q = ax.quiver(x, y, u.values,v.values,units='inches',scale=scale,pivot='tip',minlength=0.001, width=0.015,zorder=2)  # 绘制风矢
+    # qk = ax.quiverkey(Q, X=xk, Y=yk, U=ulength, label=r'$(v, {} m/s)$'.format(ulength), labelpos='E',coordinates='figure',  fontproperties={'size':10})   # 设置参考风矢
+    qk = ax.quiverkey(Q, X=xk, Y=yk, U=ulength, label=r'$(v, %s ms^{-1})$'%ulength, labelpos='E',coordinates='figure',  fontproperties={'size':10})   # 设置参考风矢
 
 
 def draw_contourf(ax_cross, xs,ys,da,):
@@ -266,9 +268,7 @@ cb = fig.colorbar(
     # fraction = 0.05,  # 色标大小,相对于原图的大小
     # pad=0.1,  #  色标和子图间距离
 )
-fig.text(0.35,0.01, 'wind speed of vertical ($10^{-1} m/s$)')
-
-
+fig.text(0.35,0.01, 'vertical wind speed  ($10^{-1} ms^{-1}$)')
 
 
 

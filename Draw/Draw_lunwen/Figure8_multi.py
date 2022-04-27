@@ -24,7 +24,7 @@ import draw_distance_height_cross as dh
 
 
 # %%
-def set_colorbar(fig, cf, ax, dr):
+def set_colorbar(fig, cf, ax, dr, ):
     cb = fig.colorbar(
     cf,
     ax=ax,
@@ -33,8 +33,19 @@ def set_colorbar(fig, cf, ax, dr):
     fraction = 0.05,  # 色标大小,相对于原图的大小
     pad=0.08,  #  色标和子图间距离
             )
-    cb.ax.tick_params(labelsize=8)  # 设置色标标注的大小
+    cb.ax.tick_params(labelsize=10)  # 设置色标标注的大小
 
+def set_colorbar_ticks(fig, cf, ax, dr, ticks):
+    cb = fig.colorbar(
+    cf,
+    ax=ax,
+    orientation='horizontal',
+    ticks=dr.colorlevel[1:-1],
+    # ticks = ticks,
+    fraction = 0.05,  # 色标大小,相对于原图的大小
+    pad=0.08,  #  色标和子图间距离
+            )
+    cb.ax.tick_params(labelsize=9)  # 设置色标标注的大小
 
 
 cm = 1/2.54
@@ -73,9 +84,9 @@ ax1 = rw.add_map(axes[0])
 ax2= rw.add_map(axes[2])
 ax3= rw.add_map(axes[4])
 
-ax1.set_title('(a)', loc='left', y=0.98, fontsize=9)
-ax2.set_title('(b)', loc='left', y=0.98, fontsize=9)
-ax3.set_title('(c)', loc='left', y=0.98, fontsize=9)
+ax1.set_title('(a)', loc='left', y=0.98, fontsize=10)
+ax2.set_title('(b)', loc='left', y=0.98, fontsize=10)
+ax3.set_title('(c)', loc='left', y=0.98, fontsize=10)
 
 dr1 = rw.Draw()
 cf1 = dr1.draw_contourf(rain1, ax1)
@@ -133,12 +144,13 @@ dr2.set_ticks(axes[5], gd.minus(dic1['theta_e'],dic2['theta_e']))
 
 
 
-axes[1].set_title('(d)', loc='left', y=0.98, fontsize=9)
-axes[3].set_title('(e)', loc='left', y=0.98, fontsize=9)
-axes[5].set_title('(f)', loc='left', y=0.98, fontsize=9)
-set_colorbar(fig, cf0, axes[1], dr0)
-set_colorbar(fig, cf1, axes[3], dr1)
-set_colorbar(fig, cf2, axes[5], dr2)
+axes[1].set_title('(d)', loc='left', y=0.98, fontsize=10)
+axes[3].set_title('(e)', loc='left', y=0.98, fontsize=10)
+axes[5].set_title('(f)', loc='left', y=0.98, fontsize=10)
+ticks = [-4.0, -1.0, -0.1,  0.1, 1.0, 4.0]
+set_colorbar_ticks(fig, cf0, axes[1], dr0, ticks=ticks)
+set_colorbar_ticks(fig, cf1, axes[3], dr1, ticks=ticks)
+set_colorbar_ticks(fig, cf2, axes[5], dr2, ticks=ticks)
 
 
 
@@ -146,9 +158,9 @@ set_colorbar(fig, cf2, axes[5], dr2)
 ## 标注直线AB
 y = np.linspace(33.8, 33.5, 10)
 x = np.linspace(111.7, 113.2, 10)
-axes[4].plot(x,y, transform=ccrs.PlateCarree(), color='black', linewidth=2)
-axes[4].text(x[0], y[0], 'A')
-axes[4].text(x[-1], y[-1], 'B')
+axes[4].plot(x,y, transform=ccrs.PlateCarree(), color='black', linewidth=3)
+axes[4].text(x[0]-0.5, y[0], '$\\bf{C}$', bbox=dict(facecolor='white', alpha=1, edgecolor='white'))
+axes[4].text(x[-1]+0.2, y[-1], '$\\bf{D}$', bbox=dict(facecolor='white', alpha=1, edgecolor='white'))
 
 
 

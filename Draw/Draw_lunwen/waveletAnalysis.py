@@ -201,9 +201,9 @@ def draw(time, period, power, sst, sig95, coi, ax2, fig):
     #     pad=0.5,  #  色标和子图间距离
     #     )
     # ax1.set_xticks([0,50,100,150])
-    ax2.set_xticks([0,50,100,150])
+    ax2.set_xticks([0,20,40,60,80,100,120,140])
     # ax1.set_xlim(0,150)
-    ax2.set_xlim(0,150)
+    ax2.set_xlim(0,145)
     ax2.set_yticks([1, 2,4,8,16, 32, 64])
     ax2.set_ylim(0,64)
     # ax1.set_yticks([-2,-1,0,1,2])

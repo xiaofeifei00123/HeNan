@@ -80,7 +80,7 @@ class Draw(object):
                         label=r'${} m/s$'.format(ulength), 
                         labelpos='E',  # label在参考箭头的哪个方向
                         labelsep=0.05, # 箭头和标签之间的距离
-                        fontproperties={'size':8}, 
+                        fontproperties={'size':10}, 
                         coordinates='axes', # 是相对于ax的位置，还是相对于figure的位置
                         edgecolor='white',
                         facecolor='black'
@@ -301,9 +301,9 @@ def multi():
     ax2= add_map(axes[1])
     ax3= add_map(axes[2])
 
-    ax1.set_title('(a)', loc='left', y=0.98, fontsize=9)
-    ax2.set_title('(b)', loc='left', y=0.98, fontsize=9)
-    ax3.set_title('(c)', loc='left', y=0.98, fontsize=9)
+    ax1.set_title('(a)', loc='left', y=0.98, fontsize=10)
+    ax2.set_title('(b)', loc='left', y=0.98, fontsize=10)
+    ax3.set_title('(c)', loc='left', y=0.98, fontsize=10)
 
     dr1 = Draw()
     cf1 = dr1.draw_contourf(rain1, ax1)
@@ -329,7 +329,7 @@ def multi():
         fraction = 0.05,  # 色标大小,相对于原图的大小
         pad=0.08,  #  色标和子图间距离
     )
-    cb.ax.tick_params(labelsize=8)  # 设置色标标注的大小
+    cb.ax.tick_params(labelsize=10)  # 设置色标标注的大小
 
 
     cb = fig.colorbar(
@@ -340,7 +340,7 @@ def multi():
         fraction = 0.05,  # 色标大小,相对于原图的大小
         pad=0.08,  #  色标和子图间距离
     )
-    cb.ax.tick_params(labelsize=8)  # 设置色标标注的大小
+    cb.ax.tick_params(labelsize=10)  # 设置色标标注的大小
 
 
     cb = fig.colorbar(
@@ -351,7 +351,7 @@ def multi():
         fraction = 0.05,  # 色标大小,相对于原图的大小
         pad=0.08,  #  色标和子图间距离
     )
-    cb.ax.tick_params(labelsize=8)  # 设置色标标注的大小
+    cb.ax.tick_params(labelsize=10)  # 设置色标标注的大小
 
 
 
