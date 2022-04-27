@@ -24,7 +24,7 @@ import matplotlib.pyplot as plt
 # from matplotlib.cm import get_cmap
 import cartopy.crs as crs
 # from cartopy.feature import NaturalEarthFeature
-from geopy.distance import distance  # 根据经纬度计算两点距离
+# from geopy.distance import distance  # 根据经纬度计算两点距离
 plt.rcParams['axes.unicode_minus']=False 
 
 from baobao.coord_transform import latlon2distance
@@ -121,15 +121,23 @@ class Draw():
         # cb_dbz = fig.colorbar(dbz_contours, ax=ax_cross, ticks=self.colorlevel[1:-1])
         # cb_dbz.ax.tick_params(labelsize=7)
 
-        # Set the x-ticks to use latitude and longitude labels
-        coord_pairs = da.coords["xy_loc"].values
-        x_ticks = np.arange(coord_pairs.shape[0])
+        ## Set the x-ticks to use latitude and longitude labels
+        # coord_pairs = da.coords["xy_loc"].values
+        # x_ticks = np.arange(coord_pairs.shape[0])
+        # x_labels = da.coords['xy_loc'].values
+        # num_ticks = 6
+        # thin = int((len(x_ticks) / num_ticks) + .5)
+        # ax_cross.set_xticks(x_ticks[::thin])
+        # ax_cross.set_xticklabels(x_labels[::thin], rotation=30, fontsize=10)
 
         ## set tick labels use distance
+        coord_pairs = da.coords["xy_loc"].values
+        x_ticks = np.arange(coord_pairs.shape[0])
         da1 = latlon2distance(da)    
         x_labels = da1.distance.values.astype(int)
         ax_cross.set_xticks(x_ticks[::8])
         ax_cross.set_xticklabels(x_labels[::8], rotation=0, fontsize=10)
+
 
         # ax_cross.set_xlabel("Distance (km)", fontsize=10)
         ax_cross.set_ylabel("Height (km)", fontsize=10)
@@ -233,86 +241,7 @@ def draw_one():
     dr.draw_contourf(ax_cross, dic['w'], dic['ter_line'])
     dr.draw_quiver(ax_cross,dic['hor'],dic['ver'], scale=60)
     dr.set_ticks(ax_cross, dic['theta_e'])
-        
-# cm = 1/2.54
-# fig = plt.figure(figsize=(8*cm,7*cm), dpi=300)
-
-def multi():
-    cm = 1/2.54
-    # fig = plt.figure(figsize=(19*cm, 8*cm), dpi=300)
-    # ax_cross = fig.add_axes([0.15, 0.2, 0.8, 0.7])
-    fig = plt.figure(figsize=(8*cm, 24*cm), dpi=600)
-    proj = crs.PlateCarree()  # 创建坐标系
-    grid = plt.GridSpec(3,
-                        1,
-                        figure=fig,
-                        left=0.15,
-                        right=0.95,
-                        bottom=0.05,
-                        top=0.98,
-                        wspace=0.2, # 两子图之间的宽
-                        # hspace=0.25)
-                        hspace=0.15)  # 两子图之间的高
-
-    num = 3
-    axes = [None]*num
-    for i in range(num):
-        axes[i] = fig.add_subplot(grid[i])
-
-
-    flnm1 ='/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd0/cross_zhengzhou.nc'
-    flnm2 ='/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd3/cross_zhengzhou.nc'
-    gd = GetData()
-    dic1 = gd.get_data(t='2021-07-20 12', flnm=flnm1)
-    dic2 = gd.get_data(t='2021-07-20 12', flnm=flnm2)
-
-
-    dr0 = Draw()
-    dr0.draw_contour(axes[0], dic1['theta_e'])
-    cf0 = dr0.draw_contourf(axes[0], dic1['w'], dic1['ter_line'])
-    dr0.draw_quiver(axes[0],dic1['hor'],dic1['ver'], scale=60)
-    dr0.set_ticks(axes[0], dic1['theta_e'])
-
-    dr1 = Draw()
-    dr1.draw_contour(axes[1], dic2['theta_e'])
-    cf1 = dr1.draw_contourf(axes[1], dic2['w'], dic2['ter_line'])
-    dr1.draw_quiver(axes[1],dic2['hor'],dic2['ver'], scale=60)
-    dr1.set_ticks(axes[1], dic1['theta_e'])
-
-
-    dr2 = Draw()
-    levels=np.arange(-12, 12+1, 4)
-    dr2.draw_contour(axes[2], gd.minus(dic2['theta_e'],dic1['theta_e']), levels=levels)
-    cf2 = dr2.draw_contourf(axes[2], gd.minus(dic2['w'],dic1['w']), dic1['ter_line'])
-    dr2.draw_quiver(axes[2],gd.minus(dic2['hor'],dic1['hor']),gd.minus(dic2['ver'],dic1['ver']), scale=60)
-    dr2.set_ticks(axes[2], gd.minus(dic2['theta_e'],dic1['theta_e']))
-
-
-
-    cf_list = [cf0, cf1, cf2]
-    laebel_list = ['(d)', '(e)', '(f)']
-    for i in range(3):
-        cb = fig.colorbar(
-            # cf1,
-            cf_list[i],
-            ax=axes[i],
-            orientation='horizontal',
-            ticks=dr1.colorlevel[1:-1],
-            fraction = 0.05,  # 色标大小,相对于原图的大小
-            pad=0.08,  #  色标和子图间距离
-        )
-        cb.ax.tick_params(labelsize=8)  # 设置色标标注的大小
-
-
-    # axes[2].set_xlabel('Distance (km)')
-
-
-
-
-
-    fig.savefig('/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_lunwen/Figure8_zz.png')
-# multi()
-
-
-
-# %%
+    fig.savefig('test.png')
+if __name__ == '__main__':
+    draw_one()
+    

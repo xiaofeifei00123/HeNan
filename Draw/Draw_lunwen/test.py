@@ -20,8 +20,8 @@ def myloop(x,y):
             # c = c+i*j 
     # return x*y
 
-x = np.array(np.arange(10000))
-y = np.array(np.arange(2000))
+x = np.array(np.arange(1, 10000, 0.1))
+y = np.array(np.arange(1000))
 start = time.process_time()
 cc = myloop(x,y)
 # print(cc)
