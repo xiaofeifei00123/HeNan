@@ -55,10 +55,11 @@ from baobao.map import Map   # 一个类名
 
 # %%
 
-# path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/'
-# f1 = path_main+'gwd0'+'/upar.nc'
-# f2 = path_main+'gwd3'+'/upar.nc'
-# ds1 = xr.open_dataset(f1)
+path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/'
+f1 = path_main+'gwd0'+'/upar.nc'
+f2 = path_main+'gwd3'+'/upar.nc'
+ds1 = xr.open_dataset(f1)
+ds1
 # ds2 = xr.open_dataset(f2)
 # ds2
 # # %%
@@ -327,8 +328,8 @@ def draw_model_once():
 
     dic_model = {
         'model':'gwd3_once',
-        'level':500,
-        'time':pd.Timestamp('2021-07-20 12'),
+        'level':850,
+        'time':pd.Timestamp('2021-07-20 00'),
         'flnm':path_out,
     }    
     print("画 [%s] 的图"%(dic_model['model']))
@@ -462,8 +463,8 @@ def draw_minus():
 # %%
 if __name__ == '__main__':
     pass
-    # draw_model_once()
-    draw_model_dual()
+    draw_model_once()
+    # draw_model_dual()
     # aa = draw_minus()
 
 # %%

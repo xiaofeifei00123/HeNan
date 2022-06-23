@@ -31,6 +31,15 @@ import xarray as xr
 
 # %%
 def get_data_micaps(ds, pic_dic):
+    """_summary_
+
+    Args:
+        ds (_type_): _description_
+        pic_dic (_type_): _description_
+
+    Returns:
+        _type_: _description_
+    """
     # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/upar_zhenzhou.nc'
     # ds = xr.open_dataset(flnm)
     # da = ds.sel(time='2021-07-20 00')
@@ -255,8 +264,6 @@ def test():
     dic = get_data_wrf(ds, pic_dic)
     diag = draw_skewt(dic, pic_dic)
 
-        
-        
 
 def get_diag():
     ds2 = draw_wrf_all()
@@ -288,7 +295,7 @@ if __name__ == '__main__':
     pass
     #### 
     # draw_1km()
-    # draw_micaps()
-    draw_wrf_all()
+    draw_micaps()
+    # draw_wrf_all()
     ## 需要决定是否注释117行的return, 不注释了则运行快一些，否则会慢一些
     # get_diag() ## 如果要计算的话，draw里面的return 位置要放在上面

@@ -90,7 +90,7 @@ class Draw(object):
         mp = Map()
         ax = mp.create_map(ax, self.map_dic)
         ax.set_extent(self.map_dic['extent'])
-        mp.add_station(ax, self.station, justice=True, delx=-0.1)
+        # mp.add_station(ax, self.station, justice=True, delx=-0.1)
 
         
         if 'south_north' in da.dims:
@@ -157,7 +157,10 @@ class GetData():
     def onemodel(self, model='gwd3'):
         pass
 
-        flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/'+model+'/'+'rain_d01.nc'
+        # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/'+model+'/'+'rain_d03.nc'
+        flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd3/rain_d02_grd.nc'
+        # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/new_modify/'+model+'/'+'rain_d03.nc'
+        # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/new_modify/CTRL/rain_d02.nc'
         # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/'+model+'/'+'rain.nc'
         # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/Typhoon/'+model+'/'+'rain.nc'
         # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d04/'+model+'/'+'rain.nc'
@@ -185,7 +188,7 @@ if __name__ == '__main__':
         cm = round(1/2.54, 2)
         proj = ccrs.PlateCarree()  # 创建坐标系
         fig = plt.figure(figsize=(8*cm, 8*cm), dpi=300)
-        ax = fig.add_axes([0.1,0.08,0.85,0.85], projection=proj)
+        ax = fig.add_axes([0.13,0.1,0.82,0.8], projection=proj)
         dr = Draw(fig, ax)
         return dr
 
@@ -226,7 +229,10 @@ if __name__ == '__main__':
     # dr.fig.savefig(fig_path+fig_name)
 
     ## 画模式降水
-    for model in ['gwd3','gwd1', 'gwd0']:
+    # for model in ['gwd3','gwd1', 'gwd0']:
+    model_list = ['gwd3']
+    # model_list = ['CTRL','Dual', 'FD', 'GWD3', 'SS']
+    for model in model_list:
         dr = get_dr()  # 画图的对象
         gd = GetData()  # 数据的对象
         da = gd.onemodel(model)
@@ -236,11 +242,11 @@ if __name__ == '__main__':
             # cax=ax6,
             orientation='horizontal',
             ticks=dr.colorticks,
-            fraction = 0.05,  # 色标大小,相对于原图的大小
+            fraction = 0.06,  # 色标大小,相对于原图的大小
             pad=0.1,  #  色标和子图间距离
             )
         cb.ax.tick_params(labelsize=10)  # 设置色标标注的大小
-        dr.ax.set_title(model, fontsize=10,loc='right')
-        fig_name = model+'d01'
+        # dr.ax.set_title(model, fontsize=10,loc='right')
+        fig_name = model+'d03_grd'
         fig_path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_rain/rain_24h_gwd/'
         dr.fig.savefig(fig_path+fig_name)
