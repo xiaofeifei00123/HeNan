@@ -158,8 +158,8 @@ class GetData():
         pass
 
         # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/'+model+'/'+'rain_d03.nc'
-        flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd3/rain_d02_grd.nc'
-        # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/new_modify/'+model+'/'+'rain_d03.nc'
+        # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd3/rain_d02_grd.nc'
+        flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/new_modify/'+model+'/'+'rain_d03.nc'
         # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/new_modify/CTRL/rain_d02.nc'
         # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/'+model+'/'+'rain.nc'
         # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/Typhoon/'+model+'/'+'rain.nc'
@@ -230,8 +230,8 @@ if __name__ == '__main__':
 
     ## 画模式降水
     # for model in ['gwd3','gwd1', 'gwd0']:
-    model_list = ['gwd3']
-    # model_list = ['CTRL','Dual', 'FD', 'GWD3', 'SS']
+    # model_list = ['gwd3']
+    model_list = ['CTRL','Dual', 'FD', 'GWD3', 'SS']
     for model in model_list:
         dr = get_dr()  # 画图的对象
         gd = GetData()  # 数据的对象
@@ -247,6 +247,6 @@ if __name__ == '__main__':
             )
         cb.ax.tick_params(labelsize=10)  # 设置色标标注的大小
         # dr.ax.set_title(model, fontsize=10,loc='right')
-        fig_name = model+'d03_grd'
+        fig_name = model+'d03'
         fig_path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_rain/rain_24h_gwd/'
         dr.fig.savefig(fig_path+fig_name)
