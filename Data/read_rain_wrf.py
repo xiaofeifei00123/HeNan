@@ -36,7 +36,7 @@ def combine_rain(path):
     """    
 
     # fl_list = os.popen('ls {}/wrfout_d03*'.format(path))  # 打开一个管道
-    fl_list = os.popen('ls {}/wrfout_d02*'.format(path))  # 打开一个管道
+    fl_list = os.popen('ls {}/wrfout_d03*'.format(path))  # 打开一个管道
     fl_list = fl_list.read().split()
     dds_list = []
     r = 0
@@ -121,7 +121,7 @@ def save_one(path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/1900_90m/'):
         'path_main':path_main,  # 模式数据文件夹
         # 'path_wrfout':'/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd3-BL/wrfout_d03_2021-07-19_19:00:00', # 原始的一个wrfout数据，获得投影需要
         'path_wrfout':path_main+'wrfout_d03_2021-07-19_01:00:00',
-        'path_rain_wrf_grid':path_main+'rain_d02_grd.nc', # 原始降水数据存储路径+文件名
+        'path_rain_wrf_grid':path_main+'rain_d03.nc', # 原始降水数据存储路径+文件名
         'path_rain_wrf_latlon':path_main+'rain_latlon.nc',  # 插值到latlon之后的文件名
         'path_rain_wrf_station':path_main+'rain_station.nc',  # 插值到站点之后的文件名
         'path_rain_obs_station':'/mnt/zfm_18T/fengxiang/HeNan/Data/OBS/rain_station.nc', # 站点降水
@@ -146,8 +146,8 @@ def save_one(path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/1900_90m/'):
     da.to_netcdf(path_dic['path_rain_wrf_grid'])
 
     ## 降低分辨率和转换投影
-    da1 = regrid_latlon(path_dic['path_rain_wrf_grid'], area)
-    da1.to_netcdf(path_dic['path_rain_wrf_latlon'])
+    # da1 = regrid_latlon(path_dic['path_rain_wrf_grid'], area)
+    # da1.to_netcdf(path_dic['path_rain_wrf_latlon'])
 
     ## 插值到站点
     # da2 = grid2station(path_dic['path_rain_obs_station'], path_dic['path_rain_wrf_grid'],path_dic['path_wrfout'])
@@ -160,14 +160,14 @@ def dual():
     pass
     # model_list = ['gwd3-FD', 'gwd3-BL','gwd3-SS', 'gwd3-LS']
     # model_list = ['gwd0', 'gwd1', 'gwd3']
-    model_list = ['gwd3']
-    # model_list = ['CTRL','Dual', 'FD', 'GWD3', 'SS']
+    # model_list = ['gwd3']
+    model_list = ['CTRL','Dual', 'FD', 'GWD3', 'SS']
     # model_list = ['gwd3-test']
     # model_list = ['gwd0', 'gwd3']
     # model_list = ['strengthen_typhoon', 'weak_typhoon']
     for model in model_list:
-        path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/'+model+'/'
-        # path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/new_modify/'+model+'/'
+        # path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/'+model+'/'
+        path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/new_modify/'+model+'/'
         # path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/'+model+'/'
         # path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/Typhoon/'+model+'/'
         # path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d04/'+model+'/'
