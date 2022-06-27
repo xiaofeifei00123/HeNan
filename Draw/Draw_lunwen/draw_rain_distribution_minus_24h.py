@@ -26,9 +26,6 @@ Version          :1.0
 import sys,os
 
 
-
-
-
 from matplotlib.ticker import Locator
 import xarray as xr
 import numpy as np
