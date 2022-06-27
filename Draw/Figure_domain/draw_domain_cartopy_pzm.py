@@ -422,11 +422,11 @@ def draw_station(ax, info):
     """画站点
     """
     station = {
-        'ShangQiu': {
-            'lat': 34.4072,
-            'lon': 115.6303,
-            'abbreviation':'商丘'
-        },
+        # 'ShangQiu': {
+        #     'lat': 34.4072,
+        #     'lon': 115.6303,
+        #     'abbreviation':'商丘'
+        # },
         'Zhengzhou': {
             'lat': 34.7044,
             'lon': 113.6972,
