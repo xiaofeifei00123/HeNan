@@ -33,6 +33,7 @@ import cartopy.crs as ccrs
 import matplotlib.pyplot as plt
 import cmaps
 from baobao.map import Map
+from baobao.get_cmap import select_cmap
 
 # %%
 class Draw(object):
@@ -46,8 +47,12 @@ class Draw(object):
         super().__init__()
         self.fig = fig
         self.ax = ax
-        self.colorlevel=[0, 0.1, 10, 25.0, 50, 100, 250,  700]#雨量等级
-        self.colordict=['#F0F0F0','#A6F28F','#3DBA3D','#61BBFF','#0000FF','#FA00FA','#800040', '#EE0000']#颜色列表
+        # self.colorlevel=[0, 0.1, 10, 25.0, 50, 100, 250,  700]#雨量等级
+        # self.colordict=['#F0F0F0','#A6F28F','#3DBA3D','#61BBFF','#0000FF','#FA00FA','#800040', '#EE0000']#颜色列表
+
+
+        self.colorlevel=[0, 0.1, 10, 25.0, 50, 100, 250, 400,600, 1000]#雨量等级
+        self.colordict = select_cmap('rain9')
         self.colorticks = self.colorlevel[1:-1]
         self.map_dic = {
                 'proj':ccrs.PlateCarree(),
@@ -193,22 +198,25 @@ if __name__ == '__main__':
         return dr
 
     # ## 画观测降水
-    # dr = get_dr()
-    # gd = GetData()
-    # da = gd.obs()
-    # cf = dr.draw_tricontourf(da)    
-    # cb = dr.fig.colorbar(
-    #     cf,
-    #     # cax=ax6,
-    #     orientation='horizontal',
-    #     ticks=dr.colorticks,
-    #     fraction = 0.05,  # 色标大小,相对于原图的大小
-    #     pad=0.1,  #  色标和子图间距离
-    #     )
-    # cb.ax.tick_params(labelsize=10)  # 设置色标标注的大小
-    # fig_name = 'OBS'
-    # fig_path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_lunwen/'
-    # dr.fig.savefig(fig_path+fig_name)
+    dr = get_dr()
+    gd = GetData()
+    da = gd.obs()
+    cf = dr.draw_tricontourf(da)    
+    cb = dr.fig.colorbar(
+        cf,
+        # cax=ax6,
+        orientation='horizontal',
+        ticks=dr.colorticks,
+        fraction = 0.05,  # 色标大小,相对于原图的大小
+        pad=0.1,  #  色标和子图间距离
+        )
+    cb.ax.tick_params(labelsize=10)  # 设置色标标注的大小
+    labels = list(map(lambda x: str(x) if x<1 else str(int(x)), dr.colorticks))  # 将colorbar的标签变为字符串
+    cb.set_ticklabels(labels)
+    dr.ax.set_title('OBS', loc='left')
+    fig_name = 'OBS'
+    fig_path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_rain/rain_24h_new/'
+    dr.fig.savefig(fig_path+fig_name)
 
     # ## 画EC降水
     # dr = get_dr()
@@ -237,6 +245,8 @@ if __name__ == '__main__':
         gd = GetData()  # 数据的对象
         da = gd.onemodel(model)
         cf = dr.draw_single(da)    
+
+
         cb = dr.fig.colorbar(
             cf,
             # cax=ax6,
@@ -246,7 +256,10 @@ if __name__ == '__main__':
             pad=0.1,  #  色标和子图间距离
             )
         cb.ax.tick_params(labelsize=10)  # 设置色标标注的大小
-        # dr.ax.set_title(model, fontsize=10,loc='right')
+        labels = list(map(lambda x: str(x) if x<1 else str(int(x)), dr.colorticks))  # 将colorbar的标签变为字符串
+        cb.set_ticklabels(labels)
+        dr.ax.set_title(model, fontsize=10,loc='left')
+        
         fig_name = model+'d03'
-        fig_path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_rain/rain_24h_gwd/'
+        fig_path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_rain/rain_24h_new/'
         dr.fig.savefig(fig_path+fig_name)
