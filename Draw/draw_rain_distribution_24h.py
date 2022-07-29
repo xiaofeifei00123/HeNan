@@ -164,7 +164,7 @@ class GetData():
 
         # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/'+model+'/'+'rain_d03.nc'
         # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd3/rain_d02_grd.nc'
-        flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/new_modify/'+model+'/'+'rain_d03.nc'
+        flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/new_modify/'+model+'/'+'rain_wrfout_d03.nc'
         # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/new_modify/CTRL/rain_d02.nc'
         # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/'+model+'/'+'rain.nc'
         # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/Typhoon/'+model+'/'+'rain.nc'
@@ -238,8 +238,8 @@ if __name__ == '__main__':
 
     ## 画模式降水
     # for model in ['gwd3','gwd1', 'gwd0']:
-    # model_list = ['gwd3']
-    model_list = ['CTRL','Dual', 'FD', 'GWD3', 'SS']
+    model_list = ['SS2']
+    # model_list = ['CTRL','Dual', 'FD', 'GWD3', 'SS', 'SS2']
     for model in model_list:
         dr = get_dr()  # 画图的对象
         gd = GetData()  # 数据的对象
