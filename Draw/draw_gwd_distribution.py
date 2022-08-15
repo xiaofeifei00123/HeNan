@@ -36,81 +36,8 @@ import geopandas
 import cmaps
 from get_cmap import get_cmap_rain2
 from multiprocessing import Pool
-
 from baobao.map import Map
-
-
 from draw_10m_wind import GetData, DrawWind
-
-# %%
-def draw_wrf(t = '2021-07-20 12'):
-    # model_list = ['gwd0', 'gwd1', 'gwd3','gwd3-FD', 'gwd3-BL','gwd3-SS', 'gwd3-LS']
-    # model_list = ['gwd0', 'gwd3']
-    model_list = ['gwd3']
-    # model_list = ['weak_typhoon', 'strengthen_typhoon']
-    fpath = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/'
-    gd = GetData(time=t)
-    flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd3/wrfout_d03_2021-07-20_12:00:00'
-
-    ds = xr.open_dataset(flnm)
-    # ds = ds.rename({'XTIME':'time'})
-    # t = '2021-07-20 06'
-    # ds1 = ds.sel(time=t)
-    print(ds)
-    # u = da.sel(u_v='u')
-    # v = da.sel(u_v='v')
-    
-    
-    
-    
-
-    # pic_dic = {'model':'tttt', 'time':t}
-    # # draw(u,v,pic_dic)
-    # cm = 1/2.54
-    # fig = plt.figure(figsize=[8*cm, 7*cm], dpi=300)
-    # ax = fig.add_axes([0.15,0.15,0.8,0.8], projection=ccrs.PlateCarree())
-    # dr = DrawWind(fig, ax)
-    # dr.draw(u,v, pic_dic)
-    # # fig_name = '10mwind'
-    # # fig_path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_lunwen/'
-    # # fig_save = os.path.join(fig_path, fig_name)
-    # # fig.savefig(fig_save, pad_inches=0)
-# draw_wrf()
-
-# # %%
-# flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd3/wrfout_d03_2021-07-20_12:00:00'
-# ds = xr.open_dataset(flnm)
-# wrfnc = nc.Dataset(flnm)
-# uv = wrf.getvar(wrfnc, 'uvmet10')
-# u1, v1 = uv.rename({'XLAT':'lat', 'XLONG':'lon', 'XTIME':'time', })
-# # %%
-# # uv1[0]
-# v1
-# cm = 1/2.54
-# fig = plt.figure(figsize=[8*cm, 7*cm], dpi=300)
-# ax = fig.add_axes([0.15,0.15,0.8,0.8], projection=ccrs.PlateCarree())
-
-# flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd3/wrfout_d03_2021-07-20_12:00:00'
-
-# ds = xr.open_dataset(flnm)
-# wrfnc = nc.Dataset(flnm)
-# # uv = wrf.getvar(wrfnc, 'uvmet10')
-# # u1, v1 = uv.rename({'XLAT':'lat', 'XLONG':'lon', 'XTIME':'time', })
-# u = wrf.getvar(wrfnc, 'ua')
-# v = wrf.getvar(wrfnc, 'va')
-# u1 = u.isel(bottom_top=0).rename({'XLAT':'lat', 'XLONG':'lon', 'XTIME':'time', })
-# v1 = v.isel(bottom_top=0).rename({'XLAT':'lat', 'XLONG':'lon', 'XTIME':'time', })
-# dr = DrawWind(fig, ax)
-# pic_dic = {'model':'tttt', 'time':'2021-07-20 00'}
-# dr.draw(u1[::10, ::10],v1[::10, ::10], pic_dic)
-# # %%
-# fl_path ='/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd3/wrfout_d03_2021-07-20_12:00:00'
-# ds = xr.open_dataset(fl_path)
-# da = ds['DTAUX3D_FD'].sel(bottom_top=0)
-# da
-# da.max()
-# ds['DUSFCG_SS'].max()
-
 # %%
 class Draw(object):
 
@@ -123,6 +50,11 @@ class Draw(object):
         self.path_city = '/mnt/zfm_18T/fengxiang/DATA/SHP/shp_henan/zhenzhou/zhenzhou_max.shp'
         self.path_tibet = '/mnt/zfm_18T/fengxiang/DATA/SHP/shp_tp/Tibet.shp'
         self.picture_path = '/mnt/zfm_18T/fengxiang/Asses_PBL/Rain/picture'
+        self.colorlevel=[0, 0.1, 1, 5, 10,100]
+        self.colorticks=self.colorlevel[1:-1]
+        flnm_rgb = '/mnt/zfm_18T/fengxiang/HeNan/Draw/table/8colors.rgb'
+        rgb = get_rgb(flnm_rgb)
+        self.colordict = rgb  # 8个颜色
 
 
     def draw_contourf_single(self, data, ax, dic):
@@ -130,20 +62,6 @@ class Draw(object):
         """
 
         ## 指定颜色
-        # colorlevel=[0, 0.1, 0.5, 1, 1.5, 2.0, 2.5, 3.0, 70]#雨量等级
-        
-        # colordict=['white','#A6F28F','#3DBA3D','#61BBFF','#0000FF','#FA00FA','#800040', '#EE0000']#降水颜色列表
-        # colordict=['#0000fb','#3232fd','#6464fd','#a2a3fb','white','#fbbcbc', '#ff8383', '#fd4949', '#fd0000']#正负, 蓝-红
-
-        
-        # colorlevel=np.arange(-0.5, 0.6, 0.05)
-        # colorlevel=[-0.45, -0.35, -0.25, -0.15,-0.05, 0.05, 0.15, 0.25, 0.35, 0.45]
-        # colorlevel=[-100, -0.35, -0.25, -0.15,-0.05, 0.05, 0.15, 0.25, 0.35, 100]
-        # colorlevel=[-100,-0.1,-0.01,-0.001,-0.0001, 0.0001, 0.001, 0.01, 0.1, 100]
-        colordict = rgb  # 8个颜色
-        # colorlevel=[0.0001, 0.001, 0.01, 0.1,1, 10, 20,100]
-        # colordict=['white','#fbbcbc', '#ff8383', '#fd4949', '#fd0000']#正负, 蓝-红
-        colorlevel=[0, 0.0001, 0.001, 0.01, 0.1,100]
         x = data.lon
         y = data.lat
         
@@ -152,8 +70,8 @@ class Draw(object):
                           y,
                           data,
                           corner_mask=False,
-                          levels=colorlevel,
-                          colors = colordict,
+                          levels=self.colorlevel,
+                          colors = self.colordict,
                         #   levels=6,
                         #   cmap
                         #   cmap=cmaps.precip3_16lev,
@@ -162,7 +80,7 @@ class Draw(object):
                           transform=ccrs.PlateCarree())
         return crx
 
-    def draw_single(self, da, picture_dic, flnm):
+    def draw_single(self, da, picture_dic, flnm, bt=0, level=500):
         """画单个的那种图
 
         Args:
@@ -203,24 +121,29 @@ class Draw(object):
         ax.set_title(picture_dic['initial_time'], fontsize=10,loc='left')
         ax.set_title(picture_dic['type'], fontsize=10,loc='right')
         cf = self.draw_contourf_single(da, ax, dic)
-        # colorticks=[0.1,5,15,30.0,70,140]#雨量等级
-        # colorlevel=[0, 0.1, 5, 10, 15.0, 20, 25, 30, 700]#雨量等级
-        # colorlevel=[-0.45, -0.35, -0.25, -0.15,-0.05, 0.05, 0.15, 0.25, 0.35, 0.45]
-        colorlevel=[-100,-0.1,-0.01,-0.001,-0.0001, 0.0001, 0.001, 0.01, 0.1, 100]
-        colorticks = colorlevel[1:-1]
-        
+
         cb = fig.colorbar(
             cf,
             # cax=ax6,
             orientation='horizontal',
-            ticks=colorticks,
+            ticks=self.colorticks,
             fraction = 0.05,  # 色标大小,相对于原图的大小
             pad=0.08,  #  色标和子图间距离
         )
         cb.ax.tick_params(labelsize=8)  # 设置色标标注的大小
-        fig_name = picture_dic['type']+'_'+picture_dic['initial_time']+'_'+picture_dic['date']+'gai'
+
+        # self.draw_wind_bt(fig, ax, bt=0)
+        # self.draw_wind_level(fig, ax, level=level)
+        
+        
+
+        # fig_name = picture_dic['type']+'_'+picture_dic['initial_time']+'_'+picture_dic['date']+'gai'
+        # fig_path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_gwd3/new_modify/'
+        # fig.savefig(fig_path+fig_name)
+        return fig, ax
 
         
+    def draw_wind_bt(self,fig, ax, flnm, bt):
         ds = xr.open_dataset(flnm)
         wrfnc = nc.Dataset(flnm)
         # uv = wrf.getvar(wrfnc, 'uvmet10')
@@ -228,17 +151,34 @@ class Draw(object):
 
         u = wrf.getvar(wrfnc, 'ua')
         v = wrf.getvar(wrfnc, 'va')
-        u1 = u.isel(bottom_top=0).rename({'XLAT':'lat', 'XLONG':'lon', 'XTIME':'time', })
-        v1 = v.isel(bottom_top=0).rename({'XLAT':'lat', 'XLONG':'lon', 'XTIME':'time', })
-        
+        u1 = u.isel(bottom_top=bt).rename({'XLAT':'lat', 'XLONG':'lon', 'XTIME':'time', })
+        v1 = v.isel(bottom_top=bt).rename({'XLAT':'lat', 'XLONG':'lon', 'XTIME':'time', })
 
         dr = DrawWind(fig, ax)
         pic_dic = {'model':'tttt', 'time':'2021-07-20 00'}
         dr.draw(u1[::10, ::10],v1[::10, ::10], pic_dic)
         
+    def draw_wind_level(self,fig, ax, flnm, level):
+        # ds = xr.open_dataset(flnm)
+        wrfnc = nc.Dataset(flnm)
+        # uv = wrf.getvar(wrfnc, 'uvmet10')
+        # u1, v1 = uv.rename({'XLAT':'lat', 'XLONG':'lon', 'XTIME':'time', })
 
-        fig_path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_gwd3/new_modify/'
-        fig.savefig(fig_path+fig_name)
+        p = wrf.getvar(wrfnc, 'pressure')
+        u = wrf.getvar(wrfnc, 'ua')
+        v = wrf.getvar(wrfnc, 'va')
+
+        u = wrf.interplevel(u, p, level).squeeze()
+        v = wrf.interplevel(v, p, level).squeeze()
+
+        u1 = u.rename({'XLAT':'lat', 'XLONG':'lon', 'Time':'time', })
+        v1 = v.rename({'XLAT':'lat', 'XLONG':'lon', 'Time':'time', })
+        # print(u)
+
+        dr = DrawWind(fig, ax)
+        pic_dic = {'model':'tttt', 'time':'2021-07-20 00'}
+        dr.draw(u1[::10, ::10],v1[::10, ::10], pic_dic)
+
 
 
 def get_gwd(ds, var_flag, bt=0):
@@ -262,18 +202,59 @@ def get_gwd(ds, var_flag, bt=0):
         da1 = ds['DTAUX3D_LS'].sel(bottom_top=bt)+ds['DTAUX3D_SS'].sel(bottom_top=bt)+ds['DTAUX3D_FD'].sel(bottom_top=bt)+ds['DTAUX3D_BL'].sel(bottom_top=bt)
         da2 = ds['DTAUY3D_LS'].sel(bottom_top=bt)+ds['DTAUY3D_SS'].sel(bottom_top=bt)+ds['DTAUY3D_FD'].sel(bottom_top=bt)+ds['DTAUY3D_BL'].sel(bottom_top=bt)
         da = np.sqrt(da1**2+da2**2)
-    da = da*10**2
+    # da = da*10**2
+    da = da*3600  # 一小时的加速度是多少(*3600s), 这里的单位变成m/s
     return da
 
+def get_gwd_level(flnm, var_flag, level=500):
+
+    wrfnc = nc.Dataset(flnm)
+    p = wrf.getvar(wrfnc, 'pressure')
+    
+
+    if var_flag == 'LS':
+
+        da1 = ds['DTAUX3D_LS']
+        da2 = ds['DTAUY3D_LS']
+        da1 = wrf.interplevel(da1, p, level)
+        da2 = wrf.interplevel(da2, p, level)
+        da = np.sqrt(da1**2+da2**2)
+    elif var_flag == 'SS':
+        da1 = ds['DTAUX3D_SS']
+        da2 = ds['DTAUY3D_SS']
+        da1 = wrf.interplevel(da1, p, level)
+        da2 = wrf.interplevel(da2, p, level)
+        da = np.sqrt(da1**2+da2**2)
+    elif var_flag == 'FD':
+        da1 = ds['DTAUX3D_FD']
+        da2 = ds['DTAUY3D_FD']
+        da1 = wrf.interplevel(da1, p, level)
+        da2 = wrf.interplevel(da2, p, level)
+        da = np.sqrt(da1**2+da2**2)
+    elif var_flag == 'BL':
+        da1 = ds['DTAUX3D_BL']
+        da2 = ds['DTAUY3D_BL']
+        da1 = wrf.interplevel(da1, p, level)
+        da2 = wrf.interplevel(da2, p, level)
+        da = np.sqrt(da1**2+da2**2)
+    else:
+        da1 = ds['DTAUX3D_LS']+ds['DTAUX3D_SS']+ds['DTAUX3D_FD']+ds['DTAUX3D_BL']
+        da2 = ds['DTAUY3D_LS']+ds['DTAUY3D_SS']+ds['DTAUY3D_FD']+ds['DTAUY3D_BL']
+        da1 = wrf.interplevel(da1, p, level)
+        da2 = wrf.interplevel(da2, p, level)
+        da = np.sqrt(da1**2+da2**2)
+    # da = da*10**2
+    da = da*3600  # 一小时的加速度是多少(*3600s), 这里的单位变成m/s
+    return da
 
 
 def draw_one(model):
     pass
 
     fl_path =os.path.join('/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/new_modify', model)
-    # tt = pd.date_range('2021-07-20 00', '2021-07-21 00', freq='1H')
-    # tt = pd.date_range('2021-07-20 12', '2021-07-20 12', freq='1H')
-    tt = pd.date_range('2021-07-19 13', '2021-07-21 00', freq='1H')
+    # tt = pd.date_range('2021-07-20 00', '2021-07-20 00', freq='1H')
+    tt = pd.date_range('2021-07-19 12', '2021-07-20 12', freq='1H')
+    # tt = pd.date_range('2021-07-19 13', '2021-07-21 00', freq='1H')
     # tt = pd.date_range('2021-07-19 13', '2021-07-19 13', freq='1H')
     # tt = pd.date_range('2021-07-20 12', '2021-07-20 12', freq='1H')
     for t in tt:
@@ -281,7 +262,11 @@ def draw_one(model):
         flnm = os.path.join(fl_path, flnm)
     
         ds = xr.open_dataset(flnm)
-        da = get_gwd(ds, 'all', 0)
+        level = 900
+        bt = 0
+
+        da = get_gwd(ds, 'all', bt=bt)
+        # da = get_gwd_level(flnm, 'all', level=level)
 
         # da = da1
         # var = 'DTAUX'
@@ -290,12 +275,25 @@ def draw_one(model):
         gwd_sfc = da.rename({'XLAT':'lat', 'XLONG':'lon', 'XTIME':'time'}).squeeze()
         dr = Draw()
         picture_dic = {'date':gwd_sfc.time.dt.strftime("%Y%m%d-%H").values, 'type':model, 'initial_time':var}
-        dr.draw_single(gwd_sfc, picture_dic, flnm)
+        fig, ax = dr.draw_single(gwd_sfc, picture_dic, flnm)
+
+        # dr.draw_wind_level(fig, ax,flnm, level=level)
+        dr.draw_wind_bt(fig, ax,flnm, bt=0)
+        # dr.ax.set_title(str(level)+'hPa', fontsize=10,loc='left')
+        ax.set_title('ALL', fontsize=10,loc='left')
+
+
+        
+
+        fig_name = picture_dic['type']+'_'+picture_dic['initial_time']+'_'+picture_dic['date']+'gai_ALL'
+        fig_path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_gwd3/new_modify/'
+        fig.savefig(fig_path+fig_name)
 
 def draw_dual():
     # model_list = ['gwd1', 'gwd3']
     # model_list = ['SS',]
     model_list = ['GWD3',]
+    # model_list = ['GWD3','SS','FD', 'CTRL']
     for model in model_list:
         draw_one(model)
 
@@ -313,3 +311,39 @@ if __name__ == '__main__':
     # dr = Draw()
     # dr.draw_single(da, '2000_2012')
 # %%
+# flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/new_modify/GWD3/wrfout_d03_2021-07-20_00:00:00'
+# wrfnc = nc.Dataset(flnm)
+# ds = xr.open_dataset(flnm)
+# dd = ds['DTAUX3D_SS']
+# p = wrf.getvar(wrfnc, 'pressure')
+# # %%
+# wrf.interplevel(dd, p, 800).max()
+# %%
+import pandas as pd
+import os
+import time
+import f90nml
+# %%
+tt = pd.date_range('2021-07-16 12', '2021-07-21 12')
+folder_list = []
+for t in tt:
+    t1 = t
+    t2 = t+pd.Timedelta('36H')
+    folder_name = t1.strftime('%Y-%m-%d-%H')+'__'+t2.strftime('%Y-%m-%d-%H')
+    folder_list.append(folder_name)
+    ts = t1.strftime('%Y-%m-%d_%H:%M:%S')
+    te = t2.strftime('%Y-%m-%d_%H:%M:%S')
+    # %%
+
+    
+    
+
+    fn = '/home/fengxiang/namelist.wps_LES'
+    em = f90nml.read(fn)
+    em['share']['start_date'] = [ts, ts, ts, ts]
+    em['share']['end_date'] = [te, te, te, te]
+    em['share']['end_date']
+    em.write('./namelist.input')
+
+
+    

@@ -7,9 +7,28 @@ import pandas as pd
 from geopy.distance import distance
 import numpy as np
 from waveletFunctions import wave_signif, wavelet
+import wrf
+import netCDF4 as nc
+# %%
+
+
+
 
 
 # %%
+
+flnm = '/home/fengxiang/HeNan/Data/GWD/d03/newall/SS/upar.nc'
+flnm_wrf = '/home/fengxiang/HeNan/Data/GWD/d03/newall/CTRL/wrfout/wrfout_d03_2021-07-17_03:00:00'
+wrfnc = nc.Dataset(flnm_wrf)
+y,x = wrf.ll_to_xy(wrfnc,34.5,113.5)
+# y,x = wrf.ll_to_xy(wrfnc,34.2,114)
+ds = xr.open_dataset(flnm)
+da = ds['wa'][:,:, y,x].sel(pressure=900)
+sst = da.values
+time = da.time.values
+# time
+
+
 def  get_data():
     # flnm='/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd3/cross_rain.nc'
     flnm='/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd0/cross_rain.nc'
@@ -57,9 +76,9 @@ def  get_data():
     return da3
 
 
-sst = get_data()
-time = sst.distance.values
-sst = sst.values
+# sst = get_data()
+# time = sst.distance.values
+# sst = sst.values
 
 # sst = sst - np.mean(sst)
 variance = np.std(sst, ddof=1) ** 2
@@ -123,7 +142,7 @@ ax1.plot(time, sst, 'k')
 # plt.xlim(xlim[:])
 ax1.set_ylim(-1,2)
 ax1.axhline(y=0, color='black')
-ax1.set_xlabel('距离 (km)')
+ax1.set_xlabel('时间')
 ax1.set_ylabel('垂直速度 ($m/s$)')
 # ax1.set_title('a) NINO3 Sea Surface Temperature (seasonal)')
 
@@ -144,8 +163,8 @@ im = ax2.contourf(CS, levels=levels,
     colors=['white', 'bisque', 'orange', 'orangered', 'darkred'])
 print(sst.max())
 
-ax2.set_xlabel('距离 (km)')
-ax2.set_ylabel('波长 (km)')
+ax2.set_xlabel('时间')
+ax2.set_ylabel('周期 (小时)')
 # plt.title('b) Wavelet Power Spectrum (contours at 0.5,1,2,4\u00B0C$^2$)')
 # plt.xlim(xlim[:])
 # 95# significance contour, levels at -99 (fake) and 1 (95# signif)

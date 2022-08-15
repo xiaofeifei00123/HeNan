@@ -34,6 +34,9 @@ import matplotlib.pyplot as plt
 import cmaps
 from baobao.map import Map
 from baobao.get_cmap import select_cmap
+import pandas as pd
+import os
+from baobao.map import get_rgb
 
 # %%
 class Draw(object):
@@ -51,8 +54,16 @@ class Draw(object):
         # self.colordict=['#F0F0F0','#A6F28F','#3DBA3D','#61BBFF','#0000FF','#FA00FA','#800040', '#EE0000']#颜色列表
 
 
-        self.colorlevel=[0, 0.1, 10, 25.0, 50, 100, 250, 400,600, 1000]#雨量等级
-        self.colordict = select_cmap('rain9')
+        # self.colorlevel=[0, 0.1, 10, 25.0, 50, 100, 250, 400,600, 1000]#雨量等级
+        # self.colordict = select_cmap('rain9')
+
+        self.colorlevel=[0, 1, 10, 25, 50, 100, 250, 400,600,800,1000, 2000]#雨量等级
+        rgbtxt = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_rain/rain_6d/11colors.txt'
+        rgb = get_rgb(rgbtxt)
+        self.colordict = rgb        
+        
+        
+
         self.colorticks = self.colorlevel[1:-1]
         self.map_dic = {
                 'proj':ccrs.PlateCarree(),
@@ -155,7 +166,8 @@ class GetData():
         pass
         flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/OBS/rain_station.nc'
         da = xr.open_dataarray(flnm)
-        da = da.sel(time=slice('2021-07-20 01', '2021-07-21 00'))
+        # da = da.sel(time=slice('2021-07-20 01', '2021-07-21 00'))
+        da = da.sel(time=slice('2021-07-17 01', '2021-07-23 00'))
         da = da.sum(dim='time') 
         return da
 
@@ -164,15 +176,69 @@ class GetData():
 
         # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/'+model+'/'+'rain_d03.nc'
         # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd3/rain_d02_grd.nc'
-        flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/new_modify/'+model+'/'+'rain_wrfout_d03.nc'
+        # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/new_modify/'+model+'/'+'rain_wrfout_d03.nc'
+        flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/newall/'+model+'/wrfout/'+'rain_wrfout_d03.nc'
         # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/new_modify/CTRL/rain_d02.nc'
         # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/'+model+'/'+'rain.nc'
         # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/Typhoon/'+model+'/'+'rain.nc'
         # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d04/'+model+'/'+'rain.nc'
         da = xr.open_dataarray(flnm)
+        # da = da.sel(time=slice('2021-07-20 01', '2021-07-21 00'))
         da = da.sel(time=slice('2021-07-20 01', '2021-07-21 00'))
         da = da.sum(dim='time') 
         return da
+
+    def onemodel_newall(self, model='gwd3'):
+        pass
+
+        def acsum(flnm1, flnm2):
+            # flnm1 = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/newall/CTRL/wrfout/wrfout_d03_2021-07-17_00:00:00'
+            # flnm2 = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/newall/CTRL/wrfout/wrfout_d03_2021-07-17_23:00:00'
+            ds1 = xr.open_dataset(flnm1)
+            ds2 = xr.open_dataset(flnm2)
+            da1 = ds1['RAINNC']+ds1['RAINC']+ds1['RAINSH']
+            da2 = ds2['RAINNC']+ds2['RAINC']+ds2['RAINSH']
+
+            ## 对流降水
+            # da1 = ds1['RAINC']+ds1['RAINSH']   #  深对流+浅对流
+            # da2 = ds2['RAINC']+ds2['RAINSH']   #  深对流+浅对流
+            # 格点降水
+            # da1 = ds1['RAINNC']   #  
+            # da2 = ds2['RAINNC']   #  
+            
+            r = da2-da1
+            r = r.squeeze()  # 该是几维的就是几维的
+            r = r.rename({'XLAT':'lat', 'XLONG':'lon'})
+            return r
+
+        tt = pd.date_range('2021-07-17 00', '2021-07-22 00', freq='24H')
+        # path = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/newall/CTRL/wrfout/'
+        path = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/newall/'+model+'/wrfout/'
+        rain = 0.
+        for t in tt:
+            t1 = t
+            t2 = t+pd.Timedelta('23H')
+            # print(t2)
+            strt1 = 'wrfout_d03_'+t1.strftime('%Y-%m-%d_%H:%M:%S')
+            strt2 = 'wrfout_d03_'+t2.strftime('%Y-%m-%d_%H:%M:%S')
+            flnm1 = os.path.join(path, strt1)
+            flnm2 = os.path.join(path, strt2)
+            rain = rain+acsum(flnm1, flnm2) 
+        # print(rain)
+        return rain
+
+        
+        
+
+        # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/new_modify/CTRL/rain_d02.nc'
+        # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/'+model+'/'+'rain.nc'
+        # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/Typhoon/'+model+'/'+'rain.nc'
+        # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d04/'+model+'/'+'rain.nc'
+        # da = xr.open_dataarray(flnm)
+        # # da = da.sel(time=slice('2021-07-20 01', '2021-07-21 00'))
+        # da = da.sel(time=slice('2021-07-20 01', '2021-07-21 00'))
+        # da = da.sum(dim='time') 
+        # return da
 
 
     def EC(self,):
@@ -198,25 +264,25 @@ if __name__ == '__main__':
         return dr
 
     # ## 画观测降水
-    dr = get_dr()
-    gd = GetData()
-    da = gd.obs()
-    cf = dr.draw_tricontourf(da)    
-    cb = dr.fig.colorbar(
-        cf,
-        # cax=ax6,
-        orientation='horizontal',
-        ticks=dr.colorticks,
-        fraction = 0.05,  # 色标大小,相对于原图的大小
-        pad=0.1,  #  色标和子图间距离
-        )
-    cb.ax.tick_params(labelsize=10)  # 设置色标标注的大小
-    labels = list(map(lambda x: str(x) if x<1 else str(int(x)), dr.colorticks))  # 将colorbar的标签变为字符串
-    cb.set_ticklabels(labels)
-    dr.ax.set_title('OBS', loc='left')
-    fig_name = 'OBS'
-    fig_path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_rain/rain_24h_new/'
-    dr.fig.savefig(fig_path+fig_name)
+    # dr = get_dr()
+    # gd = GetData()
+    # da = gd.obs()
+    # cf = dr.draw_tricontourf(da)    
+    # cb = dr.fig.colorbar(
+    #     cf,
+    #     # cax=ax6,
+    #     orientation='horizontal',
+    #     ticks=dr.colorticks,
+    #     fraction = 0.05,  # 色标大小,相对于原图的大小
+    #     pad=0.1,  #  色标和子图间距离
+    #     )
+    # cb.ax.tick_params(labelsize=10)  # 设置色标标注的大小
+    # labels = list(map(lambda x: str(x) if x<1 else str(int(x)), dr.colorticks))  # 将colorbar的标签变为字符串
+    # cb.set_ticklabels(labels)
+    # dr.ax.set_title('OBS', loc='left')
+    # fig_name = 'OBS'
+    # fig_path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_rain/rain_6d/'
+    # dr.fig.savefig(fig_path+fig_name)
 
     # ## 画EC降水
     # dr = get_dr()
@@ -238,12 +304,13 @@ if __name__ == '__main__':
 
     ## 画模式降水
     # for model in ['gwd3','gwd1', 'gwd0']:
-    model_list = ['SS2']
-    # model_list = ['CTRL','Dual', 'FD', 'GWD3', 'SS', 'SS2']
+    # model_list = ['SS2']
+    model_list = ['CTRL','FD', 'GWD3', 'SS']
     for model in model_list:
         dr = get_dr()  # 画图的对象
         gd = GetData()  # 数据的对象
-        da = gd.onemodel(model)
+        # da = gd.onemodel(model)
+        da = gd.onemodel_newall(model)
         cf = dr.draw_single(da)    
 
 
@@ -260,6 +327,6 @@ if __name__ == '__main__':
         cb.set_ticklabels(labels)
         dr.ax.set_title(model, fontsize=10,loc='left')
         
-        fig_name = model+'d03'
-        fig_path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_rain/rain_24h_new/'
+        fig_name = model+'d03'+'cu'
+        fig_path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_rain/rain_6d/'
         dr.fig.savefig(fig_path+fig_name)

@@ -36,14 +36,15 @@ def draw_quiver(ax, u,v):
     '''
     绘制风矢图
     '''
-    x = u.cross_line_idx.values[::4]
+    # x = u.cross_line_idx.values[::12]
+    x = u.cross_line_idx.values[::10]
     # x = u.cross_line_idx.values
     # u = u[::3,::10]
     # v = v[::3,::10]
-    # u = u[::2,::10]
-    # v = v[::2,::10]
-    u = u[::4,::4]
-    v = v[::4,::4]
+    u = u[::6,::10]
+    v = v[::6,::10]
+    # u = u[::4,::4]
+    # v = v[::4,::4]
     # u = u[::9,::30]
     # v = v[::9,::30]
     # u = u[::3,::10]
@@ -60,9 +61,12 @@ def draw_contour(ax, da):
     ys = da.coords['vertical'].values
     # levels=np.arange(342, 372, 4)
     # levels=np.arange(342, 372, 2)
+    # levels=np.arange(336, 372, 4)
     levels=np.arange(336, 372, 4)
     plt.contour
-    cs = ax.contour(xs, ys, smooth2d(da.values, passes=16), levels=levels, colors='black', linewidths=0.5)
+    # cs = ax.contour(xs, ys, smooth2d(da.values, passes=16), levels=levels, colors='black', linewidths=0.5)
+    # cs = ax.contour(xs, ys, smooth2d(da.values, passes=4), levels=levels, colors='black', linewidths=0.5)
+    cs = ax.contour(xs, ys, smooth2d(da.values, passes=1), levels=levels, colors='black', linewidths=0.5)
     ax.clabel(cs, inline=True, fontsize=10)
 
 def draw_contour2(ax,da):
@@ -82,7 +86,8 @@ def draw_contourf(fig, ax_cross, da, ter_line):
     colordict=['#191970','#005ffb','#5c9aff','#98ff98','#ddfddd','#FFFFFF','#fffde1','#ffff9e', '#ffc874','#ffa927', '#ff0000']#颜色列表
     # colorlevel=[-80, -30, -20, -10, -5, -1, 1, 5, 10, 20, 30, 80]#雨量等级
     # colorlevel=[-280, -60, -30, -10, -5, -1, 1, 5, 10, 30, 60, 280]#雨量等级
-    colorlevel=[-680, -100, -40, -15, -5, -1, 1, 5, 15, 40, 100, 680]#雨量等级
+    # colorlevel=[-680, -100, -40, -15, -5, -1, 1, 5, 15, 40, 100, 680]#雨量等级
+    colorlevel=[-1680, -100, -40, -20, -10, -1, 1, 10, 20, 40, 100, 1680]#雨量等级
     # colorticks=[-30, -20, -10, -5, -1, 1, 5, 10, 20, 30]#雨量等级
     colorticks = colorlevel[1:-1]
     dbz_contours = ax_cross.contourf(xs,
@@ -94,7 +99,7 @@ def draw_contourf(fig, ax_cross, da, ter_line):
     ax_cross.set_ylim(0, 10000)
     ax_cross.set_yticks(np.arange(0, 10000+1000, 1000))
     ax_cross.tick_params(axis='both', labelsize=7, direction='out')
-    cb_dbz = fig.colorbar(dbz_contours, ax=ax_cross, ticks=colorticks)
+    cb_dbz = fig.colorbar(dbz_contours, ax=ax_cross, ticks=colorticks, orientation='vertical', fraction=0.06, pad=0.02)
     cb_dbz.ax.tick_params(labelsize=7)
 
     ## Set the x-ticks to use latitude and longitude labels
@@ -104,8 +109,9 @@ def draw_contourf(fig, ax_cross, da, ter_line):
     ## set tick labels use distance
     da1 = latlon2distance(da)    
     x_labels = da1.distance.values.astype(int)
-    ax_cross.set_xticks(x_ticks[::8])
-    ax_cross.set_xticklabels(x_labels[::8], rotation=30, fontsize=7)
+    ax_cross.set_xticks(x_ticks[::12])
+    # ax_cross.set_xticklabels(x_labels[::12], rotation=30, fontsize=7)
+    ax_cross.set_xticklabels(x_labels[::12] ,fontsize=10)
 
     # ax_cross.set_ylim(0,10000)
     
@@ -202,7 +208,7 @@ def latlon2distance(da2):
 
 
 
-def draw(t='2021-07-20 08', flpath='/mnt/zfm_18T/fengxiang/HeNan/Data/1900_90m/'):
+def draw(t='2021-07-20 08', flpath='/mnt/zfm_18T/fengxiang/HeNan/Data/1900_90m/', model='GWD3'):
     # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/1900_90m/cross.nc'
     flnm = flpath+'cross2.nc'
     ds = xr.open_dataset(flnm)
@@ -225,13 +231,15 @@ def draw(t='2021-07-20 08', flpath='/mnt/zfm_18T/fengxiang/HeNan/Data/1900_90m/'
     div = drop_na(div)
 
     cm = round(1/2.54, 2)
-    fig = plt.figure(figsize=(9*cm,8*cm), dpi=600)
-    ax_cross = fig.add_axes([0.15, 0.2, 0.8, 0.7])
+    fig = plt.figure(figsize=(16*cm,6*cm), dpi=600)
+    # fig = plt.figure(figsize=(8*cm,2*cm), dpi=600)
+    ax_cross = fig.add_axes([0.08, 0.2, 0.9, 0.7])
 
     title_t = ds.time.dt.strftime('%d-%H').values
-    title_model = flnm.split('/')[-2]
+    # title_model = flnm.split('/')[-2]
+    title_model = model
     print('画[{}]模式[{}]时刻的图'.format(title_model,title_t))
-    # ax_cross.set_title(title_t, loc='left', fontsize=26)
+    ax_cross.set_title(title_t, loc='left', fontsize=10)
     ax_cross.set_title(title_model, loc='right', fontsize=10)
 
     draw_contour(ax_cross, theta_e)
@@ -246,11 +254,13 @@ def draw(t='2021-07-20 08', flpath='/mnt/zfm_18T/fengxiang/HeNan/Data/1900_90m/'
     # ver = w
     ## 1. 计算切角
     ldic = {
-        'lat1':33,
-        'lon1':111,
-        'lat2':36,
-        'lon2':115.5,
+        'lat1':32,
+        'lon1':111.2,
+        'lat2':36.5,
+        'lon2':114.7,
     }
+        # self.cross_start = CoordPair(lat=32, lon=111.2)
+        # self.cross_end = CoordPair(lat=36.5, lon=114.7)
     dy = (ldic['lat2']-ldic['lat1'])
     dx = (ldic['lon2']-ldic['lon1'])
     angle = np.arctan2(dy,dx)  # 对边和直角边, 弧度
@@ -259,22 +269,26 @@ def draw(t='2021-07-20 08', flpath='/mnt/zfm_18T/fengxiang/HeNan/Data/1900_90m/'
     # draw_quiver(ax_cross,u,v)
     draw_quiver(ax_cross,hor,ver*10)
 
-    fig_path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_cross/'
+    fig_path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_cross/newall/'
     fig_name = title_model+'_'+title_t
-    fig.savefig(fig_path+fig_name+'test5.png', bbox_inches = 'tight')
-    plt.clf()
+    # fig.savefig(fig_path+fig_name+'test5.png', bbox_inches = 'tight')
+    fig.savefig(fig_path+fig_name+'.png')
+    # plt.clf()
 
 def draw_1time(t='2021-07-20 09'):
-    path_main ='/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/'
+    # path_main ='/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/'
+    path_main ='/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/newall/'
     # model_list = ['1900_90m', '1900_900m','1912_90m', '1912_900m']
     # model_list = ['1912_90m', '1912_90m_OGWD']
-    model_list = ['gwd0', 'gwd3']
+    # model_list = ['gwd0', 'gwd3']
+    model_list = ['CTRL', 'GWD3', 'FD', 'SS']
     for model in model_list:
-        fl = path_main+model+'/'
-        draw(t=t, flpath=fl)
+        fl = path_main+model+'/wrfout/'
+        draw(t=t, flpath=fl, model=model)
 
 def draw_mtime():
-    time_list = pd.date_range('2021-07-20 00', '2021-07-21 00', freq='3H')
+    time_list = pd.date_range('2021-07-17 00', '2021-07-23 00', freq='3H')
+    # time_list = pd.date_range('2021-07-20 00', '2021-07-21 00', freq='3H')
     # time_list = pd.date_range('2021-07-20 06', '2021-07-20 06', freq='1H')
     # time_list = pd.date_range('2021-07-20 08', '2021-07-20 08', freq='1H')
     for t in time_list:

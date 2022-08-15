@@ -51,6 +51,7 @@ from baobao.caculate import caculate_vo_div, caculate_div
 from baobao.map import Map   # 一个类名
 # from baobao.caculate.
 
+from filter_dct import filter_lambda_low
 
 
 # %%
@@ -166,7 +167,8 @@ def draw_contourf(ax, da):
     x = da.lon
     y = da.lat
     # print(da.max().values, da.min().values)
-    print('最大值是{}, 最小值是{}, 平均值是{}'.format(da.max().values, da.min().values, da.mean().values))
+    # print('最大值是{}, 最小值是{}, 平均值是{}'.format(da.max().values, da.min().values, da.mean().values))
+    print('最大值是{}, 最小值是{}, 平均值是{}'.format(np.nanmax(da.values), np.nanmin(da.values), np.nanmean(da.values)))
 
 
     # colordict=['#0000fb','#3232fd','#6464fd','#a2a3fb','white','white','#fbbcbc', '#ff8383', '#fd4949', '#fd0000']#正负, 蓝-红
@@ -174,7 +176,8 @@ def draw_contourf(ax, da):
     # colorlevel= [-90,-2.5,-1.5,-0.6,-0.3,0, 0.3,0.6,1.5,2.5,90]# 散度的色标
     # colorlevel= [-90,-12,-9,-6,-3, 0, 3,6,9,12,90]  # 垂直速度的色标
     colordict=['#0000fb','#3232fd','#6464fd','white','white','#fbbcbc', '#fd4949', '#fd0000']#正负, 蓝-红
-    colorlevel= [-90,-20,-10,-3, 0, 3,10,20,90]  # 垂直速度的色标
+    # colorlevel= [-90,-20,-10,-3, 0, 3,10,20,90]  # 垂直速度的色标
+    colorlevel= [-90,-20,-10,-1, 0, 1,10,20,90]  # 垂直速度的色标
     # colorlevel= [-90,-4,-3,-2,-1,0,1,2,3,4,90]# 水汽通量散度的色标
     # colorticks=colorlevel[1:-2]
     crx = ax.contourf(x,
@@ -285,8 +288,9 @@ def draw(qdif, qu,qv, dic):
     draw_station(ax)
 
     draw_quiver(qu,qv,ax)
-    fig_path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_upar/850/div/'
+    fig_path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_upar/850/alltime/'
     fig_name = str(fig_path)+str(dic['model'])+'_'+str(dic['level'])+'_'+(dic['time']).strftime('%Y%m%d%H')+'w_speed'
+    # fig_name = str(fig_path)+str(dic['model'])+'_'+str(dic['level'])+'_'+(dic['time']).strftime('%Y%m%d%H')+'div'
     fig.savefig(fig_name, bbox_inches = 'tight')
     # fig.savefig(fig_name,)
 
@@ -324,21 +328,42 @@ def draw_model_once():
     高度
     模式
     """
-    path_out = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd3/upar.nc'
+    # path_out = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd3/upar.nc'
+    path_out = '/home/fengxiang/HeNan/Data/GWD/d03/newall/GWD3/upar.nc'
 
-    dic_model = {
-        'model':'gwd3_once',
-        'level':850,
-        'time':pd.Timestamp('2021-07-20 00'),
-        'flnm':path_out,
-    }    
-    print("画 [%s] 的图"%(dic_model['model']))
-    ds = get_data(dic_model)
-    print(ds)
-    # draw(ds['qf_div']*10, ds['u'], ds['v'], dic_model)
-    draw(ds['div']*10**3, ds['u'], ds['v'], dic_model)
-    # draw(ds['div']*10**3*10, ds['u'], ds['v'], dic_model)
-    # draw(ds['wa']*10, ds['u'], ds['v'], dic_model)
+
+    for t in pd.date_range('2021-07-17 00', '2021-07-23 00', freq='12H'):
+    # for t in pd.date_range('2021-07-17 00', '2021-07-17 00', freq='12H'):
+        dic_model = {
+            'model':'GWD3',
+            'level':500,
+            # 'time':pd.Timestamp('2021-07-20 00'),
+            'time':t,
+            'flnm':path_out,
+        }    
+        print("画 [%s] 的图"%(dic_model['model']))
+        ds = get_data(dic_model)
+        print(ds)
+        # draw(ds['qf_div']*10, ds['u'], ds['v'], dic_model)
+        # daa = ds['div']
+        daa = ds['wa']
+        
+
+        # da = filter_lambda_low(daa.values*10**5, dx=3, lam=100)
+        da = daa*10
+
+        da1 = xr.DataArray(da,
+                           coords=daa.coords,
+                           dims=daa.dims,
+                           )
+
+        
+
+        # draw(ds['div']*10**5, ds['u'], ds['v'], dic_model)
+        draw(da1, ds['u'], ds['v'], dic_model)
+
+        # draw(ds['div']*10**3*10, ds['u'], ds['v'], dic_model)
+        # draw(ds['wa']*10, ds['u'], ds['v'], dic_model)
     
     
 def draw_model_dual():

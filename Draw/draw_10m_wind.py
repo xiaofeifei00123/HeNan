@@ -74,7 +74,7 @@ class DrawWind():
         # Q = ax.quiver(x, y, u.values,v.values,units='inches',scale=40,pivot='middle', transform=ccrs.PlateCarree())  # 绘制风矢
         # qk = ax.quiverkey(Q, X=0.75, Y=0.08, U=10, label=r'($10 m/s$)', labelpos='E',coordinates='figure',  fontproperties={'size':10})   # 设置参考风矢
         Q = ax.quiver(x, y, u.values,v.values,units='inches',scale=self.scale,pivot='middle', transform=ccrs.PlateCarree())  # 绘制风矢
-        qk = ax.quiverkey(Q, X=0.75, Y=0.08, U=self.Ulength, label=r'(${} m/s$)'.format(self.Ulength), labelpos='E',coordinates='figure',  fontproperties={'size':10})   # 设置参考风矢
+        qk = ax.quiverkey(Q, X=0.08, Y=0.06, U=self.Ulength, label=r'(${} m/s$)'.format(self.Ulength), labelpos='E',coordinates='figure',  fontproperties={'size':10})   # 设置参考风矢
         # qk = ax.quiverkey(Q, X=1.55, Y=0.05, U=10, label=r'$(\overrightarrow{qv_f}-\overrightarrow{qv_o}, 100\ g/kg \cdot m/s)$', labelpos='E',coordinates='figure',  fontproperties={'size':25})   # 设置参考风矢
 
     def draw(self, u,v,pic_dic={'model':'obs'}):
