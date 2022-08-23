@@ -275,14 +275,14 @@ def draw(t='2021-07-20 08', flpath='/mnt/zfm_18T/fengxiang/HeNan/Data/1900_90m/'
     theta_e = drop_na(theta_e)
     div = drop_na(div)
 
-    fig = plt.figure(figsize=(10,8), dpi=400)
-    ax_cross = fig.add_axes([0.15, 0.2, 0.8, 0.7])
+    # fig = plt.figure(figsize=(10,8), dpi=400)
+    # ax_cross = fig.add_axes([0.15, 0.2, 0.8, 0.7])
 
-    title_t = ds.time.dt.strftime('%d-%H').values
-    title_model = flnm.split('/')[-2]
-    print('画[{}]模式[{}]时刻的图'.format(title_model,title_t))
-    # ax_cross.set_title(title_t, loc='left', fontsize=26)
-    ax_cross.set_title(title_model, loc='right', fontsize=26)
+    # title_t = ds.time.dt.strftime('%d-%H').values
+    # title_model = flnm.split('/')[-2]
+    # print('画[{}]模式[{}]时刻的图'.format(title_model,title_t))
+    # # ax_cross.set_title(title_t, loc='left', fontsize=26)
+    # ax_cross.set_title(title_model, loc='right', fontsize=26)
 
     """
     draw_contour(ax_cross, theta_e)
@@ -323,7 +323,7 @@ def draw_1time(t='2021-07-20 09'):
         draw(t=t, flpath=fl)
 
 def draw_mtime():
-    time_list = pd.date_range('2021-07-20 00', '2021-07-20 00', freq='3H')
+    time_list = pd.date_range('2021-07-20 00', '2021-07-20 03', freq='3H')
     # time_list = pd.date_range('2021-07-20 06', '2021-07-20 06', freq='1H')
     # time_list = pd.date_range('2021-07-20 08', '2021-07-20 08', freq='1H')
     for t in time_list:
@@ -340,3 +340,7 @@ if __name__ == '__main__':
 
 
 # %%
+
+flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd0/cross2.nc'
+ds = xr.open_dataset(flnm)
+ds

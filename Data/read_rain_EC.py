@@ -66,4 +66,4 @@ def save_rian_ec():
 if __name__ == '__main__':
     pass
     save_rian_ec()
-    
+# %%

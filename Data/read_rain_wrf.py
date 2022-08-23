@@ -160,13 +160,16 @@ def dual():
     """处理多个模式的数据
     """
     pass
-    model_list = ['CTRL','Dual', 'FD', 'GWD3', 'SS']
+    # model_list = ['CTRL','Dual', 'FD', 'GWD3', 'SS', 'SS2']
+    model_list = ['CTRL','FD', 'GWD3', 'SS']
     domain = 'wrfout_d03'
-    flag = 'all'
+    # flag = 'all'
+    flag_list = ['all','convection', 'grid']
     for model in model_list:
         print(model)
-        path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/new_modify/'+model+'/'
-        save_one(path_main, domain, flag)
+        path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/newall/'+model+'/wrfout/'
+        for flag in flag_list:
+            save_one(path_main, domain, flag)
     
 if __name__ == '__main__':
 

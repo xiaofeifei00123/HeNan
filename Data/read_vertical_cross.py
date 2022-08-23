@@ -32,9 +32,12 @@ class CrossData():
     def __init__(self, wrf_file) -> None:
         pass
         ## Create the start point and end point for the cross section
+        ## 降水的分布
+        self.cross_start = CoordPair(lat=32, lon=111.5)
+        self.cross_end = CoordPair(lat=36.5, lon=114.5)
         # 伏牛山
-        self.cross_start = CoordPair(lat=34, lon=110.5)
-        self.cross_end = CoordPair(lat=33.5, lon=113)
+        # self.cross_start = CoordPair(lat=34, lon=110.5)
+        # self.cross_end = CoordPair(lat=33.5, lon=113)
 
 
         # 嵩山
@@ -167,7 +170,8 @@ def save_one_model_mp(path='/mnt/zfm_18T/fengxiang/HeNan/Data/1900_90m/'):
 
     # path = '/mnt/zfm_18T/fengxiang/HeNan/Data/1900_90m/'
     # tt = pd.date_range('2021-07-20 0000', '2021-07-20 1200', freq='1H')
-    tt = pd.date_range('2021-07-20 0000', '2021-07-21 0000', freq='1H')
+    # tt = pd.date_range('2021-07-20 0000', '2021-07-21 0000', freq='1H')
+    tt = pd.date_range('2021-07-17 0000', '2021-07-23 0000', freq='1H')
     # tt
     fl_list = []
     for t in tt:
@@ -203,10 +207,12 @@ def save_one_model_mp(path='/mnt/zfm_18T/fengxiang/HeNan/Data/1900_90m/'):
 def save_all_model():
     # model_list = ['1900_90m', '1900_900m','1912_90m', '1912_900m']
     # model_list = ['gwd3-NO','gwd3-CTL','gwd3-FD', 'gwd3-BL','gwd3-SS', 'gwd3-LS']
-    model_list = ['gwd0', 'gwd3']
-    path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/'
+    # model_list = ['gwd0', 'gwd3']
+    model_list = ['CTRL', 'SS', 'FD', 'GWD3']
+    # path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/'
+    path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/newall/'
     for model in model_list:
-        path = path_main+model+'/'
+        path = path_main+model+'/wrfout/'
         save_one_model_mp(path)
         # print(path)
 

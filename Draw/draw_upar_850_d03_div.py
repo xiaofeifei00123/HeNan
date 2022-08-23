@@ -20,7 +20,7 @@ Version          :1.1
 
 
 # %%
-from time import strftime
+# from time import strftime
 from cartopy.crs import Projection
 from cartopy.mpl.ticker import LongitudeFormatter, LatitudeFormatter
 import cartopy.feature as cfeature
@@ -49,9 +49,8 @@ from baobao.caculate import QvDiv
 from baobao.caculate import caculate_q_rh_thetav
 from baobao.caculate import caculate_vo_div, caculate_div
 from baobao.map import Map   # 一个类名
-# from baobao.caculate.
+from baobao.map import get_rgb
 
-from filter_dct import filter_lambda_low
 
 
 # %%
@@ -177,7 +176,8 @@ def draw_contourf(ax, da):
     # colorlevel= [-90,-12,-9,-6,-3, 0, 3,6,9,12,90]  # 垂直速度的色标
     colordict=['#0000fb','#3232fd','#6464fd','white','white','#fbbcbc', '#fd4949', '#fd0000']#正负, 蓝-红
     # colorlevel= [-90,-20,-10,-3, 0, 3,10,20,90]  # 垂直速度的色标
-    colorlevel= [-90,-20,-10,-1, 0, 1,10,20,90]  # 垂直速度的色标
+    # colorlevel= [-90,-20,-10,-1, 0, 1,10,20,90]  # 垂直速度的色标
+    colorlevel= [-90,-20,-10,-5, 0, 5,10,20,90]  # 垂直速度的色标
     # colorlevel= [-90,-4,-3,-2,-1,0,1,2,3,4,90]# 水汽通量散度的色标
     # colorticks=colorlevel[1:-2]
     crx = ax.contourf(x,
@@ -275,8 +275,8 @@ def draw(qdif, qu,qv, dic):
     cs, colorlevel = draw_contourf(ax,qdif)
     colorticks = colorlevel[1:-1]
     # ax.set_xlabel('vertical velocity $(w, 10^{-1}m/s)$', labelpad=0.01, fontsize=8)  # 和图片的距离
-    # ax.set_xlabel('散度 $10^{-5}s^{-1}$', labelpad=0.01, fontsize=8)  # 水汽通量散度
-    ax.set_xlabel('垂直速度 $10^{-1}m \cdot s^{-1}$', labelpad=0.01, fontsize=8)  # 水汽通量散度
+    ax.set_xlabel('散度 $10^{-5}s^{-1}$', labelpad=0.01, fontsize=8)  # 水汽通量散度
+    # ax.set_xlabel('垂直速度 $10^{-1}m \cdot s^{-1}$', labelpad=0.01, fontsize=8)  # 水汽通量散度
     cb = fig.colorbar(
         cs,
         orientation='horizontal',
@@ -288,10 +288,12 @@ def draw(qdif, qu,qv, dic):
     draw_station(ax)
 
     draw_quiver(qu,qv,ax)
-    fig_path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_upar/850/alltime/'
-    fig_name = str(fig_path)+str(dic['model'])+'_'+str(dic['level'])+'_'+(dic['time']).strftime('%Y%m%d%H')+'w_speed'
+    # fig_path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_upar/850/alltime/'
+    fig_path = '/mnt/zfm_18T/fengxiang/HeNan/gravity_wave/figure/picture_upar/'
+    fig_name = str(fig_path)+str(dic['model'])+'_'+str(dic['level'])+'_'+(dic['time']).strftime('%Y%m%d%H')+'div'
     # fig_name = str(fig_path)+str(dic['model'])+'_'+str(dic['level'])+'_'+(dic['time']).strftime('%Y%m%d%H')+'div'
-    fig.savefig(fig_name, bbox_inches = 'tight')
+    # fig.savefig(fig_name, bbox_inches = 'tight')
+    fig.savefig(fig_name)
     # fig.savefig(fig_name,)
 
 
@@ -317,6 +319,7 @@ def get_data(dic):
     ## 计算水汽通量和散度
     # qvd = QvDiv()
     # ds3 = qvd.caculate_qfdiv(ds2)
+    ## 计算涡度和散度
     ds3 = caculate_vo_div(ds2)
     ds_return = xr.merge([ds2,ds3])
     return ds_return
@@ -332,11 +335,11 @@ def draw_model_once():
     path_out = '/home/fengxiang/HeNan/Data/GWD/d03/newall/GWD3/upar.nc'
 
 
-    for t in pd.date_range('2021-07-17 00', '2021-07-23 00', freq='12H'):
-    # for t in pd.date_range('2021-07-17 00', '2021-07-17 00', freq='12H'):
+    # for t in pd.date_range('2021-07-17 00', '2021-07-23 00', freq='12H'):
+    for t in pd.date_range('2021-07-20 00', '2021-07-20 00', freq='12H'):
         dic_model = {
             'model':'GWD3',
-            'level':500,
+            'level':850,
             # 'time':pd.Timestamp('2021-07-20 00'),
             'time':t,
             'flnm':path_out,
@@ -345,12 +348,12 @@ def draw_model_once():
         ds = get_data(dic_model)
         print(ds)
         # draw(ds['qf_div']*10, ds['u'], ds['v'], dic_model)
-        # daa = ds['div']
-        daa = ds['wa']
+        daa = ds['div']
+        # daa = ds['wa']
         
 
         # da = filter_lambda_low(daa.values*10**5, dx=3, lam=100)
-        da = daa*10
+        da = daa*10**5
 
         da1 = xr.DataArray(da,
                            coords=daa.coords,
@@ -485,7 +488,6 @@ def draw_minus():
     # return ds1,ds2
         # i += 1
 ### 测试结束
-# %%
 if __name__ == '__main__':
     pass
     draw_model_once()

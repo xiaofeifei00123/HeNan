@@ -127,8 +127,10 @@ class GetData():
         pass
 
         # dr = Draw()
-        flnm3 = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd3/rain.nc'
-        flnm0 = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd0/rain.nc'
+        # flnm3 = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd3/rain.nc'
+        # flnm0 = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd0/rain.nc'
+        flnm3 = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/new_modify/SS/rain_d03.nc'
+        flnm0 = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/new_modify/CTRL/rain_d03.nc'
 
         da3 = xr.open_dataarray(flnm3)
         da3 = da3.sel(time=slice('2021-07-20 01', '2021-07-21 00'))
@@ -224,7 +226,7 @@ class GetData():
 
 if __name__ == '__main__':
 
-    fig_path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_lunwen/'
+    fig_path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_lunwen/test/'
     def get_dr():
         cm = round(1/2.54, 2)
         fig = plt.figure(figsize=(8*cm, 8*cm), dpi=600)
@@ -265,7 +267,8 @@ if __name__ == '__main__':
     cb.ax.tick_params(labelsize=8)  # 设置色标标注的大小
     title_name = '(a)'
     dr.ax.set_title(title_name, loc='left', fontsize=8,y=0.98)
-    fig_name = 'gwd3-no_gwd'
+    # fig_name = 'gwd3-no_gwd'
+    fig_name = 'SS-CTRL'
     dr.fig.savefig(fig_path+fig_name+'.png')
 
     ## 模式和观测降水差值 

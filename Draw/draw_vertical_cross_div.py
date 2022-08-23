@@ -87,20 +87,21 @@ def draw_contourf(fig, ax_cross, da, ter_line):
     # colorlevel=[-80, -30, -20, -10, -5, -1, 1, 5, 10, 20, 30, 80]#雨量等级
     # colorlevel=[-280, -60, -30, -10, -5, -1, 1, 5, 10, 30, 60, 280]#雨量等级
     # colorlevel=[-680, -100, -40, -15, -5, -1, 1, 5, 15, 40, 100, 680]#雨量等级
-    colorlevel=[-1680, -100, -40, -20, -10, -1, 1, 10, 20, 40, 100, 1680]#雨量等级
+    colorlevel=[-168, -10, -4, -2, -1, -0.5, 0.5, 1, 2, 4, 10, 168]#垂直速度
+    # colorlevel=[-1680, -100, -40, -20, -10, -1, 1, 10, 20, 40, 100, 1680]#雨量等级
     # colorticks=[-30, -20, -10, -5, -1, 1, 5, 10, 20, 30]#雨量等级
     colorticks = colorlevel[1:-1]
     dbz_contours = ax_cross.contourf(xs,
                                     ys,
-                                    da.values*10,
+                                    da.values,
                                     colors=colordict,
                                     levels=colorlevel
     )
     ax_cross.set_ylim(0, 10000)
     ax_cross.set_yticks(np.arange(0, 10000+1000, 1000))
-    ax_cross.tick_params(axis='both', labelsize=7, direction='out')
+    ax_cross.tick_params(axis='both', labelsize=10, direction='out')
     cb_dbz = fig.colorbar(dbz_contours, ax=ax_cross, ticks=colorticks, orientation='vertical', fraction=0.06, pad=0.02)
-    cb_dbz.ax.tick_params(labelsize=7)
+    cb_dbz.ax.tick_params(labelsize=10)
 
     ## Set the x-ticks to use latitude and longitude labels
     coord_pairs = da.coords["xy_loc"].values
@@ -244,8 +245,8 @@ def draw(t='2021-07-20 08', flpath='/mnt/zfm_18T/fengxiang/HeNan/Data/1900_90m/'
 
     draw_contour(ax_cross, theta_e)
     # draw_contour2(ax_cross, div)
-    # draw_contourf(fig, ax_cross, div*10**4, ter_line)
-    draw_contourf(fig, ax_cross, w*10, ter_line)
+    draw_contourf(fig, ax_cross, div*10**4, ter_line)
+    # draw_contourf(fig, ax_cross, w*10, ter_line)
     # return u,v,w
 
 
@@ -270,7 +271,7 @@ def draw(t='2021-07-20 08', flpath='/mnt/zfm_18T/fengxiang/HeNan/Data/1900_90m/'
     draw_quiver(ax_cross,hor,ver*10)
 
     fig_path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_cross/newall/'
-    fig_name = title_model+'_'+title_t
+    fig_name = title_model+'_'+title_t+'div'
     # fig.savefig(fig_path+fig_name+'test5.png', bbox_inches = 'tight')
     fig.savefig(fig_path+fig_name+'.png')
     # plt.clf()
@@ -281,13 +282,17 @@ def draw_1time(t='2021-07-20 09'):
     # model_list = ['1900_90m', '1900_900m','1912_90m', '1912_900m']
     # model_list = ['1912_90m', '1912_90m_OGWD']
     # model_list = ['gwd0', 'gwd3']
-    model_list = ['CTRL', 'GWD3', 'FD', 'SS']
+    # model_list = ['CTRL', 'GWD3', 'FD', 'SS']
+    model_list = ['CTRL', 'FD', 'SS']
+    # model_list = ['CTRL']
+    # model_list = ['GWD3']
     for model in model_list:
         fl = path_main+model+'/wrfout/'
         draw(t=t, flpath=fl, model=model)
 
 def draw_mtime():
     time_list = pd.date_range('2021-07-17 00', '2021-07-23 00', freq='3H')
+    # time_list = pd.date_range('2021-07-20 00', '2021-07-20 00', freq='3H')
     # time_list = pd.date_range('2021-07-20 00', '2021-07-21 00', freq='3H')
     # time_list = pd.date_range('2021-07-20 06', '2021-07-20 06', freq='1H')
     # time_list = pd.date_range('2021-07-20 08', '2021-07-20 08', freq='1H')
@@ -299,9 +304,28 @@ if __name__ == '__main__':
     # draw()
     draw_mtime()
 
+# %%
 
 
 
 
 
 # %%
+
+# flnm ='/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/newall/SS/wrfout/cross2.nc'
+# ds = xr.open_dataset(flnm)
+# ds
+# # %%
+# da = ds['ua_cross']
+
+# # %%
+# #    coord_pairs = da.coords["xy_loc"].values
+# coord_pairs = da.coords["xy_loc"].values
+# x_ticks = np.arange(coord_pairs.shape[0])
+
+# ## set tick labels use distance
+# da1 = latlon2distance(da)    
+# x_labels = da1.distance.values.astype(int)
+# # %%
+# x_labels
+# # ax_cross.set_xticks(x_ticks[::12]) ds.xy_loc
