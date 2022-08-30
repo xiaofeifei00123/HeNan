@@ -17,15 +17,34 @@ import netCDF4 as nc
 
 # %%
 
-flnm = '/home/fengxiang/HeNan/Data/GWD/d03/newall/SS/upar.nc'
-flnm_wrf = '/home/fengxiang/HeNan/Data/GWD/d03/newall/CTRL/wrfout/wrfout_d03_2021-07-17_03:00:00'
-wrfnc = nc.Dataset(flnm_wrf)
-y,x = wrf.ll_to_xy(wrfnc,34.5,113.5)
-# y,x = wrf.ll_to_xy(wrfnc,34.2,114)
+# flnm = '/home/fengxiang/HeNan/Data/GWD/d03/newall/SS/upar.nc'
+# flnm_wrf = '/home/fengxiang/HeNan/Data/GWD/d03/newall/CTRL/wrfout/wrfout_d03_2021-07-17_03:00:00'
+# wrfnc = nc.Dataset(flnm_wrf)
+# y,x = wrf.ll_to_xy(wrfnc,34.5,113.5)
+# # y,x = wrf.ll_to_xy(wrfnc,34.2,114)
+# ds = xr.open_dataset(flnm)
+# da = ds['wa'][:,:, y,x].sel(pressure=900)
+# sst = da.values
+# time = da.time.values
+
+
+
+flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/newall/CTRL/wrfout/time_cross_A.nc'
 ds = xr.open_dataset(flnm)
-da = ds['wa'][:,:, y,x].sel(pressure=900)
-sst = da.values
+ds = ds.interpolate_na(dim='pressure',method='linear',fill_value="extrapolate")
+hh = ds['height'].mean(dim='time').values
+ds2 = ds.assign_coords({'z':('pressure',hh)})
+ds3 = ds2.swap_dims({'pressure':'z'})
+da = ds3['div']#.sel(z=1000, method='nearest')
+db = da.sel(z = np.sort(da.z))
+dc = db.sel(z=1000, method='nearest')
+dc = dc*10**5
+da = dc
 time = da.time.values
+
+sst = da.values
+
+
 # time
 
 
@@ -140,7 +159,7 @@ plt.subplots_adjust(left=0.1, bottom=0.06, right=0.95, top=0.95,
 ax1 = plt.subplot(gs[0, 0:3])
 ax1.plot(time, sst, 'k')
 # plt.xlim(xlim[:])
-ax1.set_ylim(-1,2)
+# ax1.set_ylim(-1,2)
 ax1.axhline(y=0, color='black')
 ax1.set_xlabel('时间')
 ax1.set_ylabel('垂直速度 ($m/s$)')
@@ -155,8 +174,12 @@ ax2 = plt.subplot(gs[1, 0:3])
 # levels = [0, 0.01, 0.05, 0.1, 0.2, 999]
 # levels = [0, 0.01, 0.05, 0.1, 0.2, 999]
 # levels = [0, 0.01, 0.02, 0.04, 0.08, 999]
-levels = [0, 0.05, 0.1, 0.2, 0.4, 999]
+# levels = [0, 0.05, 0.1, 0.2, 0.4, 999]
 # levels = [-0.2, -0.1,0, 0.1,  0.2, 999]
+# levels = [-0.2, -0.1,0, 0.1,  0.2, 999]
+# levels = [-0.2, -0.1,0, 0.1,  0.2, 999]
+# levels = [-20, -10,0, 10,  20, 999]
+levels = [-40, -20,0, 20,  40, 999]
 # *** or use 'contour'
 CS = ax2.contourf(time, period, power, len(levels))
 im = ax2.contourf(CS, levels=levels,

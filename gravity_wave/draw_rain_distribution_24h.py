@@ -253,79 +253,104 @@ class GetData():
         da = da.sum(dim='time').squeeze()
         return da
 
+def get_dr():
+    cm = round(1/2.54, 2)
+    proj = ccrs.PlateCarree()  # 创建坐标系
+    fig = plt.figure(figsize=(8*cm, 8*cm), dpi=300)
+    ax = fig.add_axes([0.13,0.1,0.82,0.8], projection=proj)
+    dr = Draw(fig, ax)
+    return dr
+
+def draw_obs(tl):
+    flnm_obs = '/mnt/zfm_18T/fengxiang/HeNan/gravity_wave/data/'+'rain_obs.nc'
+    ds_obs = xr.open_dataset(flnm_obs)
+    dr = get_dr()  # 画图的对象
+    # ds_obs = ds_obs.sel(time=slice('2021-07-20 01', '2021-07-21 00'))
+    ds_obs = ds_obs.sel(time=tl)
+    da_obs = ds_obs.sum(dim='time')['PRCP']
+    cf = dr.draw_single(da_obs)    
+
+    cb = dr.fig.colorbar(
+        cf,
+        # cax=ax6,
+        orientation='horizontal',
+        ticks=dr.colorticks,
+        fraction = 0.06,  # 色标大小,相对于原图的大小
+        pad=0.1,  #  色标和子图间距离
+        )
+    cb.ax.tick_params(labelsize=10)  # 设置色标标注的大小
+    labels = list(map(lambda x: str(x) if x<1 else str(int(x)), dr.colorticks))  # 将colorbar的标签变为字符串
+    cb.set_ticklabels(labels)
+    dr.ax.set_title('obs', fontsize=10,loc='left')
+    t1 = str(ds_obs.time.dt.strftime('%d/%H')[0].values)
+    t2 = str(ds_obs.time.dt.strftime('%d/%H')[-1].values)
+    tfig = str(ds_obs.time.dt.strftime('%d%H')[-1].values)
+    tt = t1+'-'+t2
+    dr.ax.set_title(tt, fontsize=10,loc='center')
+    
+    fig_name = 'obs'+tfig
+    fig_path = '/mnt/zfm_18T/fengxiang/HeNan/gravity_wave/figure/picture_rain/'
+    dr.fig.savefig(fig_path+fig_name)
+
+def draw_model(tl):
+    flnm_model = '/mnt/zfm_18T/fengxiang/HeNan/gravity_wave/data/'+'rain_model.nc'
+    ds_model = xr.open_dataset(flnm_model)
+    # for model in ['gwd3','gwd1', 'gwd0']:
+    # model_list = ['SS2']
+    model_list = ['CTRL','FD','GWD3','SS']
+    for model in model_list:
+        dr = get_dr()  # 画图的对象
+        gd = GetData()  # 数据的对象
+        # da = gd.onemodel(model)
+        # da = gd.onemodel_newall(model)
+        # da
+        # ds = ds_model.sel(time=slice('2021-07-20 01', '2021-07-21 00'))
+        ds = ds_model.sel(time=tl)
+        da = ds[model].sum(dim='time')
+        cf = dr.draw_single(da)    
+
+
+        cb = dr.fig.colorbar(
+            cf,
+            # cax=ax6,
+            orientation='horizontal',
+            ticks=dr.colorticks,
+            fraction = 0.06,  # 色标大小,相对于原图的大小
+            pad=0.1,  #  色标和子图间距离
+            )
+        cb.ax.tick_params(labelsize=10)  # 设置色标标注的大小
+        labels = list(map(lambda x: str(x) if x<1 else str(int(x)), dr.colorticks))  # 将colorbar的标签变为字符串
+        cb.set_ticklabels(labels)
+        dr.ax.set_title(model, fontsize=10,loc='left')
+        t1 = str(ds.time.dt.strftime('%d/%H')[0].values)
+        t2 = str(ds.time.dt.strftime('%d/%H')[-1].values)
+        tt = t1+'-'+t2
+        tfig = str(ds.time.dt.strftime('%d%H')[-1].values)
+        dr.ax.set_title(tt, fontsize=10,loc='center')
+        
+        fig_name = model+tfig
+        fig_path = '/mnt/zfm_18T/fengxiang/HeNan/gravity_wave/figure/picture_rain/'
+        dr.fig.savefig(fig_path+fig_name)
+
 if __name__ == '__main__':
+    pass
+    # draw_model()
+    # draw_obs()
 
-    def get_dr():
-        cm = round(1/2.54, 2)
-        proj = ccrs.PlateCarree()  # 创建坐标系
-        fig = plt.figure(figsize=(8*cm, 8*cm), dpi=300)
-        ax = fig.add_axes([0.13,0.1,0.82,0.8], projection=proj)
-        dr = Draw(fig, ax)
-        return dr
 
-    # ## 画观测降水
-    # dr = get_dr()
-    # gd = GetData()
-    # da = gd.obs()
-    # cf = dr.draw_tricontourf(da)    
-    # cb = dr.fig.colorbar(
-    #     cf,
-    #     # cax=ax6,
-    #     orientation='horizontal',
-    #     ticks=dr.colorticks,
-    #     fraction = 0.05,  # 色标大小,相对于原图的大小
-    #     pad=0.1,  #  色标和子图间距离
-    #     )
-    # cb.ax.tick_params(labelsize=10)  # 设置色标标注的大小
-    # labels = list(map(lambda x: str(x) if x<1 else str(int(x)), dr.colorticks))  # 将colorbar的标签变为字符串
-    # cb.set_ticklabels(labels)
-    # dr.ax.set_title('OBS', loc='left')
-    # fig_name = 'OBS'
-    # fig_path = '/mnt/zfm_18T/fengxiang/HeNan/gravity_wave/figure/'
-    # dr.fig.savefig(fig_path+fig_name)
-# %%
-
-    # ## 画EC降水
-    # dr = get_dr()
-    # gd = GetData()
-    # da = gd.EC()
-    # cf = dr.draw_single(da)    
-    # cb = dr.fig.colorbar(
-    #     cf,
-    #     # cax=ax6,
-    #     orientation='horizontal',
-    #     ticks=dr.colorticks,
-    #     fraction = 0.05,  # 色标大小,相对于原图的大小
-    #     pad=0.1,  #  色标和子图间距离
-    #     )
-    # cb.ax.tick_params(labelsize=10)  # 设置色标标注的大小
-    # fig_name = 'EC'
-    # fig_path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_lunwen/'
-    # dr.fig.savefig(fig_path+fig_name)
 
     ## 画模式降水
-    # model_list = ['CTRL','FD', 'GWD3', 'SS']
-    # for model in model_list:
-    #     dr = get_dr()  # 画图的对象
-    #     gd = GetData()  # 数据的对象
-    #     # da = gd.onemodel(model)
-    #     da = gd.onemodel_newall(model)
-    #     cf = dr.draw_single(da)    
+    
+    
+    time1=slice('2021-07-17 01', '2021-07-18 00')
+    time2=slice('2021-07-18 01', '2021-07-19 00')
+    time3=slice('2021-07-19 01', '2021-07-20 00')
+    time4=slice('2021-07-20 01', '2021-07-21 00')
+    time5=slice('2021-07-21 01', '2021-07-22 00')
+    time6=slice('2021-07-22 01', '2021-07-23 00')
+    time_list = [time1, time2, time3, time4, time5, time6]
+    for tl in time_list[0:1]:
+        draw_model(tl)
+        draw_obs(tl)
 
-
-    #     cb = dr.fig.colorbar(
-    #         cf,
-    #         # cax=ax6,
-    #         orientation='horizontal',
-    #         ticks=dr.colorticks,
-    #         fraction = 0.06,  # 色标大小,相对于原图的大小
-    #         pad=0.1,  #  色标和子图间距离
-    #         )
-    #     cb.ax.tick_params(labelsize=10)  # 设置色标标注的大小
-    #     labels = list(map(lambda x: str(x) if x<1 else str(int(x)), dr.colorticks))  # 将colorbar的标签变为字符串
-    #     cb.set_ticklabels(labels)
-    #     dr.ax.set_title(model, fontsize=10,loc='left')
-        
-    #     fig_name = model+'d03'+'cu'
-    #     fig_path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_rain/rain_6d/'
-    #     dr.fig.savefig(fig_path+fig_name)
+# %%

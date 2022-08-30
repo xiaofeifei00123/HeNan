@@ -31,12 +31,27 @@ def save_data_one(path_wrfout='/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/newall/
         'lon1':113.4,
         'lon2':114.2,
         }        
+    areaD = {
+        'lat1':33.5,
+        'lat2':36.0,
+        'lon1':112,
+        'lon2':115,
+        }        
+    areaE = {
+        'lat1':32,
+        'lat2':36.5,
+        'lon1':110.5,
+        'lon2':116,
+        }        
 
     # area = areaA
-    area_list = [areaA, areaB,areaC] 
+    # area_list = [areaA, areaB,areaC] 
+    area_list = [areaD, areaE]
     # arname_list = ['A']
 
-    arlist = ['A', 'B', 'C']
+    # arlist = ['A', 'B', 'C']
+    arlist = ['D', 'E']
+
     i = 0
     for area in area_list:
         # area = 'area'+ar
@@ -54,7 +69,7 @@ def save_data_all():
     model_list = ['CTRL', 'SS', 'FD', 'GWD3']
     # path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/'
     path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/newall/'
-    for model in model_list[0:1]:
+    for model in model_list[1:]:
         path = path_main+model+'/wrfout/'
         save_data_one(path)
         # save_one_model_mp(path)
@@ -70,12 +85,13 @@ def draw_all():
     cm = 1/2.54
 
 
-    # model_list = ['CTRL', 'SS', 'FD', 'GWD3']
-    model_list = ['FD',]
+    model_list = ['CTRL', 'SS', 'FD', 'GWD3']
+    # model_list = ['FD',]
     path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/newall/'
     fig_path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_cross/newall/time_cross/'
     # area_list = ['south', 'middle', 'north']
-    area_list = ['A', 'B', 'C']
+    # area_list = ['A', 'B', 'C']
+    area_list = ['D', 'E']
     for area in area_list:
         for model in model_list:
             fig = plt.figure(figsize=(17*cm, 8*cm), dpi=300)
@@ -91,5 +107,5 @@ def draw_all():
             ax.set_title(area, loc='right')
             fig.savefig(fig_name)
 # save_data_all()
-# draw_all()
+draw_all()
 # %%
