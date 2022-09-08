@@ -175,15 +175,19 @@ def draw_contourf(ax, da):
     # colorlevel= [-90,-2.5,-1.5,-0.6,-0.3,0, 0.3,0.6,1.5,2.5,90]# 散度的色标
     # colorlevel= [-90,-12,-9,-6,-3, 0, 3,6,9,12,90]  # 垂直速度的色标
     colordict=['#0000fb','#3232fd','#6464fd','white','white','#fbbcbc', '#fd4949', '#fd0000']#正负, 蓝-红
-    fnrgb = '/mnt/zfm_18T/fengxiang/HeNan/gravity_wave/data/11colors_blue_red.rgb'
+    # fnrgb = '/mnt/zfm_18T/fengxiang/HeNan/gravity_wave/data/11colors_blue_red.rgb'
+    fnrgb = '/mnt/zfm_18T/fengxiang/HeNan/gravity_wave/data/7colors.rgb'
     rgb = get_rgb(fnrgb)
     colordict = rgb
-    colorlevel= [-2000, -40,-30,-20,-10,-5, 5,10,20,30, 40, 2000]  # 垂直速度的色标
+    # colorlevel= [-2000, -40,-30,-20,-10,-5, 5,10,20,30, 40, 2000]  # 垂直速度的色标
+    # colorlevel= [-2000, -120,-80,-50,-30,-10,10,30, 50, 80,120,2000]  # 垂直速度的色标
+    colorlevel= [-3000, -70,-40,-5,5,40,70,3000]  # 垂直速度的色标
     # colorlevel= [-90,-20,-10,-3, 0, 3,10,20,90]  # 垂直速度的色标
     # colorlevel= [-90,-20,-10,-1, 0, 1,10,20,90]  # 垂直速度的色标
     # colorlevel= [-90,-20,-10,-5, 0, 5,10,20,90]  # 垂直速度的色标
     # colorlevel= [-90,-4,-3,-2,-1,0,1,2,3,4,90]# 水汽通量散度的色标
     # colorticks=colorlevel[1:-2]
+    da = smooth2d(field=da, passes=16)
     crx = ax.contourf(x,
                         y,
                         da.values,
@@ -494,8 +498,8 @@ def draw_minus():
 ### 测试结束
 if __name__ == '__main__':
     pass
-    # draw_model_once()
-    draw_model_dual()
+    draw_model_once()
+    # draw_model_dual()
     # aa = draw_minus()
 
 # %%

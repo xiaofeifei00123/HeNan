@@ -11,10 +11,36 @@ import wrf
 import netCDF4 as nc
 # %%
 
+def get_data_rain():
+    area = {
+        'lat1':33.5,
+        'lat2':36.0,
+        'lon1':112,
+        'lon2':115,
+        }        
+    flnm_model = '/mnt/zfm_18T/fengxiang/HeNan/gravity_wave/data/'+'rain_model.nc'
+    flnm_obs = '/mnt/zfm_18T/fengxiang/HeNan/gravity_wave/data/'+'rain_obs.nc'
+    ds_model = xr.open_dataset(flnm_model)
+    ds_obs = xr.open_dataset(flnm_obs)
+    # ds_obs.time.values = ds_obs.time.values+pd.Timedelta('12H')
+
+    # tt = ds_obs.time.values+pd.Timedelta('8H')
+    # ds_obs = ds_obs.assign_coords({'time':tt})
+
+    # cm = Common()
+    gd = GetData()
+    ds_model_mean = gd.caculate_area_mean(ds_model, area)
+    ds_obs_mean  = caculate_area_mean_obs(ds_obs, area)
+    dsall = xr.merge([ds_obs_mean, ds_model_mean])
+    ds = dsall.sel(time=slice('2021-07-17 00', '2021-07-23 00'))
+    # ds = dsall.sel(time=slice('2021-07-17 00', '2021-07-19 00'))
+    # ds = ds.resample(time='12H').sum()
+    return ds
 
 
 def get_data_div():
-    flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/newall/CTRL/wrfout/time_cross_A.nc'
+    # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/newall/CTRL/wrfout/time_cross_D.nc'
+    flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/newall/GWD3/wrfout/time_cross_D.nc'
     ds = xr.open_dataset(flnm)
     ds = ds.interpolate_na(dim='pressure',method='linear',fill_value="extrapolate")
     hh = ds['height'].mean(dim='time').values
@@ -22,12 +48,12 @@ def get_data_div():
     ds3 = ds2.swap_dims({'pressure':'z'})
     da = ds3['div']#.sel(z=1000, method='nearest')
     db = da.sel(z = np.sort(da.z))
-    dc = db.sel(z=1000, method='nearest')
+    dc = db.sel(z=1500, method='nearest')
     dc = dc*10**5
     da = dc
     time = da.time.values
     sst = da.values
-    return sst, time
+    return sst, time, da
 
 def  get_data_vs():
     """vertical wind speed
@@ -81,7 +107,7 @@ def  get_data_vs():
 
 
 
-sst, time = get_data_div()
+sst, time, da = get_data_div()
 variance = np.std(sst, ddof=1) ** 2
 print("variance = ", variance)
 if 0:
@@ -130,89 +156,82 @@ scaleavg_signif = wave_signif(variance, dt=dt, scale=scale, sigtest=2,
     lag1=lag1, dof=([2, 7.9]), mother=mother)
 
 # ------------------------------------------------------ Plotting
+cm = 1/2.54
+fig = plt.figure(figsize=(8*cm, 6*cm), dpi=600)
+ax = fig.add_axes([0.15, 0.2, 0.7, 0.7])
 
-# --- Plot time series
-cm = 1/2.4
-fig = plt.figure(figsize=(17*cm, 20*cm), dpi=600)
-gs = GridSpec(3, 4, hspace=0.3, wspace=0.75)
-plt.subplots_adjust(left=0.1, bottom=0.06, right=0.95, top=0.95,
-                    wspace=0, hspace=0)
-# plt.subplot(gs[0, 0:3])
-ax1 = plt.subplot(gs[0, 0:3])
-ax1.plot(time, sst, 'k')
-# plt.xlim(xlim[:])
-# ax1.set_ylim(-1,2)
-ax1.axhline(y=0, color='black')
-ax1.set_xlabel('时间')
-ax1.set_ylabel('垂直速度 ($m/s$)')
-# ax1.set_title('a) NINO3 Sea Surface Temperature (seasonal)')
 
 # --- Contour plot wavelet power spectrum
-# plt3 = plt.subplot(3, 1, 2)
-# plt3 = plt.subplot(gs[1, 0:3])
-ax2 = plt.subplot(gs[1, 0:3])
-# levels = [0, 0.5, 1, 2, 4, 999]
-# levels = [0, 0.05, 0.1, 0.15, 0.2, 999]
-# levels = [0, 0.01, 0.05, 0.1, 0.2, 999]
-# levels = [0, 0.01, 0.05, 0.1, 0.2, 999]
-# levels = [0, 0.01, 0.02, 0.04, 0.08, 999]
-# levels = [0, 0.05, 0.1, 0.2, 0.4, 999]
-# levels = [-0.2, -0.1,0, 0.1,  0.2, 999]
-# levels = [-0.2, -0.1,0, 0.1,  0.2, 999]
-# levels = [-0.2, -0.1,0, 0.1,  0.2, 999]
-# levels = [-20, -10,0, 10,  20, 999]
 levels = [-40, -20,0, 20,  40, 999]
 # *** or use 'contour'
-CS = ax2.contourf(time, period, power, len(levels))
-im = ax2.contourf(CS, levels=levels,
-    colors=['white', 'bisque', 'orange', 'orangered', 'darkred'])
-# print(sst.max())
+# CS = ax.contourf(time, period, power, len(levels))
+# im = ax.contourf(CS, levels=levels,
+#     colors=['white', 'bisque', 'orange', 'orangered', 'darkred'])
 
-ax2.set_xlabel('时间')
-ax2.set_ylabel('周期 (小时)')
-# plt.title('b) Wavelet Power Spectrum (contours at 0.5,1,2,4\u00B0C$^2$)')
-# plt.xlim(xlim[:])
+# colorlevel=[0, 1, 10, 25, 50, 100, 250, 400,600,800,1000, 2000]#雨量等级
+# colorlevel=[0, 10, 20, 30, 50, 70, 100, 150, 200, 400,800,1000]
+colorlevel=[0, 1, 2, 3, 5, 7, 10, 15, 20, 40,80,100]
+# colorlevel=[-60, -40,-30,  -20 , -10, -5, 5,10,20 ,30, 40, 60]
+# colorticks=[-40, -20 , 0, 20 , 40]
+colorticks = colorlevel[1:-1]
+rgbtxt = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_rain/rain_6d/11colors.txt'
+def get_rgb(fn):
+    """
+    fn: rgb_txt文件存储路径
+    """
+    # fn = './11colors.txt'
+    df = pd.read_csv(fn, skiprows=4, sep='\s+',encoding='gbk',header=None, names=['r','g','b'])
+    rgb = []
+    for ind, row in df.iterrows():
+        rgb.append(row.tolist())
+    rgb = np.array(rgb)/255.
+    return rgb
+rgb = get_rgb(rgbtxt)
+colordict = rgb  
+
+crx = ax.contourf(time,
+                    period,
+                    power,
+                    corner_mask=False,
+                    levels=colorlevel,
+                    colors = colordict,
+                    )
+
+
+cb = fig.colorbar(
+    crx,
+    # cax=ax6,
+    orientation='vertical',
+    # orientation='horizontal',
+    ticks=colorticks,
+    fraction = 0.06,  # 色标大小,相对于原图的大小
+    pad=0.05,  #  色标和子图间距离
+    )
+
+
+
+# ax.set_xlabel('时间 （日期/小时）')
+ax.set_xlabel('时间 （日期）')
+ax.set_ylabel('周期 （小时）')
 # 95# significance contour, levels at -99 (fake) and 1 (95# signif)
-ax2.contour(time, period, sig95, [-99, 1], colors='k')
+ax.contour(time, period, sig95, [-99, 1], colors='k')
 # cone-of-influence, anything "below" is dubious
-ax2.fill_between(time, coi * 0 + period[-1], coi, facecolor="none",
+ax.fill_between(time, coi * 0 + period[-1], coi, facecolor="none",
     edgecolor="#00000040", hatch='x')
 # plt.plot(time, coi, 'k')
-ax2.plot(time, coi, 'k')
+ax.plot(time, coi, 'k')
 # format y-scale
-ax2.set_yscale('log', base=2, subs=None)
-ax2.set_yticks([0, 1, 2, 3, 4, 6,8, 12, 16])
-ax2.set_ylim([np.min(period), np.max(period)])
-ax = plt.gca().yaxis
-ax.set_major_formatter(ticker.ScalarFormatter())
-ax2.ticklabel_format(axis='y', style='plain')
-# plt.colorbar(im, cax=position, orientation='horizontal')
+ax.set_yscale('log', base=2, subs=None)
+ax.set_yticks([0, 1, 2, 3, 4, 6,10, 16])
+ax.set_ylim(1, 32)
+x = da.time.dt.strftime('%d')
+ax.set_xticklabels(x[::24].values, rotation=0, fontsize=10)
+ax.xaxis.set_minor_locator(plt.MultipleLocator(0.25))
 
-# #   , fraction=0.05, pad=0.5)
-
-# # plt.subplots_adjust(right=0.7, top=0.9)
-
-# # --- Plot global wavelet spectrum
-ax3 = plt.subplot(gs[1, -1])
-ax3.plot(global_ws, period)
-ax3.plot(global_signif, period, '--')
-ax3.set_xlabel('Power $(m^2/s^2)$')
-# ax3.set_title('c) Global Wavelet Spectrum')
-# plt.xlim([0, 1.25 * np.max(global_ws)])
-# format y-scale
-ax3.set_yscale('log', base=2, subs=None)
-plt.ylim([np.min(period), np.max(period)])
-ax = plt.gca().yaxis
-ax.set_major_formatter(ticker.ScalarFormatter())
-ax3.ticklabel_format(axis='y', style='plain')
-# ax3.set_xlim(0,3)
-
-
-# # --- Plot 2--8 yr scale-average time series
-ax4 = plt.subplot(gs[2, 0:3])
-ax4.plot(time, scale_avg, 'k')
-# plt.xlim(xlim[:])
-ax4.set_xlabel('距离(km)')
-# ax4.set_ylim(0,0.7)
-# ax4.set_ylabel('Avg variance $(m/s)$')
-# fig.savefig('/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_wave/gwd0_cross_rain_2000.png')
+## 不用指数形式标注纵坐标
+axx = plt.gca().yaxis
+axx.set_major_formatter(ticker.ScalarFormatter())
+ax.ticklabel_format(axis='y', style='plain')
+# %%
+figpath = '/mnt/zfm_18T/fengxiang/HeNan/gravity_wave/figure/'
+fig.savefig(figpath+'wave')
