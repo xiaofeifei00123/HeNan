@@ -161,13 +161,17 @@ def dual():
     """
     pass
     # model_list = ['CTRL','Dual', 'FD', 'GWD3', 'SS', 'SS2']
-    model_list = ['CTRL','FD', 'GWD3', 'SS']
+    # model_list = ['CTRL','FD', 'GWD3', 'SS']
+    model_list = ['CTRL2','DUAL2']
     domain = 'wrfout_d03'
     # flag = 'all'
-    flag_list = ['all','convection', 'grid']
+    # flag_list = ['all','convection', 'grid']
+    flag_list = ['all']
     for model in model_list:
         print(model)
-        path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/newall/'+model+'/wrfout/'
+        # path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/newall/'+model+'/wrfout/'
+        # path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/newall/'+model+'/wrfout/'
+        path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/new_modify/'+model+'/'
         for flag in flag_list:
             save_one(path_main, domain, flag)
     

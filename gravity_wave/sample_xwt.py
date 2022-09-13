@@ -35,7 +35,92 @@ from pycwt.helpers import find
 from matplotlib.image import NonUniformImage
 from baobao import caculate as ca
 import xarray as xr
+from geopy.distance import distance  # 根据经纬度计算两点距离
+# %%
 
+def get_data_div_vor():
+    def drop_na(da):
+        """处理数据, 这一步是必须要的，不然好像画不出来图
+        """
+        for i in range(da.shape[-1]):
+            column_vals = da[:,i].values
+            # Let's find the lowest index that isn't filled. The nonzero function
+            # finds all unmasked values greater than 0. Since 0 is a valid value
+            # for dBZ, let's change that threshold to be -200 dBZ instead.
+            first_idx = int(np.transpose((column_vals > -200).nonzero())[0])
+            da[0:first_idx, i] = da[first_idx, i]
+        da = da.dropna(dim='vertical')
+        return da
+
+        
+    def latlon2distance(da2):
+        """将剖面数据的经纬度横坐标变为距离坐标
+
+        Args:
+            da2 (_type_): _description_
+
+        Returns:
+            _type_: _description_
+        """
+        # flnm='/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd0/cross1.nc'
+        # flnm='/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd0/cross1.nc'
+        # ds = xr.open_dataset(flnm)
+        # ds1 = ds.sel(time='2021-07-20 08')
+        # da = ds1['wa_cross']
+        # da1 = da.interpolate_na(dim='vertical', method='linear',  fill_value="extrapolate")
+        # da2 = da1.sel(vertical=2000, method='nearest')
+        dd = da2.xy_loc
+        def str_latlon(string):
+            # d1 = dd.values[0]
+            lat = float(string.split(',')[0])
+            lon = float(string.split(',')[1])
+            return lat, lon
+
+        d2 = dd.values
+        lat_list = []
+        lon_list = []
+        for i in d2:
+            # print(i)
+            lat, lon = str_latlon(i)
+            lat_list.append(lat)
+            lon_list.append(lon)
+
+        dis_list = [0]
+        di = 0
+        for i in range(len(lat_list)-1):
+            # print(i)
+            lat1 = lat_list[i]
+            lon1 = lon_list[i]
+            loc1 = (lat1, lon1)
+            lat2 = lat_list[i+1]
+            lon2 = lon_list[i+1]
+            loc2 = (lat2, lon2)
+            dist = distance(loc1,loc2).km
+            di = di+dist
+            dis_list.append(di)
+        dis_list
+        dis_array = (np.array(dis_list)).round(1)
+        dis_array
+        da2 = da2.assign_coords({'distance':('cross_line_idx',dis_array)})
+        da3 = da2.swap_dims({'cross_line_idx':'distance'})
+        da3
+        return da3
+        
+    flnm = '/home/fengxiang/HeNan/Data/GWD/d03/newall/GWD3/wrfout/cross4_1time.nc'
+    ds = xr.open_dataset(flnm)
+    ds = ds.squeeze()
+
+    da = drop_na(ds['div_cross'])
+    db = drop_na(ds['vor_cross'])
+    def select_vertical(da):
+        db = da.interp(vertical=1500, method='slinear')
+        dc = latlon2distance(db)
+        dc = dc*10**5
+        dc = dc-dc.mean()   # 扰动值
+        return dc
+    div = select_vertical(da)
+    vor = select_vertical(da)
+    return div, vor
 # %%
 def get_data_cross_wrf(var='div'):
     flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/newall/CTRL/wrfout/time_cross_C.nc'
@@ -59,31 +144,28 @@ def get_data_cross_wrf(var='div'):
     time = da.time.values
     sst = da.values
     return sst, time
-d1, t1 = get_data_cross_wrf('vor')
-d2, t2 = get_data_cross_wrf('wa')
-t1 = np.arange(len(t1))
-t2 = np.arange(len(t2))
+
+# d1, t1 = get_data_cross_wrf('vor')
+# d2, t2 = get_data_cross_wrf('wa')
+# t1 = np.arange(len(t1))
+# t2 = np.arange(len(t2))
+# t1, s1 = t1, d1
+# t2, s2 = t2, d2
 
 # %%
-# %%
-
-# file_path = '/mnt/zfm_18T/fengxiang/HeNan/gravity_wave/pycwt/'
-# data1 = dict(name='Arctic Oscillation', nick='AO', file=file_path+'jao.dat')
-# data2 = dict(name='Baltic Sea ice extent', nick='BMI', file=file_path+'jbaltic.dat')
-# mother = 'morlet'
-
-# # Loads the data to be analysed.
-# t1, s1 = np.loadtxt(data1['file'], unpack=True)
-# t2, s2 = np.loadtxt(data2['file'], unpack=True)
-# t1
-# %%
-# type(t1[0])
+da1, da2 = get_data_div_vor()
+# d1
+t1 = da1.distance.values
+t2 = da2.distance.values
+s1 = da1.values
+s2 = da2.values
+s2
+s3 = s1
+s1 = s2
+s2 = s3
 
 # %%
 mother = 'morlet'
-t1, s1 = t1, d1
-t2, s2 = t2, d2
-
 
 dt = np.diff(t1)[0]
 n1 = t1.size
@@ -144,33 +226,33 @@ sig95_2 = power2 / sig95_2             # Where ratio > 1, power is significant
 # %%
 
 # First plot is of both CWT
-# fig, (ax1, ax2) = plt.subplots(nrows=2, ncols=1, sharex=True)
+fig, (ax1, ax2) = plt.subplots(nrows=2, ncols=1, sharex=True)
 
-# extent1 = [t1.min(), t1.max(), 0, max(period1)]
-# extent2 = [t2.min(), t2.max(), 0, max(period2)]
-# ax1.set_yscale('log', base=2, subs=None)
-# im1 = NonUniformImage(ax1, interpolation='bilinear', extent=extent1)
-# im1.set_data(t1, period1, power1)
-# ax1.images.append(im1)
-# ax1.contour(t1, period1, sig95_1, [-99, 1], colors='k', linewidths=2,
-#             extent=extent1)
-# ax1.fill(np.concatenate([t1, t1[-1:]+dt, t1[-1:]+dt, t1[:1]-dt, t1[:1]-dt]),
-#          np.concatenate([coi1, [1e-9], period1[-1:], period1[-1:], [1e-9]]),
-#          'k', alpha=0.3, hatch='x')
-# ax1.set_title('{} Wavelet Power Spectrum ({})'.format(data1['nick'],
-#                                                       mother.name))
+extent1 = [t1.min(), t1.max(), 0, max(period1)]
+extent2 = [t2.min(), t2.max(), 0, max(period2)]
+ax1.set_yscale('log', base=2, subs=None)
+im1 = NonUniformImage(ax1, interpolation='bilinear', extent=extent1)
+im1.set_data(t1, period1, power1)
+ax1.images.append(im1)
+ax1.contour(t1, period1, sig95_1, [-99, 1], colors='k', linewidths=2,
+            extent=extent1)
+ax1.fill(np.concatenate([t1, t1[-1:]+dt, t1[-1:]+dt, t1[:1]-dt, t1[:1]-dt]),
+         np.concatenate([coi1, [1e-9], period1[-1:], period1[-1:], [1e-9]]),
+         'k', alpha=0.3, hatch='x')
+ax1.set_title('{} Wavelet Power Spectrum ({})'.format(data1['nick'],
+                                                      mother.name))
 
-# im2 = NonUniformImage(ax2, interpolation='bilinear', extent=extent2)
-# im2.set_data(t2, period2, power2)
-# ax2.images.append(im2)
-# ax2.contour(t2, period2, sig95_2, [-99, 1], colors='k', linewidths=2,
-#             extent=extent2)
-# ax2.fill(np.concatenate([t2, t2[-1:]+dt, t2[-1:]+dt, t2[:1]-dt, t2[:1]-dt]),
-#          np.concatenate([coi2, [1e-9], period2[-1:], period2[-1:], [1e-9]]),
-#          'k', alpha=0.3, hatch='x')
-# ax2.set_xlim(max(t1.min(), t2.min()), min(t1.max(), t2.max()))
-# ax2.set_title('{} Wavelet Power Spectrum ({})'.format(data2['nick'],
-#                                                       mother.name))
+im2 = NonUniformImage(ax2, interpolation='bilinear', extent=extent2)
+im2.set_data(t2, period2, power2)
+ax2.images.append(im2)
+ax2.contour(t2, period2, sig95_2, [-99, 1], colors='k', linewidths=2,
+            extent=extent2)
+ax2.fill(np.concatenate([t2, t2[-1:]+dt, t2[-1:]+dt, t2[:1]-dt, t2[:1]-dt]),
+         np.concatenate([coi2, [1e-9], period2[-1:], period2[-1:], [1e-9]]),
+         'k', alpha=0.3, hatch='x')
+ax2.set_xlim(max(t1.min(), t2.min()), min(t1.max(), t2.max()))
+ax2.set_title('{} Wavelet Power Spectrum ({})'.format(data2['nick'],
+                                                      mother.name))
 
 # %%
 
@@ -219,37 +301,32 @@ cor_period = 1 / freq
 angle = 0.5 * np.pi - aWCT
 u, v = np.cos(angle), np.sin(angle)
 
-# fig, (ax1, ax2) = plt.subplots(nrows=2, ncols=1, sharex=True, sharey=True)
-fig, ax2 = plt.subplots(nrows=1, ncols=1, sharex=True, sharey=True)
-# fig.subplots_adjust(right=0.8)
-# cm = 1/2.54
-# fig = plt.figure(figsize=(8*cm, 8*cm), dpi=600)
-# ax1 = fig.add_axes([0.1, 0.1, 0.3, 0.8])
-# ax2 = fig.add_axes([0.5, 0.1, 0.3, 0.8])
+# %%
+cm = 1/2.54
+fig = plt.figure(figsize=(8*cm, 8*cm), dpi=600)
+ax2 = fig.add_axes([0.1, 0.1, 0.8, 0.8])
+ax2.contourf(t1,cor_period, WCT, levels=100)
 
-cbar_ax = fig.add_axes([0.85, 0.55, 0.05, 0.35])
-cbar_ax_1 = fig.add_axes([0.85, 0.05, 0.05, 0.35])
 
-extent_cross = [t1.min(), t1.max(), 0, max(cross_period)]
-extent_corr = [t1.min(), t1.max(), 0, max(cor_period)]
-im2 = NonUniformImage(ax2, interpolation='bilinear', extent=extent_corr)
-im2.set_data(t1, cor_period, WCT)
-ax2.images.append(im2)
-ax2.contour(t1, cor_period, cor_sig, [-99, 1], colors='k', linewidths=2,
-            extent=extent_corr)
+
 ax2.fill(np.concatenate([t1, t1[-1:]+dt, t1[-1:]+dt, t1[:1]-dt, t1[:1]-dt]),
          np.concatenate([corr_coi, [1e-9], cor_period[-1:], cor_period[-1:],
                          [1e-9]]),
          'k', alpha=0.3, hatch='x')
 ax2.set_title('Cross-Correlation')
-ax2.quiver(t1[::3], cor_period[::3], u[::3, ::3], v[::3, ::3], units='height',
-           angles='uv', pivot='mid', linewidth=1, edgecolor='k',
-           headwidth=10, headlength=10, headaxislength=5, minshaft=2,
-           minlength=5)
-ax2.set_ylim(2, 35)
+# ax2.quiver(t1[::3], cor_period[::3], u[::3, ::3], v[::3, ::3], units='height',
+#            angles='uv', pivot='mid', linewidth=1, edgecolor='k',
+#            headwidth=10, headlength=10, headaxislength=5, minshaft=2,
+#            minlength=5)
+ax2.quiver(t1[::5], cor_period[::5], u[::5, ::5], v[::5, ::5], units='height',
+           angles='uv', pivot='mid', linewidth=0.8, edgecolor='k',
+           headwidth=5, headlength=5, headaxislength=4, minshaft=1,
+           minlength=5, width=0.002)
+ax2.set_ylim(6, 256)
 ax2.set_yscale('log', base=2, subs=None)
 ax2.set_xlim(max(t1.min(), t2.min()), min(t1.max(), t2.max()))
 # fig.colorbar(im2, cax=cbar_ax_1)
 plt.draw()
 plt.show()
 fig.savefig('./xwt.png')
+# %%

@@ -20,7 +20,7 @@ from multiprocessing import Pool
 # from matplotlib.cm import get_cmap
 # import cartopy.crs as crs
 # from cartopy.feature import NaturalEarthFeature
-from baobao.caculate import caculate_div3d
+from baobao.caculate import caculate_div3d, caculate_vor3d
 
 
 # %%
@@ -33,8 +33,11 @@ class CrossData():
         pass
         ## Create the start point and end point for the cross section
         ## 降水的分布
-        self.cross_start = CoordPair(lat=32, lon=111.5)
-        self.cross_end = CoordPair(lat=36.5, lon=114.5)
+        self.cross_start = CoordPair(lat=32, lon=111.2)
+        self.cross_end = CoordPair(lat=36.5, lon=114.8)
+        ## 降水的分布
+        # self.cross_start = CoordPair(lat=32, lon=111.5)
+        # self.cross_end = CoordPair(lat=36.5, lon=114.5)
         # 伏牛山
         # self.cross_start = CoordPair(lat=34, lon=110.5)
         # self.cross_end = CoordPair(lat=33.5, lon=113)
@@ -114,10 +117,13 @@ class CrossData():
         lon = u.XLONG
         lat = u.XLAT
         div = caculate_div3d(u,v, lon, lat) # 计算得到div
+        vor = caculate_vor3d(u,v, lon, lat) # 计算得到div
         div.attrs = u.attrs  # 因为get_vcross,对project做了统一处理，这里需要是一样的
+        vor.attrs = u.attrs  # 因为get_vcross,对project做了统一处理，这里需要是一样的
         div_cross = self.get_vcross(div)  # 插值到剖面上
+        vor_cross = self.get_vcross(vor)  # 插值到剖面上
         da_cross_list.append(div_cross)
-        
+        da_cross_list.append(vor_cross)
         ds = xr.merge(da_cross_list)
         return ds
 
@@ -130,7 +136,8 @@ class CrossData():
 def save_one_model():
     path = '/mnt/zfm_18T/fengxiang/HeNan/Data/1900_90m/'
     # tt = pd.date_range('2021-07-20 0000', '2021-07-20 1200', freq='3H')
-    tt = pd.date_range('2021-07-20 0000', '2021-07-20 1200', freq='12H')
+    # tt = pd.date_range('2021-07-20 0000', '2021-07-20 1200', freq='12H')
+    tt = pd.date_range('2021-07-20 0000', '2021-07-20 0000', freq='12H')
     # tt
     fl_list = []
     for t in tt:
@@ -169,9 +176,9 @@ def save_one_model_mp(path='/mnt/zfm_18T/fengxiang/HeNan/Data/1900_90m/'):
 
 
     # path = '/mnt/zfm_18T/fengxiang/HeNan/Data/1900_90m/'
-    # tt = pd.date_range('2021-07-20 0000', '2021-07-20 1200', freq='1H')
+    tt = pd.date_range('2021-07-20 0000', '2021-07-20 0000', freq='1H')
     # tt = pd.date_range('2021-07-20 0000', '2021-07-21 0000', freq='1H')
-    tt = pd.date_range('2021-07-17 0000', '2021-07-23 0000', freq='1H')
+    # tt = pd.date_range('2021-07-17 0000', '2021-07-23 0000', freq='1H')
     # tt
     fl_list = []
     for t in tt:
@@ -201,14 +208,15 @@ def save_one_model_mp(path='/mnt/zfm_18T/fengxiang/HeNan/Data/1900_90m/'):
     ds['ter'] = ter
 
     ds = ds.rename({'Time':'time'})
-    save_name = path+'cross2.nc'
+    save_name = path+'cross4_1time.nc'
     ds.to_netcdf(save_name)
 
 def save_all_model():
     # model_list = ['1900_90m', '1900_900m','1912_90m', '1912_900m']
     # model_list = ['gwd3-NO','gwd3-CTL','gwd3-FD', 'gwd3-BL','gwd3-SS', 'gwd3-LS']
     # model_list = ['gwd0', 'gwd3']
-    model_list = ['CTRL', 'SS', 'FD', 'GWD3']
+    # model_list = ['CTRL', 'SS', 'FD', 'GWD3']
+    model_list = ['GWD3']
     # path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/'
     path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/newall/'
     for model in model_list:

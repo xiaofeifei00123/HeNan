@@ -44,7 +44,11 @@ def get_data(area):
     cm = Common()
     gd = GetData()
     ds_model_mean = gd.caculate_area_mean(ds_model, area)
+    # ds_model_mean.sel(model='gwd3')
+    ds_model_mean = ds_model_mean['GWD3']
+    # print(ds_model_mean.dims)
     ds_obs_mean  = caculate_area_mean_obs(ds_obs, area)
+    dsall = ds_obs_mean
     dsall = xr.merge([ds_obs_mean, ds_model_mean])
     ds = dsall.sel(time=slice('2021-07-17 00', '2021-07-23 00'))
     # ds = dsall.sel(time=slice('2021-07-17 00', '2021-07-19 00'))
@@ -63,7 +67,7 @@ def draw(ds, fig, ax):
             var = 'OBS'
         ax.plot(x,y, label=var, color=color_list[i])
         i+=1
-    # ax.legend(edgecolor='white')
+    ax.legend(edgecolor='white')
     ax.set_xticks(x[::24])
     ax.set_xticklabels(x[::24].values, rotation=0, fontsize=10)
     ax.xaxis.set_minor_locator(plt.MultipleLocator(6))

@@ -36,7 +36,9 @@ from baobao.map import Map
 from baobao.get_cmap import select_cmap
 import pandas as pd
 import os
+import numpy as np
 from baobao.map import get_rgb
+import matplotlib.patches as patches
 
 # %%
 class Draw(object):
@@ -70,30 +72,61 @@ class Draw(object):
                 'extent':[110.5, 116, 32, 36.5],
                 'extent_interval_lat':1,
                 'extent_interval_lon':1,
-            }
+            } 
+
+        self.cross_start = [111.2, 32]
+        self.cross_end = [114.8, 36.5]
         self.path_province = '/mnt/zfm_18T/fengxiang/DATA/SHP/Province_shp/henan.shp'
         self.path_henan = '/mnt/zfm_18T/fengxiang/DATA/SHP/shp_henan/henan.shp'
         self.path_city = '/mnt/zfm_18T/fengxiang/DATA/SHP/shp_henan/zhenzhou/zhenzhou_max.shp'
         self.path_tibet = '/mnt/zfm_18T/fengxiang/DATA/SHP/shp_tp/Tibet.shp'
         self.picture_path = '/mnt/zfm_18T/fengxiang/Asses_PBL/Rain/picture'
+        # self.station = {
+        #         'ZhengZhou': {
+        #             'abbreviation':'郑州',
+        #             'lat': 34.76,
+        #             'lon': 113.65
+        #         },
+        #         'NanYang': {
+        #             'abbreviation':'南阳',
+        #             'lat': 33.1,
+        #             'lon': 112.49,
+        #         },
+        #         'LuShi': {
+        #             'abbreviation':'卢氏',
+        #             'lat': 34.08,
+        #             'lon': 111.07,
+        #         },
+        #     }
+        loc1 = (33.7, 112.55)
+        loc2 = (34.7, 113.35)
+        loc3 = (35.5, 114.0)
+
         self.station = {
-                'ZhengZhou': {
-                    'abbreviation':'郑州',
-                    'lat': 34.76,
-                    'lon': 113.65
+                'A': {
+                    'abbreviation':'A',
+                    'lat': 33.7,
+                    'lon': 112.55,
                 },
-                'NanYang': {
-                    'abbreviation':'南阳',
-                    'lat': 33.1,
-                    'lon': 112.49,
+                'B': {
+                    'abbreviation':'B',
+                    'lat': 34.7,
+                    'lon': 113.35,
                 },
-                'LuShi': {
-                    'abbreviation':'卢氏',
-                    'lat': 34.08,
-                    'lon': 111.07,
+                'C': {
+                    'abbreviation':'C',
+                    'lat': 35.5,
+                    'lon': 114.0,
                 },
             }
 
+
+    def add_patch(self, area, ax):
+            xy = (area['lon1'], area['lat1'])
+            width = area['lon2']-area['lon1']
+            height = area['lat2']-area['lat1']
+            rect = patches.Rectangle(xy=xy, width=width, height=height, edgecolor='blue', fill=False, lw=1.5, ) # 左下角的点的位置
+            ax.add_patch(rect)
 
     def draw_single(self, da,):
         """画单个的那种图
@@ -128,6 +161,20 @@ class Draw(object):
                           colors = self.colordict,
                           transform=ccrs.PlateCarree()
                           )
+        mp.add_station(ax, self.station, justice=True)
+        # plt.plot(self.cross_start, self.cross_end, transform=ccrs.PlateCarree(),zorder=5)
+        # plt.plot(112, 35, 113,36,transform=ccrs.PlateCarree(),zorder=5)
+        # ax.scatter(np.linspace(self.cross_start[0], self.cross_end[0], 10), np.linspace(self.cross_start[1], self.cross_end[1], 10), transform=ccrs.PlateCarree())
+        ax.plot(np.linspace(self.cross_start[0], self.cross_end[0], 10), np.linspace(self.cross_start[1], self.cross_end[1], 10), color='black')
+
+        areaC = {
+            'lat1':33.5,
+            'lat2':36,
+            'lon1':112.2,
+            'lon2':114.8,
+        }        
+        self.add_patch(areaC, ax)
+        ax.text(114.4, 33.7, 'D', transform=ccrs.PlateCarree())
         return crx
         
     def draw_tricontourf(self, rain):
@@ -149,9 +196,10 @@ class Draw(object):
         cs = ax.tricontourf(rain.lon, rain.lat, rain, levels=self.colorlevel,colors=self.colordict, transform=ccrs.PlateCarree())
 
         rain_max = rain.max()        
-        ax.set_title('Max = %s'%(rain_max.values.round(1)), fontsize=10,loc='right')
+        # ax.set_title('Max = %s'%(rain_max.values.round(1)), fontsize=10,loc='right')
         # ax.set_title('2021-07 20/00--21/00', fontsize=35,)
         # ax.set_title('OBS', fontsize=10,loc='right')
+        ax.plot(np.linspace(self.cross_start[0], self.cross_end[0], 10), np.linspace(self.cross_start[1], self.cross_end[1], 10), color='black')
         return cs
 
 
@@ -281,15 +329,15 @@ def draw_obs(tl):
     cb.ax.tick_params(labelsize=10)  # 设置色标标注的大小
     labels = list(map(lambda x: str(x) if x<1 else str(int(x)), dr.colorticks))  # 将colorbar的标签变为字符串
     cb.set_ticklabels(labels)
-    dr.ax.set_title('obs', fontsize=10,loc='left')
+    dr.ax.set_title('OBS', fontsize=10,loc='left')
     t1 = str(ds_obs.time.dt.strftime('%d/%H')[0].values)
     t2 = str(ds_obs.time.dt.strftime('%d/%H')[-1].values)
     tfig = str(ds_obs.time.dt.strftime('%d%H')[-1].values)
     tt = t1+'-'+t2
-    dr.ax.set_title(tt, fontsize=10,loc='center')
+    # dr.ax.set_title(tt, fontsize=10,loc='center')
     
     fig_name = 'obs'+tfig
-    fig_path = '/mnt/zfm_18T/fengxiang/HeNan/gravity_wave/figure/picture_rain/'
+    fig_path = '/mnt/zfm_18T/fengxiang/HeNan/gravity_wave/figure/picture_rain/rain_new/'
     dr.fig.savefig(fig_path+fig_name)
 
 def draw_model(tl):
@@ -298,6 +346,7 @@ def draw_model(tl):
     # for model in ['gwd3','gwd1', 'gwd0']:
     # model_list = ['SS2']
     model_list = ['CTRL','FD','GWD3','SS']
+    # model_list = ['GWD3']
     for model in model_list:
         dr = get_dr()  # 画图的对象
         gd = GetData()  # 数据的对象
@@ -329,7 +378,7 @@ def draw_model(tl):
         dr.ax.set_title(tt, fontsize=10,loc='center')
         
         fig_name = model+tfig
-        fig_path = '/mnt/zfm_18T/fengxiang/HeNan/gravity_wave/figure/picture_rain/'
+        fig_path = '/mnt/zfm_18T/fengxiang/HeNan/gravity_wave/figure/picture_rain/rain_new/'
         dr.fig.savefig(fig_path+fig_name)
 
 if __name__ == '__main__':
@@ -348,8 +397,12 @@ if __name__ == '__main__':
     time4=slice('2021-07-20 01', '2021-07-21 00')
     time5=slice('2021-07-21 01', '2021-07-22 00')
     time6=slice('2021-07-22 01', '2021-07-23 00')
-    time_list = [time1, time2, time3, time4, time5, time6]
-    for tl in time_list[0:1]:
+    time7=slice('2021-07-17 01', '2021-07-23 00')
+    # time_list = [time1, time2, time3, time4, time5, time6]
+    # time_list = [time4,time7]
+    time_list = [time4]
+    # for tl in time_list[0:1]:
+    for tl in time_list:
         draw_model(tl)
         draw_obs(tl)
 

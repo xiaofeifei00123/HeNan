@@ -34,8 +34,8 @@ def save_data_one(path_wrfout='/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/newall/
     areaD = {
         'lat1':33.5,
         'lat2':36.0,
-        'lon1':112,
-        'lon2':115,
+        'lon1':112.2,
+        'lon2':114.8,
         }        
     areaE = {
         'lat1':32,
@@ -46,11 +46,13 @@ def save_data_one(path_wrfout='/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/newall/
 
     # area = areaA
     # area_list = [areaA, areaB,areaC] 
-    area_list = [areaD, areaE]
+    # area_list = [areaD, areaE]
+    area_list = [areaD]
     # arname_list = ['A']
 
     # arlist = ['A', 'B', 'C']
-    arlist = ['D', 'E']
+    # arlist = ['D', 'E']
+    arlist = ['D']
 
     i = 0
     for area in area_list:
@@ -88,7 +90,7 @@ def draw_all():
     model_list = ['CTRL', 'SS', 'FD', 'GWD3']
     # model_list = ['FD',]
     path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/newall/'
-    fig_path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_cross/newall/time_cross/'
+    fig_path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_cross/newall/time_cross/new/'
     # area_list = ['south', 'middle', 'north']
     # area_list = ['A', 'B', 'C']
     area_list = ['D', 'E']
@@ -102,7 +104,6 @@ def draw_all():
             draw_one(flnm,fig, ax)
             fig_name = fig_path+model+area
             print(model+area)
-            
             ax.set_title(model, loc='left')
             ax.set_title(area, loc='right')
             fig.savefig(fig_name)
