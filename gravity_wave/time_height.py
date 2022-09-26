@@ -19,10 +19,10 @@ def save_data_one(path_wrfout='/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/newall/
         }        
     
     areaB = {
-        'lat1':34.4,
-        'lat2':34.8,
-        'lon1':113,
-        'lon2':113.8,
+        'lat1':34,
+        'lat2':35,
+        'lon1':112.4,
+        'lon2':113.4,
         }        
 
     areaC = {
@@ -43,16 +43,31 @@ def save_data_one(path_wrfout='/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/newall/
         'lon1':110.5,
         'lon2':116,
         }        
+    areaF = {
+        'lat1':33.5,
+        'lat2':34.5,
+        'lon1':112.0,
+        'lon2':113,
+        }        
+    areaG = {
+        'lat1':33.8,
+        'lat2':34.4,
+        'lon1':113.2,
+        'lon2':114.2,
+        }        
 
     # area = areaA
     # area_list = [areaA, areaB,areaC] 
     # area_list = [areaD, areaE]
-    area_list = [areaD]
+    # area_list = [areaB,areaA]
+    area_list = [areaG]
     # arname_list = ['A']
 
     # arlist = ['A', 'B', 'C']
     # arlist = ['D', 'E']
-    arlist = ['D']
+    # arlist = ['D', 'C']
+    # arlist = ['B', 'A']
+    arlist = ['G']
 
     i = 0
     for area in area_list:
@@ -68,10 +83,12 @@ def save_data_one(path_wrfout='/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/newall/
         i+=1
 
 def save_data_all():
-    model_list = ['CTRL', 'SS', 'FD', 'GWD3']
+    model_list = ['GWD3','CTRL', 'SS', 'FD']
+    # model_list = ['GWD3', 'CTRL']
+# model_list = ['GWD3',]
     # path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/'
     path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/newall/'
-    for model in model_list[1:]:
+    for model in model_list:
         path = path_main+model+'/wrfout/'
         save_data_one(path)
         # save_one_model_mp(path)
@@ -88,16 +105,19 @@ def draw_all():
 
 
     model_list = ['CTRL', 'SS', 'FD', 'GWD3']
-    # model_list = ['FD',]
+    # model_list = ['GWD3',]
     path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/newall/'
-    fig_path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_cross/newall/time_cross/new/'
+    # fig_path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_cross/newall/time_cross/new/'
+    fig_path = '/mnt/zfm_18T/fengxiang/HeNan/gravity_wave/figure/picture_cross/time_vs/'
     # area_list = ['south', 'middle', 'north']
     # area_list = ['A', 'B', 'C']
-    area_list = ['D', 'E']
+    # area_list = ['B','D', 'E']
+    area_list = ['G']
     for area in area_list:
         for model in model_list:
-            fig = plt.figure(figsize=(17*cm, 8*cm), dpi=300)
-            ax = fig.add_axes([0.1,0.15, 0.85, 0.75])
+            fig = plt.figure(figsize=(16*cm, 6*cm), dpi=300)
+            # ax = fig.add_axes([0.1,0.15, 0.85, 0.75])
+            ax= fig.add_axes([0.1, 0.2, 0.88, 0.7])
             path = path_main+model+'/wrfout/'
             # flnm = path+'time_cross_south.nc'
             flnm = path+'time_cross_'+area+'.nc'

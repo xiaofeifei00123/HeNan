@@ -41,22 +41,24 @@ def get_data(area):
     # tt = ds_obs.time.values+pd.Timedelta('8H')
     # ds_obs = ds_obs.assign_coords({'time':tt})
 
-    cm = Common()
-    gd = GetData()
-    ds_model_mean = gd.caculate_area_mean(ds_model, area)
-    # ds_model_mean.sel(model='gwd3')
-    ds_model_mean = ds_model_mean['GWD3']
-    # print(ds_model_mean.dims)
-    ds_obs_mean  = caculate_area_mean_obs(ds_obs, area)
-    dsall = ds_obs_mean
-    dsall = xr.merge([ds_obs_mean, ds_model_mean])
-    ds = dsall.sel(time=slice('2021-07-17 00', '2021-07-23 00'))
+    #  cm = Common()
+    #  gd = GetData()
+    #  ds_model_mean = gd.caculate_area_mean(ds_model, area)
+    #  # ds_model_mean.sel(model='gwd3')
+    #  ds_model_mean = ds_model_mean['GWD3']
+    #  # print(ds_model_mean.dims)
+    #  ds_obs_mean  = caculate_area_mean_obs(ds_obs, area)
+    #  dsall = ds_obs_mean
+    #  dsall = xr.merge([ds_obs_mean, ds_model_mean])
+    #  ds = dsall.sel(time=slice('2021-07-17 00', '2021-07-23 00'))
     # ds = dsall.sel(time=slice('2021-07-17 00', '2021-07-19 00'))
     # ds = ds.resample(time='12H').sum()
+    ds = ds_obs.sel(time=slice('2021-07-17 00', '2021-07-23 00'))
     return ds
 
 def draw(ds, fig, ax):
-    color_list = ['black', 'green', 'blue', 'red', 'orange']
+    # color_list = ['black', 'green', 'blue', 'red', 'orange']
+    color_list = ['black', 'blue', 'blue', 'red', 'orange']
     var_list = list(ds.data_vars)
     i = 0
     for var in var_list:
@@ -77,18 +79,18 @@ def draw(ds, fig, ax):
 
 # ds['FD'].resample(time='3H').sum()
 def main():
-    area = {
-        'lat1':33.5,
-        'lat2':36.0,
-        'lon1':112,
-        'lon2':115,
-        }        
     # area = {
-    #     'lat1':32,
-    #     'lat2':36.5,
-    #     'lon1':110.5,
-    #     'lon2':116,
+    #     'lat1':33.5,
+    #     'lat2':36.0,
+    #     'lon1':112,
+    #     'lon2':115,
     #     }        
+    area = {
+        'lat1':32,
+        'lat2':36.5,
+        'lon1':110.5,
+        'lon2':116,
+        }        
 
     cm = Common()
     # area = cm.areaA
@@ -101,7 +103,7 @@ def main():
     ax.set_xlabel('Time (Date/Hour)')
     draw(ds, fig, ax)
     fig_path = '/mnt/zfm_18T/fengxiang/HeNan/gravity_wave/figure/picture_rain/'
-    fig.savefig(fig_path+'core')
+    fig.savefig(fig_path+'core1')
     # cm.areaA
 if __name__ == "__main__":
     main()

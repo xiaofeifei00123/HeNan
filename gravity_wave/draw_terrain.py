@@ -22,6 +22,8 @@ import matplotlib.ticker as mticker
 import numpy as np
 import cmaps
 from baobao.map import Map
+
+from draw_rain_distribution_24h import Draw
 # %%
 
 def get_hgt_met(flnm):
@@ -210,7 +212,20 @@ def draw_contourf_latlon(rain, pic_dic):
         },
     }
     mp.add_station(ax, station, justice=True)
-    fig_path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_terrain/new/'
+
+    dr = Draw(fig, ax)
+    # areaC = {
+    #     'lat1':33.5,
+    #     'lat2':36,
+    #     'lon1':112.2,
+    #     'lon2':114.8,
+    # }        
+    # dr.add_patch(areaC, ax)
+    ## 画斜线
+    # ax.plot(np.linspace(dr.cross_start[0], dr.cross_end[0], 10), np.linspace(dr.cross_start[1], dr.cross_end[1], 10), color='black')
+    # mp.add_station(ax, dr.station, justice=True, ssize=30)
+
+    fig_path = '/mnt/zfm_18T/fengxiang/HeNan/gravity_wave/figure/picture_terrain/'
     fig_name = fig_path+pic_dic['title']+'_latlon'
     # fig.savefig(fig_name, bbox_inches = 'tight')
     fig.savefig(fig_name)

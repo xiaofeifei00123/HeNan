@@ -37,6 +37,8 @@ from baobao.get_cmap import select_cmap
 import pandas as pd
 import os
 from baobao.map import get_rgb
+import numpy as np
+import matplotlib.patches as patches
 
 # %%
 class Draw(object):
@@ -53,6 +55,8 @@ class Draw(object):
         # self.colorlevel=[0, 0.1, 10, 25.0, 50, 100, 250,  700]#雨量等级
         # self.colordict=['#F0F0F0','#A6F28F','#3DBA3D','#61BBFF','#0000FF','#FA00FA','#800040', '#EE0000']#颜色列表
 
+        self.cross_start = [111.2, 32]
+        self.cross_end = [114.8, 36.5]
 
         # self.colorlevel=[0, 0.1, 10, 25.0, 50, 100, 250, 400,600, 1000]#雨量等级
         # self.colordict = select_cmap('rain9')
@@ -94,6 +98,12 @@ class Draw(object):
                 },
             }
 
+    def add_patch(self, area, ax):
+            xy = (area['lon1'], area['lat1'])
+            width = area['lon2']-area['lon1']
+            height = area['lat2']-area['lat1']
+            rect = patches.Rectangle(xy=xy, width=width, height=height, edgecolor='blue', fill=False, lw=1.5, ) # 左下角的点的位置
+            ax.add_patch(rect)
 
     def draw_single(self, da,):
         """画单个的那种图
@@ -128,6 +138,15 @@ class Draw(object):
                           colors = self.colordict,
                           transform=ccrs.PlateCarree()
                           )
+        # ax.plot(np.linspace(self.cross_start[0], self.cross_end[0], 10), np.linspace(self.cross_start[1], self.cross_end[1], 10), color='black')
+
+        areaC = {
+            'lat1':33.5,
+            'lat2':36,
+            'lon1':112.2,
+            'lon2':114.8,
+        }        
+        # self.add_patch(areaC, ax)
         return crx
         
     def draw_tricontourf(self, rain):
@@ -147,6 +166,7 @@ class Draw(object):
 
         ax.set_extent(self.map_dic['extent'])
         cs = ax.tricontourf(rain.lon, rain.lat, rain, levels=self.colorlevel,colors=self.colordict, transform=ccrs.PlateCarree())
+        ax.plot(np.linspace(self.cross_start[0], self.cross_end[0], 10), np.linspace(self.cross_start[1], self.cross_end[1], 10), color='black')
 
         rain_max = rain.max()        
         ax.set_title('Max = %s'%(rain_max.values.round(1)), fontsize=10,loc='right')
@@ -176,15 +196,17 @@ class GetData():
 
         # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/'+model+'/'+'rain_d03.nc'
         # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd3/rain_d02_grd.nc'
-        # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/new_modify/'+model+'/'+'rain_wrfout_d03.nc'
-        flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/newall/'+model+'/wrfout/'+'rain_wrfout_d03.nc'
+        flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/new_modify/'+model+'/'+'rain_wrfout_d03.nc'
+        # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/'+model+'/'+'rain_wrfout_d03.nc'
+        # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/newall/'+model+'/wrfout/'+'rain_wrfout_d03.nc'
         # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/new_modify/CTRL/rain_d02.nc'
         # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/'+model+'/'+'rain.nc'
         # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/Typhoon/'+model+'/'+'rain.nc'
         # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d04/'+model+'/'+'rain.nc'
         da = xr.open_dataarray(flnm)
         # da = da.sel(time=slice('2021-07-20 01', '2021-07-21 00'))
-        da = da.sel(time=slice('2021-07-20 01', '2021-07-21 00'))
+        # da = da.sel(time=slice('2021-07-20 01', '2021-07-21 00'))
+        da = da.sel(time=slice('2021-07-19 13', '2021-07-20 00'))
         da = da.sum(dim='time') 
         return da
 
@@ -305,12 +327,16 @@ if __name__ == '__main__':
     ## 画模式降水
     # for model in ['gwd3','gwd1', 'gwd0']:
     # model_list = ['SS2']
-    model_list = ['CTRL','FD', 'GWD3', 'SS']
+    # model_list = ['CTRL','FD', 'GWD3', 'SS']
+    # model_list = ['CTRL2','DUAL2']
+    # model_list = ['LS', 'BL', 'BL2', 'BL3']
+    # model_list = ['DUAL10']
+    model_list = ['GWD3']
     for model in model_list:
         dr = get_dr()  # 画图的对象
         gd = GetData()  # 数据的对象
-        # da = gd.onemodel(model)
-        da = gd.onemodel_newall(model)
+        da = gd.onemodel(model)
+        # da = gd.onemodel_newall(model)
         cf = dr.draw_single(da)    
 
 
@@ -327,6 +353,6 @@ if __name__ == '__main__':
         cb.set_ticklabels(labels)
         dr.ax.set_title(model, fontsize=10,loc='left')
         
-        fig_name = model+'d03'+'cu'
-        fig_path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_rain/rain_6d/'
+        fig_name = model+'d03'+'aaa'
+        fig_path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_rain/rain_24h_dual/'
         dr.fig.savefig(fig_path+fig_name)

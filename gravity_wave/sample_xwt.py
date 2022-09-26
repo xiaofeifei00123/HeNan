@@ -24,8 +24,8 @@ Nabil Freij, Sebastian Krieger
 
 """
 # %%
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
+# from __future__ import (absolute_import, division, print_function,
+#                         unicode_literals)
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -36,6 +36,8 @@ from matplotlib.image import NonUniformImage
 from baobao import caculate as ca
 import xarray as xr
 from geopy.distance import distance  # 根据经纬度计算两点距离
+import cmaps
+import matplotlib.ticker as ticker
 # %%
 
 def get_data_div_vor():
@@ -103,25 +105,31 @@ def get_data_div_vor():
         dis_array
         da2 = da2.assign_coords({'distance':('cross_line_idx',dis_array)})
         da3 = da2.swap_dims({'cross_line_idx':'distance'})
-        da3
         return da3
         
     flnm = '/home/fengxiang/HeNan/Data/GWD/d03/newall/GWD3/wrfout/cross4_1time.nc'
+    # flnm = '/home/fengxiang/HeNan/Data/GWD/d03/newall/CTRL/wrfout/cross4_1time.nc'
+    # flnm = '/home/fengxiang/HeNan/Data/GWD/d03/newall/SS/wrfout/cross4_1time.nc'
+    # flnm = '/home/fengxiang/HeNan/Data/GWD/d03/newall/FD/wrfout/cross4_1time.nc'
     ds = xr.open_dataset(flnm)
     ds = ds.squeeze()
 
+
+    def select_vertical(data):
+        # data = data.interp(vertical=2000, method='slinear')
+        data = data.interp(vertical=5200, method='slinear')
+        data = latlon2distance(data)
+        data = data*10**5
+        return data
+
     da = drop_na(ds['div_cross'])
     db = drop_na(ds['vor_cross'])
-    def select_vertical(da):
-        db = da.interp(vertical=1500, method='slinear')
-        dc = latlon2distance(db)
-        dc = dc*10**5
-        dc = dc-dc.mean()   # 扰动值
-        return dc
     div = select_vertical(da)
-    vor = select_vertical(da)
-    return div, vor
-# %%
+    vor = select_vertical(db)
+    # print(div.max(), vor.max())
+    # return div, vor
+    return vor, div
+
 def get_data_cross_wrf(var='div'):
     flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/newall/CTRL/wrfout/time_cross_C.nc'
     ds = xr.open_dataset(flnm)
@@ -131,7 +139,8 @@ def get_data_cross_wrf(var='div'):
     ds3 = ds2.swap_dims({'pressure':'z'})
     da = ds3[var]#.sel(z=1000, method='nearest')
     db = da.sel(z = np.sort(da.z))
-    dc = db.sel(z=1500, method='nearest')
+    # dc = db.sel(z=1500, method='nearest')
+    dc = db.sel(z=1000, method='nearest')
     if var == 'div':
         dc = dc*10**5
     elif var == 'wa':
@@ -152,28 +161,39 @@ def get_data_cross_wrf(var='div'):
 # t1, s1 = t1, d1
 # t2, s2 = t2, d2
 
-# %%
+# da1, da2 = get_data_div_vor()
 da1, da2 = get_data_div_vor()
-# d1
+# print(da1.mean().values, da2.mean().values)
+# da1.shape
+
+# cm = 1/2.54
+# fig = plt.figure(figsize=(8*cm, 8*cm), dpi=300)
+# ax = fig.add_axes([0.1, 0.1, 0.8, 0.8])
+# x = np.arange(da1.shape[0])
+# y = da1.values
+# y2 = da2.values
+# ax.plot(x,y)
+# ax.plot(x,y2)
+
+# np.where()
+# da1.where(da1==0., da1, 1)
+# xr.where(da1==0., 0, 2).plot()
+
+
+
+
 t1 = da1.distance.values
 t2 = da2.distance.values
 s1 = da1.values
 s2 = da2.values
-s2
-s3 = s1
-s1 = s2
-s2 = s3
-
-# %%
 mother = 'morlet'
+# s1 = s1+50
 
 dt = np.diff(t1)[0]
 n1 = t1.size
 n2 = t2.size
 n = min(n1, n2)
-t1
 
-# %%
 # Change the probablity density function (PDF) of the data. The time series
 # of Baltic Sea ice extent is highly bi-modal and we therefore transform the
 # timeseries into a series of percentiles. The transformed series probably
@@ -185,28 +205,28 @@ s2, _, _ = wavelet.helpers.boxpdf(s2)
 std1 = s1.std()
 std2 = s2.std()
 
+
 # I. Continuous wavelet transform
 # ===============================
 
 # Calculate the CWT of both normalized time series. The function wavelet.cwt
 # returns a a list with containing [wave, scales, freqs, coi, fft, fftfreqs]
 # variables.
+# mother = wavelet.Morlet(6)          # Morlet mother wavelet with m=6
 mother = wavelet.Morlet(6)          # Morlet mother wavelet with m=6
 slevel = 0.95                       # Significance level
 dj = 1/12                           # Twelve sub-octaves per octaves
-s0 = -1  # 2 * dt                   # Starting scale, here 6 months
+s0 = -1  # 2 * dt                  # Starting scale, here 6 months
 J = -1  # 7 / dj                    # Seven powers of two with dj sub-octaves
 if True:
     alpha1, _, _ = wavelet.ar1(s1)  # Lag-1 autocorrelation for red noise
     alpha2, _, _ = wavelet.ar1(s2)  # Lag-1 autocorrelation for red noise
 else:
     alpha1 = alpha2 = 0.0           # Lag-1 autocorrelation for white noise
-
 # The following routines perform the wavelet transform and siginificance
 # analysis for two data sets.
 W1, scales1, freqs1, coi1, _, _ = wavelet.cwt(s1/std1, dt, dj, s0, J, mother)
 
-# %%
 signif1, fft_theor1 = wavelet.significance(1.0, dt, scales1, 0, alpha1,
                                            significance_level=slevel,
                                            wavelet=mother)
@@ -223,44 +243,7 @@ sig95_1 = np.ones([1, n1]) * signif1[:, None]
 sig95_1 = power1 / sig95_1             # Where ratio > 1, power is significant
 sig95_2 = np.ones([1, n2]) * signif2[:, None]
 sig95_2 = power2 / sig95_2             # Where ratio > 1, power is significant
-# %%
 
-# First plot is of both CWT
-fig, (ax1, ax2) = plt.subplots(nrows=2, ncols=1, sharex=True)
-
-extent1 = [t1.min(), t1.max(), 0, max(period1)]
-extent2 = [t2.min(), t2.max(), 0, max(period2)]
-ax1.set_yscale('log', base=2, subs=None)
-im1 = NonUniformImage(ax1, interpolation='bilinear', extent=extent1)
-im1.set_data(t1, period1, power1)
-ax1.images.append(im1)
-ax1.contour(t1, period1, sig95_1, [-99, 1], colors='k', linewidths=2,
-            extent=extent1)
-ax1.fill(np.concatenate([t1, t1[-1:]+dt, t1[-1:]+dt, t1[:1]-dt, t1[:1]-dt]),
-         np.concatenate([coi1, [1e-9], period1[-1:], period1[-1:], [1e-9]]),
-         'k', alpha=0.3, hatch='x')
-ax1.set_title('{} Wavelet Power Spectrum ({})'.format(data1['nick'],
-                                                      mother.name))
-
-im2 = NonUniformImage(ax2, interpolation='bilinear', extent=extent2)
-im2.set_data(t2, period2, power2)
-ax2.images.append(im2)
-ax2.contour(t2, period2, sig95_2, [-99, 1], colors='k', linewidths=2,
-            extent=extent2)
-ax2.fill(np.concatenate([t2, t2[-1:]+dt, t2[-1:]+dt, t2[:1]-dt, t2[:1]-dt]),
-         np.concatenate([coi2, [1e-9], period2[-1:], period2[-1:], [1e-9]]),
-         'k', alpha=0.3, hatch='x')
-ax2.set_xlim(max(t1.min(), t2.min()), min(t1.max(), t2.max()))
-ax2.set_title('{} Wavelet Power Spectrum ({})'.format(data2['nick'],
-                                                      mother.name))
-
-# %%
-
-# II. Cross-wavelet transform
-# ===========================
-
-# Due to the difference in the time series, the second signal has to be
-# trimmed for the XWT process.
 s2 = s2[np.argwhere((t2 >= min(t1)) & (t2 <= max(t1))).flatten()]
 
 # Calculate the cross wavelet transform (XWT). The XWT finds regions in time
@@ -279,33 +262,32 @@ cross_sig = np.ones([1, n]) * signif[:, None]
 cross_sig = cross_power / cross_sig  # Power is significant where ratio > 1
 cross_period = 1/freq
 
-# Calculate the wavelet coherence (WTC). The WTC finds regions in time
-# frequency space where the two time seris co-vary, but do not necessarily have
-# high power.
+# s1 = s1**2
 WCT, aWCT, corr_coi, freq, sig = wavelet.wct(s1, s2, dt, dj=1/12, s0=-1, J=-1,
                                              significance_level=0.8646,
                                              wavelet='morlet', normalize=True,
                                              cache=True)
+# print(WCT.mean())
+# WCT, aWCT, corr_coi, freq, sig = wavelet.wct(s1, s2, dt, dj=1/12, s0=-1, J=-1,
+#                                              significance_level=0.8646,
+#                                              wavelet='morlet', normalize=True,
+#                                              cache=False)
 
 cor_sig = np.ones([1, n]) * sig[:, None]
 cor_sig = np.abs(WCT) / cor_sig  # Power is significant where ratio > 1
 cor_period = 1 / freq
 
-# Calculates the phase between both time series. The phase arrows in the
-# cross wavelet power spectrum rotate clockwise with 'north' origin.
-# The relative phase relationship convention is the same as adopted
-# by Torrence and Webster (1999), where in phase signals point
-# upwards (N), anti-phase signals point downwards (S). If X leads Y,
-# arrows point to the right (E) and if X lags Y, arrow points to the
 # left (W).
 angle = 0.5 * np.pi - aWCT
 u, v = np.cos(angle), np.sin(angle)
 
-# %%
 cm = 1/2.54
 fig = plt.figure(figsize=(8*cm, 8*cm), dpi=600)
 ax2 = fig.add_axes([0.1, 0.1, 0.8, 0.8])
-ax2.contourf(t1,cor_period, WCT, levels=100)
+# cr = ax2.contourf(t1,cor_period, WCT, cmap=cmaps.NCV_blue_red)
+cr = ax2.contourf(t1,cor_period, WCT, cmap=cmaps.WhiteBlueGreenYellowRed)
+
+fig.colorbar(cr, orientation='horizontal')
 
 
 
@@ -325,8 +307,13 @@ ax2.quiver(t1[::5], cor_period[::5], u[::5, ::5], v[::5, ::5], units='height',
 ax2.set_ylim(6, 256)
 ax2.set_yscale('log', base=2, subs=None)
 ax2.set_xlim(max(t1.min(), t2.min()), min(t1.max(), t2.max()))
-# fig.colorbar(im2, cax=cbar_ax_1)
-plt.draw()
-plt.show()
-fig.savefig('./xwt.png')
+ax2.set_yticks([8, 16, 32, 64, 128])
+axx = plt.gca().yaxis
+axx.set_major_formatter(ticker.ScalarFormatter())
+ax2.ticklabel_format(axis='y', style='plain')
+fig_path = '/mnt/zfm_18T/fengxiang/HeNan/gravity_wave/figure/picture_wave'
+fig.savefig(fig_path+'/xwt_GWD3.png')
 # %%
+
+# flnm = '/home/fengxiang/HeNan/Data/GWD/d03/newall/GWD3/wrfout/cross4_1time.nc'
+# ds = xr.open_dataset(flnm)

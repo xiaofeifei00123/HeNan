@@ -22,7 +22,28 @@ from multiprocessing import Pool
 # from cartopy.feature import NaturalEarthFeature
 from baobao.caculate import caculate_pdiv3d, caculate_pvor3d, caculate_div3d, caculate_vor3d
 
+# %%
+# flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/newall/GWD3/wrfout/cross4_1time.nc'
+# ds = xr.open_dataset(flnm)
+# ds
+# %%
+# ds.attrs['cross_start']
+# ds['drag_cross']
+# ds.cross_start
+# # a=CoordPair(lat=33, lon=111.5)
+# # type(a)
+# # type(a.latlon_str())
+# # %%
+# # ds.to_netcdf('test.nc')
+# wrf_file = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd3/wrfout_d01_2021-07-19_17:00:00'
+# ncfile = Dataset(wrf_file)
+# # ncfile
+# aa = getvar(ncfile, 'ua')
+# bb = aa.attrs['projection']
+# %%
+# bb.cartopy()
 
+# bb.proj4()
 # %%
 class CrossData():
     """获得垂直方向切向的数据
@@ -33,8 +54,26 @@ class CrossData():
         pass
         ## Create the start point and end point for the cross section
         ## 降水的分布
-        self.cross_start = CoordPair(lat=32, lon=111.2)
-        self.cross_end = CoordPair(lat=36.5, lon=114.8)
+        # self.cross_start = [111.5, 33]
+        # self.cross_end = [114.3, 36]
+        # self.cross_start = CoordPair(lat=33, lon=111.5)
+        # self.cross_end = CoordPair(lat=36, lon=114.3)
+
+        ## 西北东南走向，过嵩山
+        # self.cross_start= CoordPair(lat=33.7, lon=112.2)
+        # self.cross_end= CoordPair(lat=36, lon=115.3)
+
+        ## 伏牛山东西侧
+        self.cross_start = CoordPair(lat=33.8, lon=111.7)
+        self.cross_end = CoordPair(lat=33.5, lon=113.2)
+
+        # self.cross_start = CoordPair(lat=31, lon=112.4)
+        # self.cross_end = CoordPair(lat=34, lon=112.4)
+        # self.cross_start= CoordPair(lat=33.5, lon=114.5)
+        # self.cross_end= CoordPair(lat=35.5, lon=112.5)
+
+        # self.cross_start = CoordPair(lat=32, lon=111.2)
+        # self.cross_end = CoordPair(lat=36.5, lon=114.8)
         ## 降水的分布
         # self.cross_start = CoordPair(lat=32, lon=111.5)
         # self.cross_end = CoordPair(lat=36.5, lon=114.5)
@@ -118,6 +157,7 @@ class CrossData():
         lat = u.XLAT
         div = caculate_pdiv3d(u,v, lon, lat) # 计算得到div
         vor = caculate_pvor3d(u,v, lon, lat) # 计算得到div
+        ws = np.sqrt(u**2+v**2).rename('ws')
 
 
         # vor1 =
@@ -126,22 +166,37 @@ class CrossData():
         # print((div.values-div1.values).max())
         # print((vor.values-vor1.values).max())
 
-        # dragx = getvar(self.ncfile, 'DTAUX3D_LS')
-        # dragy = getvar(self.ncfile, 'DTAUY3D_LS')
-        # drag = np.sqrt(dragx**2+dragy**2)
-        # drag = drag.rename('LS')
+        dragx0 = getvar(self.ncfile, 'DTAUX3D_LS')
+        dragy0 = getvar(self.ncfile, 'DTAUY3D_LS')
+        dragx1 = getvar(self.ncfile, 'DTAUX3D_SS')
+        dragy1 = getvar(self.ncfile, 'DTAUY3D_SS')
+        dragx2 = getvar(self.ncfile, 'DTAUX3D_BL')
+        dragy2 = getvar(self.ncfile, 'DTAUY3D_BL')
+        dragx3 = getvar(self.ncfile, 'DTAUX3D_FD')
+        dragy3 = getvar(self.ncfile, 'DTAUY3D_FD')
+        drag0 = np.sqrt(dragx0**2+dragy0**2)
+        drag1 = np.sqrt(dragx1**2+dragy1**2)
+        drag2 = np.sqrt(dragx2**2+dragy2**2)
+        drag3 = np.sqrt(dragx3**2+dragy3**2)
+        drag = (drag1+drag2+drag3+drag0).rename('drag')
+
         
 
+        ws.attrs = u.attrs  # 因为get_vcross,对project做了统一处理，这里需要是一样的
         div.attrs = u.attrs  # 因为get_vcross,对project做了统一处理，这里需要是一样的
         vor.attrs = u.attrs  # 因为get_vcross,对project做了统一处理，这里需要是一样的
-        # drag.attrs = u.attrs
+        drag.attrs = u.attrs  # 因为get_vcross,对project做了统一处理，这里需要是一样的
         div_cross = self.get_vcross(div)  # 插值到剖面上
         vor_cross = self.get_vcross(vor)  # 插值到剖面上
-        # drag_cross = self.get_vcross(drag)
-        da_cross_list.append([div_cross, vor_cross])
-        # da_cross_list.append(vor_cross)
-        # da_cross_list.append(vor_cross)
+        drag_cross = self.get_vcross(drag)
+        ws_cross = self.get_vcross(ws)
+        da_cross_list.append(div_cross)
+        da_cross_list.append(vor_cross)
+        da_cross_list.append(drag_cross)
+        da_cross_list.append(ws_cross)
         ds = xr.merge(da_cross_list)
+        ds.attrs['cross_start'] = self.cross_start.latlon_str()
+        ds.attrs['cross_end'] = self.cross_end.latlon_str()
         return ds
 
     def get_proj(self):
@@ -150,34 +205,35 @@ class CrossData():
         return pj
 
 # %%
-def save_one_model():
-    path = '/mnt/zfm_18T/fengxiang/HeNan/Data/1900_90m/'
-    # tt = pd.date_range('2021-07-20 0000', '2021-07-20 1200', freq='3H')
-    # tt = pd.date_range('2021-07-20 0000', '2021-07-20 1200', freq='12H')
-    tt = pd.date_range('2021-07-20 0000', '2021-07-20 0000', freq='12H')
-    # tt
-    fl_list = []
-    for t in tt:
-        fl = 'wrfout_d03_'+t.strftime('%Y-%m-%d_%H:%M:%S')
-        flnm = path+fl
-        fl_list.append(flnm)
+# def save_one_model():
+#     path = '/mnt/zfm_18T/fengxiang/HeNan/Data/1900_90m/'
+#     # tt = pd.date_range('2021-07-20 0000', '2021-07-20 1200', freq='3H')
+#     # tt = pd.date_range('2021-07-20 0000', '2021-07-20 1200', freq='12H')
+#     tt = pd.date_range('2021-07-20 0000', '2021-07-20 0000', freq='12H')
+#     # tt
+#     fl_list = []
+#     for t in tt:
+#         # fl = 'wrfout_d03_'+t.strftime('%Y-%m-%d_%H:%M:%S')
+#         fl = 'wrfout_d02_'+t.strftime('%Y-%m-%d_%H:%M:%S')
+#         flnm = path+fl
+#         fl_list.append(flnm)
 
-    ds_list = []
-    for fl in fl_list:
-        print(fl[-19:])
-        cd = CrossData(fl)
-        var_list = []
-        ds = cd.get_cross_data()
-        ds_list.append(ds)
-    ds = xr.concat(ds_list, dim='Time')    
+#     ds_list = []
+#     for fl in fl_list:
+#         print(fl[-19:])
+#         cd = CrossData(fl)
+#         var_list = []
+#         ds = cd.get_cross_data()
+#         ds_list.append(ds)
+#     ds = xr.concat(ds_list, dim='Time')    
 
-    ## 再把地形高度读出来, 利用了上面的fl和cd, 所以位置不能变
-    ter = cd.get_ter()
-    ds['ter'] = ter
+#     ## 再把地形高度读出来, 利用了上面的fl和cd, 所以位置不能变
+#     ter = cd.get_ter()
+#     ds['ter'] = ter
 
-    ds = ds.rename({'Time':'time'})
-    save_name = path+'cross1.nc'
-    ds.to_netcdf(save_name)
+#     ds = ds.rename({'Time':'time'})
+#     save_name = path+'cross1.nc'
+#     ds.to_netcdf(save_name)
 
 
 # %%
@@ -189,12 +245,12 @@ def __cross_1model_1time(flnm):
     ds = cd.get_cross_data()
     return ds
 
-def save_one_model_mp(path='/mnt/zfm_18T/fengxiang/HeNan/Data/1900_90m/'):
+def save_one_model_mp(path):
 
 
     # path = '/mnt/zfm_18T/fengxiang/HeNan/Data/1900_90m/'
-    tt = pd.date_range('2021-07-20 0000', '2021-07-20 0000', freq='1H')
-    # tt = pd.date_range('2021-07-20 0000', '2021-07-21 0000', freq='1H')
+    # tt = pd.date_range('2021-07-20 0000', '2021-07-20 0000', freq='1H')
+    tt = pd.date_range('2021-07-20 1200', '2021-07-20 1200', freq='1H')
     # tt = pd.date_range('2021-07-17 0000', '2021-07-23 0000', freq='1H')
     # tt
     fl_list = []
@@ -225,19 +281,24 @@ def save_one_model_mp(path='/mnt/zfm_18T/fengxiang/HeNan/Data/1900_90m/'):
     ds['ter'] = ter
 
     ds = ds.rename({'Time':'time'})
-    save_name = path+'cross4_1time.nc'
+    # save_name = path+'cross4_times.nc'
+    save_name = path+'cross7_1time.nc'
+    # save_name = path+'cross5_d03_1time.nc'
     ds.to_netcdf(save_name)
 
 def save_all_model():
     # model_list = ['1900_90m', '1900_900m','1912_90m', '1912_900m']
     # model_list = ['gwd3-NO','gwd3-CTL','gwd3-FD', 'gwd3-BL','gwd3-SS', 'gwd3-LS']
     # model_list = ['gwd0', 'gwd3']
-    # model_list = ['CTRL', 'SS', 'FD', 'GWD3']
-    model_list = ['GWD3']
+    model_list = ['CTRL', 'SS', 'FD', 'GWD3']
+    # model_list = ['CTRL2', 'SS', 'FD', 'GWD3', 'BL', 'LS']
+    # model_list = ['GWD3']
     # path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/'
     path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/newall/'
+    # path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/new_modify/'
     for model in model_list:
         path = path_main+model+'/wrfout/'
+        # path = path_main+model+'/'
         save_one_model_mp(path)
         # print(path)
 

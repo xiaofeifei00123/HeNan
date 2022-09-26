@@ -90,11 +90,14 @@ class Draw(Rain):
         # self.colorlevel=[0, 0.1, 10, 25.0, 50, 100, 250, 400,600, 1000]#雨量等级
         # self.colordict = select_cmap('rain9')
 
-        self.colorlevel=[0, 1, 10, 25, 50, 100, 250, 400,600,800,1000, 2000]#雨量等级
-        rgbtxt = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_rain/rain_6d/11colors.txt'
-        rgb = get_rgb(rgbtxt)
-        self.colordict = rgb        
+        # self.colorlevel=[0, 1, 10, 25, 50, 100, 250, 400,600,800,1000, 2000]#雨量等级
+        # rgbtxt = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_rain/rain_6d/11colors.txt'
+        # rgb = get_rgb(rgbtxt)
+        # self.colordict = rgb        
         
+        self.colorlevel=[-700, -200, -100, -50, -20, 20, 50 , 100, 200,700 ]#雨量等级
+        self.colorticks = self.colorlevel[1:-1]
+        self.colordict=['#0000fb','#3232fd','#6464fd','#a2a3fb','white','#fbbcbc', '#ff8383', '#fd4949', '#fd0000']#正负, 蓝-红
         
 
         self.colorticks = self.colorlevel[1:-1]
@@ -161,7 +164,7 @@ class Draw(Rain):
             xy = (area['lon1'], area['lat1'])
             width = area['lon2']-area['lon1']
             height = area['lat2']-area['lat1']
-            rect = patches.Rectangle(xy=xy, width=width, height=height, edgecolor='blue', fill=False, lw=1.5, ) # 左下角的点的位置
+            rect = patches.Rectangle(xy=xy, width=width, height=height, edgecolor='black', fill=False, lw=1.5, ) # 左下角的点的位置
             ax.add_patch(rect)
 
     def draw_single(self, da,):
@@ -203,13 +206,20 @@ class Draw(Rain):
         # ax.scatter(np.linspace(self.cross_start[0], self.cross_end[0], 10), np.linspace(self.cross_start[1], self.cross_end[1], 10), transform=ccrs.PlateCarree())
         # ax.plot(np.linspace(self.cross_start[0], self.cross_end[0], 10), np.linspace(self.cross_start[1], self.cross_end[1], 10), color='black')
 
-        areaC = {
-            'lat1':33.5,
-            'lat2':36,
-            'lon1':112.2,
-            'lon2':114.8,
+        areaA = {
+            'lat1':33.6,
+            'lat2':34.0,
+            'lon1':111.8,
+            'lon2':112.2,
         }        
-        # self.add_patch(areaC, ax)
+        areaB = {
+            'lat1':33.4,
+            'lat2':33.8,
+            'lon1':112.4,
+            'lon2':112.8,
+        }        
+        self.add_patch(areaA, ax)
+        self.add_patch(areaB, ax)
         # ax.text(114.4, 33.7, 'D', transform=ccrs.PlateCarree())
         return crx
         
@@ -382,40 +392,43 @@ def draw_model(tl):
     # for model in ['gwd3','gwd1', 'gwd0']:
     # model_list = ['SS2']
     # model_list = ['CTRL','FD','GWD3','SS']
-    model_list = ['GWD3']
-    for model in model_list:
-        dr = get_dr()  # 画图的对象
-        gd = GetData()  # 数据的对象
-        # da = gd.onemodel(model)
-        # da = gd.onemodel_newall(model)
-        # da
-        # ds = ds_model.sel(time=slice('2021-07-20 01', '2021-07-21 00'))
-        ds = ds_model.sel(time=tl)
-        da = ds[model].sum(dim='time')
-        cf = dr.draw_single(da)    
+    # model_list = ['GWD3']
+    # for model in model_list:
+    dr = get_dr()  # 画图的对象
+    gd = GetData()  # 数据的对象
+    # da = gd.onemodel(model)
+    # da = gd.onemodel_newall(model)
+    # da
+    # ds = ds_model.sel(time=slice('2021-07-20 01', '2021-07-21 00'))
+    ds = ds_model.sel(time=tl)
+    da1 = ds['CTRL'].sum(dim='time')
+    da2 = ds['GWD3'].sum(dim='time')
+    da = da2 - da1
+    cf = dr.draw_single(da)    
 
 
-        cb = dr.fig.colorbar(
-            cf,
-            # cax=ax6,
-            orientation='horizontal',
-            ticks=dr.colorticks,
-            fraction = 0.06,  # 色标大小,相对于原图的大小
-            pad=0.1,  #  色标和子图间距离
-            )
-        cb.ax.tick_params(labelsize=10)  # 设置色标标注的大小
-        labels = list(map(lambda x: str(x) if x<1 else str(int(x)), dr.colorticks))  # 将colorbar的标签变为字符串
-        cb.set_ticklabels(labels)
-        dr.ax.set_title(model, fontsize=10,loc='left')
-        t1 = str(ds.time.dt.strftime('%d/%H')[0].values)
-        t2 = str(ds.time.dt.strftime('%d/%H')[-1].values)
-        tt = t1+'-'+t2
-        tfig = str(ds.time.dt.strftime('%d%H')[-1].values)
-        dr.ax.set_title(tt, fontsize=10,loc='center')
-        
-        fig_name = model+tfig+'aa'
-        fig_path = '/mnt/zfm_18T/fengxiang/HeNan/gravity_wave/figure/picture_rain/rain_new/'
-        dr.fig.savefig(fig_path+fig_name)
+    cb = dr.fig.colorbar(
+        cf,
+        # cax=ax6,
+        orientation='horizontal',
+        ticks=dr.colorticks,
+        fraction = 0.06,  # 色标大小,相对于原图的大小
+        pad=0.1,  #  色标和子图间距离
+        )
+    cb.ax.tick_params(labelsize=10)  # 设置色标标注的大小
+    labels = list(map(lambda x: str(x) if x<1 else str(int(x)), dr.colorticks))  # 将colorbar的标签变为字符串
+    cb.set_ticklabels(labels)
+    model = 'minus'
+    dr.ax.set_title(model, fontsize=10,loc='left')
+    t1 = str(ds.time.dt.strftime('%d/%H')[0].values)
+    t2 = str(ds.time.dt.strftime('%d/%H')[-1].values)
+    tt = t1+'-'+t2
+    tfig = str(ds.time.dt.strftime('%d%H')[-1].values)
+    dr.ax.set_title(tt, fontsize=10,loc='center')
+    
+    fig_name = model+tfig+'minus'
+    fig_path = '/mnt/zfm_18T/fengxiang/HeNan/gravity_wave/figure/picture_rain/rain_new/'
+    dr.fig.savefig(fig_path+fig_name)
 
 if __name__ == '__main__':
     pass
