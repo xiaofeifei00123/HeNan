@@ -3,7 +3,7 @@ import numpy as np
 import xarray as xr
 import pandas as pd
 import matplotlib.pyplot as plt
-
+from wrf import smooth2d
 
 class Draw():
     """画单张的图
@@ -35,10 +35,14 @@ class Draw():
         绘制风矢图
         '''
 
-        u = u[::24,::6]
-        v = v[::24,::6]
-        x = x[::6]
-        y = y[::24]
+        # u = u[::24,::6]
+        # v = v[::24,::6]
+        # x = x[::6]
+        # y = y[::24]
+        u = u[::400,::8]
+        v = v[::400,::8]
+        x = x[::8]
+        y = y[::400]
         Q = self.ax.quiver(x, y, u.values,v.values,units='inches',scale=scale,pivot='middle')  # 绘制风矢
         qk = self.ax.quiverkey(Q, X=0.67, Y=0.05, U=10, label=r'$(v, 10 m/s)$', labelpos='E',coordinates='figure',  fontproperties={'size':10})   # 设置参考风矢
 
@@ -51,7 +55,10 @@ class Draw():
         # colorlevel=[-80, -30, -20, -10, -5, -1, 1, 5, 10, 20, 30, 80]#雨量等级
         # colorlevel=[-120, -50, -30, -10, -5, -1, 1, 5, 10, 30, 50, 120]#雨量等级
         # colorlevel=[-120, -50, -30, -10,  -1, 1, 10, 30, 50, 120]#雨量等级
-        colorlevel=[-120, -5, -3, -1,  -0.1, 0.1, 1, 3, 5, 120]#雨量等级
+        # colorlevel=[-120, -5, -3, -1,  -0.1, 0.1, 1, 3, 5, 120]#雨量等级
+        # colorlevel=[-120, -4, -2, -1,  -0.2, 0.2, 1, 2, 4, 120]#散度等级
+        # colorlevel=[-120, -3, -2, -1,  -0.5, 0.5, 1, 2, 3, 120]#散度等级
+        colorlevel=[-120,  -2,-1, -0.5,  -0.1, 0.1, 0.5,1, 2, 120]#散度等级
         # colorlevel=[-120, -10,-5, -3, -1, 1, 3, 5, 10, 120]#雨量等级
         # colorticks=[-30, -20, -10, -5, -1, 1, 5, 10, 20, 30]#雨量等级
         colorticks = colorlevel[1:-1]
@@ -70,26 +77,26 @@ class Draw():
 
         # self.ax.invert_yaxis()
 
-    def set_ticks(self,x,y, ):
-        """绘制图片的标签之类的
-        """
-        pass
-        ## 标题之类的
-        # self.ax.set_title('south', fontsize=10, loc='left')
-        self.ax.set_xlabel("Time (Day/Hour)", fontsize=10)
-        self.ax.set_ylabel("Hieght (km)", fontsize=10)
+    # def set_ticks(self,x,y, ):
+    #     """绘制图片的标签之类的
+    #     """
+    #     pass
+    #     ## 标题之类的
+    #     # self.ax.set_title('south', fontsize=10, loc='left')
+    #     self.ax.set_xlabel("Time (Day/Hour)", fontsize=10)
+    #     self.ax.set_ylabel("Hieght (km)", fontsize=10)
 
-        ## 坐标标签
-        x_ticks = x.values
-        x_labels = x.time.dt.strftime('%d/%H')
-        self.ax.set_xticks(x_ticks[::24])
-        self.ax.set_xticklabels(x_labels[::24].values, rotation=0, fontsize=10)
-        self.ax.xaxis.set_minor_locator(plt.MultipleLocator(0.2))
-        self.ax.set_yticks(np.arange(0, 10000.1, 1000).astype('int'))
-        self.ax.set_yticklabels(np.arange(0, 10.1, 1), rotation=0, fontsize=10)
-        self.ax.tick_params(axis='both', labelsize=10, direction='out')
+    #     ## 坐标标签
+    #     x_ticks = x.values
+    #     x_labels = x.time.dt.strftime('%d/%H')
+    #     self.ax.set_xticks(x_ticks[::24])
+    #     self.ax.set_xticklabels(x_labels[::24].values, rotation=0, fontsize=10)
+    #     self.ax.xaxis.set_minor_locator(plt.MultipleLocator(0.2))
+    #     self.ax.set_yticks(np.arange(0, 10000.1, 1000).astype('int'))
+    #     self.ax.set_yticklabels(np.arange(0, 10.1, 1), rotation=0, fontsize=10)
+    #     self.ax.tick_params(axis='both', labelsize=10, direction='out')
 
-        ## 图例绘制
+    #     ## 图例绘制
 
 
 
@@ -117,11 +124,25 @@ class Draw():
         self.ax.set_xlabel("Time (Day/Hour)", fontsize=22)
         self.ax.set_ylabel("Pressure (hPa)", fontsize=22)
         print(x.shape, y.shape, w.shape)
-        self.draw_contourf(x,y,div)
-        self.draw_contour(x,y, thetae)
-        self.ax.set_ylim(0, 10000)
-        # self.draw_quiver(x,y,u,v)
-        self.set_ticks(x,y)
+        # self.draw_contourf(x,y,div)
+        self.draw_contourf(x,y,w*10)
+        # self.draw_contour(x,y, thetae)
+        # self.ax.set_ylim(0, 20000)
+        self.ax.set_ylim(0, 20000)
+        self.ax.set_yticks(np.arange(0, 20000+1, 2000))
+        y_labels = np.arange(0, 20+1, 2).astype(int)
+        self.ax.set_yticklabels(y_labels)
+        self.draw_quiver(x,y,u,v)
+        self.ax.set_xlabel("Time (Day/Hour)", fontsize=10)
+        self.ax.set_ylabel("Hieght (km)", fontsize=10)
+        # self.set_ticks(x,y)
+        x_ticks = x.values
+        x_labels = x.time.dt.strftime('%d/%H')
+        self.ax.set_xticks(x_ticks[::24])
+        self.ax.set_xticklabels(x_labels[::24].values, rotation=0, fontsize=10)
+        self.ax.xaxis.set_minor_locator(plt.MultipleLocator(0.25))
+        self.ax.tick_params(axis='both', labelsize=10, direction='out')
+
 
 if __name__ == '__main__':
 

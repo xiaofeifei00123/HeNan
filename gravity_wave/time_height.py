@@ -55,19 +55,33 @@ def save_data_one(path_wrfout='/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/newall/
         'lon1':113.2,
         'lon2':114.2,
         }        
+    ### 背风坡
+    areaH = {
+        'lat1':33.6,
+        'lat2':34.0,
+        'lon1':111.8,
+        'lon2':112.2,
+    }        
+    ### 迎风坡
+    areaI = {
+        'lat1':33.4,
+        'lat2':33.8,
+        'lon1':112.4,
+        'lon2':112.8,
+    }        
 
     # area = areaA
     # area_list = [areaA, areaB,areaC] 
     # area_list = [areaD, areaE]
     # area_list = [areaB,areaA]
-    area_list = [areaG]
+    area_list = [areaH, areaI]
     # arname_list = ['A']
 
     # arlist = ['A', 'B', 'C']
     # arlist = ['D', 'E']
     # arlist = ['D', 'C']
     # arlist = ['B', 'A']
-    arlist = ['G']
+    arlist = ['H', 'I']
 
     i = 0
     for area in area_list:
@@ -112,7 +126,7 @@ def draw_all():
     # area_list = ['south', 'middle', 'north']
     # area_list = ['A', 'B', 'C']
     # area_list = ['B','D', 'E']
-    area_list = ['G']
+    area_list = ['H','I']
     for area in area_list:
         for model in model_list:
             fig = plt.figure(figsize=(16*cm, 6*cm), dpi=300)
@@ -127,6 +141,6 @@ def draw_all():
             ax.set_title(model, loc='left')
             ax.set_title(area, loc='right')
             fig.savefig(fig_name)
-# save_data_all()
+save_data_all()
 draw_all()
 # %%
