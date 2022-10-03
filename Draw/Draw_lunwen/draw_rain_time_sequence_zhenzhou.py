@@ -47,14 +47,21 @@ def draw_bar(dazz, damax):
     # da = da.sel(time=slice('2021-07-19 12', '2021-07-21 12'))
     da = dazz
     cm = 1/2.54
-    fig = plt.figure(figsize=(9*cm, 8*cm), dpi=600)
-    ax = fig.add_axes([0.16,0.25,0.78, 0.6])
+    fig = plt.figure(figsize=(8*cm, 6*cm), dpi=600)
+    # ax = fig.add_axes([0.16,0.25,0.78, 0.6])
+    ax = fig.add_axes([0.16,0.2,0.78, 0.7])
     # ax.bar(da.time, da)
     # import datetime
-    tt = da.time.dt.strftime('%d/%H')
+    
+    # tt = da.time.dt.strftime('%d/%H')
+
+    t1 = da.time+pd.Timedelta('8H')
+    tt = t1.dt.strftime('%d/%H')
+
+
     x_label = tt
     ax.bar(tt, da, label='郑州站降水')
-    ax.plot(tt, damax, color='red',lw=1.5,  label='最大站点降水')
+    # ax.plot(tt, damax, color='red',lw=1.5,  label='最大站点降水')
     # ax.hlines(y=30, xmin=tt[0], xmax=tt[-1])
     ax.axhline(y=50, color='black')
     ax.set_xlim(tt[0], tt[-1])
@@ -63,11 +70,11 @@ def draw_bar(dazz, damax):
     ax.set_xticks(x_label[::6],)  # 这个是选择哪几个坐标画上来的了,都有只是显不显示
     ax.set_yticks(np.arange(0, 220+1, 20))
 
-    ax.xaxis.set_tick_params(labelsize=10, rotation=10)
+    ax.xaxis.set_tick_params(labelsize=10, rotation=0)
     ax.yaxis.set_tick_params(labelsize=10)
     ax.tick_params(which='major',length=4,width=1.0) # 控制标签大小 
     # ax.tick_params(which='minor',length=4,width=0.5)  #,colors='b')
-    # ax.xaxis.set_minor_locator(plt.MultipleLocator(6))
+    ax.xaxis.set_minor_locator(plt.MultipleLocator(1))
     # ax.yaxis.set_minor_locator(plt.MultipleLocator(10))
     # ax.set_title('逐小时降水', fontsize=32)
     ax.set_xlabel('Date/Hour (UTC)', fontsize=10)
