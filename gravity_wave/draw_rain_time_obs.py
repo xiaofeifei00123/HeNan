@@ -10,7 +10,6 @@ Version          :1.0
 '''
 
 # %%
-from turtle import width
 import xarray as xr
 import numpy as np
 import pandas as pd

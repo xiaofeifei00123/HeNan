@@ -35,7 +35,7 @@ import cmaps
 from multiprocessing import Pool
 from baobao.map import Map
 from draw_10m_wind import GetData, DrawWind
-from draw_rain_distribution_24h import Rain
+from gravity_wave.draw_rain_distribution import Rain
 # %%
 # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/new_modify/GWD3/wrfout_d03_2021-07-19_12:00:00'
 # # nc.Dataset(flnm)

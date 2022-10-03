@@ -1,6 +1,6 @@
 # %%
 from geopy.distance import distance  # 根据经纬度计算两点距离
-from draw_rain_distribution_24h import Draw, Rain
+from gravity_wave.draw_rain_distribution import Draw, Rain
 import matplotlib.pyplot as plt
 
 # %%

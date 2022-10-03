@@ -21,7 +21,7 @@ import cmaps
 
 from baobao.map import Map
 
-from draw_rain_distribution_24h import Rain
+from gravity_wave.draw_rain_distribution import Rain
 import numpy as np
 from draw_upar_850_d03_div import draw_quiver, get_data
 import pandas as pd

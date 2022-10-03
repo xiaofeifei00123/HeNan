@@ -23,7 +23,7 @@ import numpy as np
 import cmaps
 from baobao.map import Map
 
-from draw_rain_distribution_24h import Draw
+from gravity_wave.draw_rain_distribution import Draw
 # %%
 
 def get_hgt_met(flnm):

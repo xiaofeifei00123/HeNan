@@ -43,6 +43,7 @@ import wrf
 from wrf import smooth2d
 import netCDF4 as nc
 from matplotlib import rcParams
+from common import Common
 rcParams['font.family'] = 'Times New Roman'
 
 # %%
@@ -251,9 +252,10 @@ class Draw(Rain):
         ax.text(areaB['lon1']+0.3, areaB['lat1']+0.3, 'B')
         self.add_patch(areaA, ax)
         self.add_patch(areaB, ax)
-        from draw_rain_distribution_24h import Rain
-        dr = Rain()
-        ax.plot(np.linspace(dr.cross_start[0], dr.cross_end[0], 10), np.linspace(dr.cross_start[1], dr.cross_end[1], 10), color='black')
+        # from gravity_wave.draw_rain_distribution import Rain
+        # dr = Rain()
+        com = Common()
+        ax.plot(np.linspace(com.cross_start[0], com.cross_end[0], 10), np.linspace(com.cross_start[1], com.cross_end[1], 10), color='black')
         # ax.text(114.4, 33.7, 'D', transform=ccrs.PlateCarree())
         return crx
         

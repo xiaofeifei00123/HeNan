@@ -26,7 +26,7 @@ import cartopy.crs as crs
 from cartopy.feature import NaturalEarthFeature
 from geopy.distance import distance  # 根据经纬度计算两点距离
 
-from draw_rain_distribution_24h import Rain
+from gravity_wave.draw_rain_distribution import Rain
 # import cmaps
 plt.rcParams['axes.unicode_minus']=False 
 # from ..Data.read_vertical_cross import CrossData

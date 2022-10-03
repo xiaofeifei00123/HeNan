@@ -50,7 +50,7 @@ from baobao.caculate import caculate_q_rh_thetav
 from baobao.caculate import caculate_vo_div, caculate_div
 from baobao.map import Map   # 一个类名
 from baobao.map import get_rgb
-from draw_rain_distribution_24h import Draw, Rain
+from gravity_wave.draw_rain_distribution import Draw, Rain
 
 
 

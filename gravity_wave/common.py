@@ -1,30 +1,40 @@
 class Common():
     def __init__(self, ):
-        pass
+
         self.areaA = {
-            'lat1':33.5,
-            'lat2':33.8,
-            'lon1':112.3,
-            'lon2':112.8,
-            }        
-
-        self.areaB = {
             'lat1':34.4,
-            'lat2':34.8,
-            'lon1':113,
-            'lon2':113.8,
-            }        
-
-        self.areaC = {
+            'lat2':34.9,
+            'lon1':113.0,
+            'lon2':113.7,
+        }        
+        self.areaB = {
             'lat1':35.3,
             'lat2':35.8,
-            'lon1':113.4,
+            'lon1':113.5,
             'lon2':114.2,
-            }        
-        self.areaD = {
-            'lat1':32,
-            'lat2':36.5,
-            'lon1':110.5,
-            'lon2':116,
-            }        
-        self.area_list = [self.areaA, self.areaB, self.areaC]
+        }        
+
+        self.station = {
+                'A': {
+                    'abbreviation':'A',
+                    'lat': 33.6,
+                    'lon': 112.1,
+                },
+                'B': {
+                    'abbreviation':'B',
+                    'lat': 34.5,
+                    'lon': 112.9,
+                },
+                'C': {
+                    'abbreviation':'C',
+                    'lat': 35.15,
+                    'lon': 113.5,
+                },
+                'D': {
+                    'abbreviation':'D',
+                    'lat': 35.75,
+                    'lon': 114.0,
+                },
+            }
+        self.cross_start = [111, 34.5]
+        self.cross_end = [114.5, 32.5]
