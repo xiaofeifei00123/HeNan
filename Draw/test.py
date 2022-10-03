@@ -10,18 +10,141 @@ Version          :1.0
 '''
 # %%
 
+    
+# %%
 import xarray as xr
-import cartopy.crs as ccrs
 import matplotlib.pyplot as plt
-from cnmaps import get_map, draw_map
-from baobao.interp import regrid_xesmf
-from baobao.interp import rain_station2grid
-import cv2 as cv
 import numpy as np
 import pandas as pd
 from draw_upar_850_d03_div import draw
+import metpy
+from metpy.units import units
+
+# %%
+def get_data():
+    def cal_ri(ds1):
+        pre = ds1.pressure*units.hPa
+        temp = ds1['temp']*units.degC
+        theta = metpy.calc.potential_temperature(pre, temp)
+        height = ds1['geopt']*units.m
+        u = ds1['u']
+        v = ds1['v']
+        u = u*units('m/s')
+        v = v*units('m/s')
+        ri = metpy.calc.gradient_richardson_number(height, theta, u, v, vertical_dim=0)
+        # bv = metpy.calc.brunt_vaisala_frequency(height, theta)
+        return ri
+
+        
+
+# %%
+flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/upar_zhenzhou.nc'
+ds = xr.open_dataset(flnm)
+ds1 = ds.sel(time='2021-07-20 00')
+ds1
+# %%
+from baobao.caculate import caculate_q_rh_thetaev
+ds2 = ds1.reset_coords()
+ds3 = caculate_q_rh_thetaev(ds1)
+# %%
+ds3['theta_v']
+
+
+# %%
+pre = ds1.pressure*units.hPa
+temp = ds1['temp']*units.degC
+theta = metpy.calc.potential_temperature(pre, temp)
+height = ds1['geopt']*units.m
+u = ds1['u']
+v = ds1['v']
+u = u*units('m/s')
+v = v*units('m/s')
+ri = metpy.calc.gradient_richardson_number(height, theta, u, v, vertical_dim=0)
+ri
+# %%
+import metpy.calc as ca
+duu = ca.gradient(u, deltas=height.values)
+duu
+duu[0].plot()
+# %%
+du = xr.DataArray((u[1:].values - u[0:-1].values), coords=u[0:-1].coords)
+dv = xr.DataArray((v[1:].values - v[0:-1].values), coords=u[0:-1].coords)
+dz = xr.DataArray((height[1:].values - height[0:-1].values), coords=u[0:-1].coords)
+# du = xr.DataArray((u[1:].values - u[0:-1].values), coords=u[0:-1].coords)
+# du
+# dz
+# (du/dz).plot()
+ws = ((du/dz)**2+(dv/dz)**2)
+# %%
+dth = xr.DataArray((theta[1:].values - theta[0:-1].values), coords=u[0:-1].coords)
+dth
+the = theta[0:-1]
+g = 9.86
+bn = g/the*(dth/dz)
+# %%
+bn.plot()
+# theta
+# height.values
+# %%
+bnn = ca.brunt_vaisala_frequency_squared(height, theta)
+bnn.plot()
+# u.values
+# duu = ca.gradient(u.values, coordinates=height.values)
+# %%
+(bnn/ws).plot(label='fri')
+(bnn*10**4).plot(label='bn')
+(ws*10**4).plot(label='ws')
+plt.ylim(-0.5, 1)
+plt.legend()
+
+
+# u.shape
+
 # %%
 
+    ri_list = []
+    for t in ds.time:
+        dss = ds.sel(time=t)
+        ri = cal_ri(dss)
+        ri_list.append(ri)
+    rii = xr.concat(ri_list, dim='time')
+    ri2 = rii.sel(time=slice('2021-07-19 00', '2021-07-20 20'))
+    return ri2
+
+# %%
+
+def draw(ri2):
+    cm = 1/2.54
+    fig = plt.figure(figsize=(8*cm, 8*cm), dpi=300)
+    ax = fig.add_axes([0.2, 0.2, 0.7, 0.7])
+    line_list = ['--', '--', '--', '-', '-', '-']
+    color_list = ['red', 'blue', 'green', 'red', 'blue', 'green']
+    i = 0
+    for t in ri2.time:
+        ri1 = ri2.sel(time=t)
+        x = ri1.values
+        y = ri1.pressure.values
+        label = (t+pd.Timedelta('8H')).dt.strftime('%d/%H').values
+        ax.plot(x,y, label=label, linestyle=line_list[i], color=color_list[i])
+        i += 1
+    ax.set_xlim(-0.5, 1)
+    # ax.set_xlim(-2, -0.5)
+    ax.invert_yaxis()
+    # ax.vlines(1)
+    ax.axvline(x=0.25, color='black')
+    ax.set_ylim(1000, 850)
+    ax.set_yticks(np.arange(1000, 849, -50))
+    ax.yaxis.set_minor_locator(plt.MultipleLocator(10))
+    ax.legend(edgecolor='white')
+    ax.set_ylabel('Pressure (hPa)')
+    ax.set_xlabel('Richardson number')
+
+# %%
+
+# h[0:-1]
+
+
+# %%
 
 def highPassFiltering(img,size):#传递参数为傅里叶变换后的频谱图和滤波尺寸
     h, w = img.shape[0:2]#获取图像属性

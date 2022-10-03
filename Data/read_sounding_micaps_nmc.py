@@ -94,6 +94,9 @@ class GetMicaps():
         df2 = df2.set_index('pressure')
         da = xr.DataArray(df2)
         da = da.assign_coords({'time':df.time[0]})
+        # da = da.assign_coords({'time':ddf.time.values[0]})
+        # da = da.assign_coords({'lon':ddf.lon.values[0]})
+        # da = da.assign_coords({'lat':ddf.lat.values[0]})
         da = da.assign_coords({'id':id})
         dda = da.dropna(dim='pressure', how='any').round(1)
 
@@ -137,6 +140,22 @@ class GetMicaps():
         da_return = xr.concat(da_time, pd.Index(ttt, name='time'))
         return da_return
 
+
+flnm =  '/mnt/zfm_18T/fengxiang/HeNan/Data/OBS/Micaps/high/TLOGP/20210711080000.000'
+df = read_micaps_5(flnm)
+df.time.values[0]
+# %%
+# df.time[0]
+id = 57083
+ddf = df.loc[df.ID==str(id)]
+ddf
+# %%
+ddf.time
+# # ddf.time.values[0]
+# gm = GetMicaps()
+# gm.read_1sta_1time(flnm)
+# %%
+
 def one_station(sta='57083'):
 
     path_micaps = '/mnt/zfm_18T/fengxiang/HeNan/Data/OBS/Micaps/high/TLOGP/'
@@ -147,6 +166,14 @@ def one_station(sta='57083'):
     da.to_netcdf(save_name)
     return da
 
+fpath = '/home/fengxiang/aa/2014_07_11-12/data/radar/read_radar/1_Z9396_ZhuMaDian/0/2014*'    
+fdir = os.popen('ls -d {}'.format(fpath))
+list(fdir)
+# %%
+    
+    
+
+
 def dual_station():
     pass
     # sta_list = ['zhengzhou', 'nanyang']   # 郑州和南阳
@@ -154,8 +181,11 @@ def dual_station():
         {'sta_num':'57083','sta_name':'zhengzhou','lon':113.66,'lat':34.71 },
         {'sta_num':'57178','sta_name':'nanyang','lon':112.4,'lat':33.1 }, 
         {'sta_num':'57067','sta_name':'lushi','lon':111.04,'lat':34.05 }, 
+        {'sta_num':'57447','sta_name':'EnShi','lon':113.66,'lat':34.71 },
+        {'sta_num':'57461','sta_name':'YiChang','lon':112.4,'lat':33.1 }, 
+        {'sta_num':'57494','sta_name':'WuHan','lon':111.04,'lat':34.05 }, 
     ]
-    sta_list = ['zhengzhou', 'nanyang', 'lushi']
+    sta_list = ['zhengzhou', 'nanyang', 'lushi', 'EnShi', 'YiChang', 'WuHan']
     # ds = xr.Dataset()
     ds_list = []
     for sta in sta_dic_list:

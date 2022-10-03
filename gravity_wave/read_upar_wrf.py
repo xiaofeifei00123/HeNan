@@ -34,7 +34,7 @@ import netCDF4 as nc
 import wrf
 from multiprocessing import Pool
 # from read_global import caculate_diagnostic, regrid_xesmf
-from baobao.caculate import caculate_q_rh_thetav
+from baobao.caculate import caculate_q_rh_thetav, caculate_vo_div_wrf
 from baobao.interp import regrid_xesmf
 # from baobao.coord_transform import xy_ll
 
@@ -115,13 +115,14 @@ class GetUpar():
         fl_list = os.popen('ls {}/wrfout/wrfout_d03*'.format(path))  # 打开一个管道
         fl_list = fl_list.read().split()
         ## 临时测试
-        # fl_list = fl_list[0:2]
+        fl_list = fl_list[0:5]
         dds = self.get_upar_multi(fl_list)
         print("开始计算诊断变量")
-        # cc = caculate_diagnostic(dds)
+        # dd = caculate_diagnostic(dds)
         cc = caculate_q_rh_thetav(dds)
         print("合并保存数据")
         ds_upar = xr.merge([dds, cc])
+        # ds_upar = xr.merge([ds_upar, dd])
         print(ds_upar)
         return ds_upar
 

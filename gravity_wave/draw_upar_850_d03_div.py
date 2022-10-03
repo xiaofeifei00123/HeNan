@@ -50,6 +50,7 @@ from baobao.caculate import caculate_q_rh_thetav
 from baobao.caculate import caculate_vo_div, caculate_div
 from baobao.map import Map   # 一个类名
 from baobao.map import get_rgb
+from draw_rain_distribution_24h import Draw, Rain
 
 
 
@@ -175,11 +176,28 @@ def draw_contourf(ax, da):
     # colorlevel= [-90,-2.5,-1.5,-0.6,-0.3,0, 0.3,0.6,1.5,2.5,90]# 散度的色标
     # colorlevel= [-90,-12,-9,-6,-3, 0, 3,6,9,12,90]  # 垂直速度的色标
     colordict=['#0000fb','#3232fd','#6464fd','white','white','#fbbcbc', '#fd4949', '#fd0000']#正负, 蓝-红
+    # fnrgb = '/mnt/zfm_18T/fengxiang/HeNan/gravity_wave/data/11colors_blue_red.rgb'
+    fnrgb = '/mnt/zfm_18T/fengxiang/HeNan/gravity_wave/data/7colors.rgb'
+    # fnrgb = ['#0000fb','#3232fd','#6464fd','white','#fbbcbc', '#fd4949', '#fd0000']#正负, 蓝-红
+    rgb = get_rgb(fnrgb)
+    colordict = rgb
+
+    colordict=['#0000fb','#3232fd','#6464fd','white','#fbbcbc', '#fd4949', '#fd0000']#正负, 蓝-红
+    # colorlevel= [-2000, -40,-30,-20,-10,-5, 5,10,20,30, 40, 2000]  # 垂直速度的色标
+    # colorlevel= [-2000, -120,-80,-50,-30,-10,10,30, 50, 80,120,2000]  # 垂直速度的色标
+    # colorlevel= [-3000, -70,-40,-5,5,40,70,3000]  # 垂直速度的色标
+    # colorlevel= [-3000, -50,-20,-5,5,20,50,3000]  # 垂直速度的色标
+    colorlevel= [-3000, -80,-40,-10,10,40,80,3000]  # 垂直速度的色标
+
+    # colordict=['white','#fbbcbc', '#fd4949', '#fd0000']
+    # colorlevel= [0,5,10,20,30]  # 垂直速度的色标
+
     # colorlevel= [-90,-20,-10,-3, 0, 3,10,20,90]  # 垂直速度的色标
     # colorlevel= [-90,-20,-10,-1, 0, 1,10,20,90]  # 垂直速度的色标
-    colorlevel= [-90,-20,-10,-5, 0, 5,10,20,90]  # 垂直速度的色标
+    # colorlevel= [-90,-20,-10,-5, 0, 5,10,20,90]  # 垂直速度的色标
     # colorlevel= [-90,-4,-3,-2,-1,0,1,2,3,4,90]# 水汽通量散度的色标
     # colorticks=colorlevel[1:-2]
+    da = smooth2d(field=da, passes=16)
     crx = ax.contourf(x,
                         y,
                         da.values,
@@ -246,7 +264,7 @@ def draw(qdif, qu,qv, dic):
         dic ([type]): [description]
     """
     cm = round(1/2.54, 2)
-    fig = plt.figure(figsize=(8*cm, 8*cm), dpi=300)
+    fig = plt.figure(figsize=(8*cm, 8*cm), dpi=600)
     
     ax = fig.add_axes([0.12,0.1,0.8,0.8], projection=ccrs.PlateCarree())
     mb = mapview.BaseMap()
@@ -276,7 +294,7 @@ def draw(qdif, qu,qv, dic):
     colorticks = colorlevel[1:-1]
     # ax.set_xlabel('vertical velocity $(w, 10^{-1}m/s)$', labelpad=0.01, fontsize=8)  # 和图片的距离
     ax.set_xlabel('散度 $10^{-5}s^{-1}$', labelpad=0.01, fontsize=8)  # 水汽通量散度
-    # ax.set_xlabel('垂直速度 $10^{-1}m \cdot s^{-1}$', labelpad=0.01, fontsize=8)  # 水汽通量散度
+    # ax.set_xlabel('垂直速度 $10^{-2}m \cdot s^{-1}$', labelpad=0.01, fontsize=8)  # 水汽通量散度
     cb = fig.colorbar(
         cs,
         orientation='horizontal',
@@ -285,11 +303,21 @@ def draw(qdif, qu,qv, dic):
         ticks=colorticks,
     )
     cb.ax.tick_params(labelsize=8)  # 设置色标标注的大小
-    draw_station(ax)
+    # draw_station(ax)
 
     draw_quiver(qu,qv,ax)
+
+    
+    ## 画直线
+    # dr = Draw(fig, ax)
+    dr = Rain()
+    ax.plot(np.linspace(dr.cross_start[0], dr.cross_end[0], 10), np.linspace(dr.cross_start[1], dr.cross_end[1], 10), color='black')
+    # ax.text(dr.cross_start[0], dr.cross_start[1], 'D', transform=ccrs.PlateCarree())
+    mp.add_station(ax, dr.station, justice=True, ssize=10, marker='o')
+    
+
     # fig_path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_upar/850/alltime/'
-    fig_path = '/mnt/zfm_18T/fengxiang/HeNan/gravity_wave/figure/picture_upar/'
+    fig_path = '/mnt/zfm_18T/fengxiang/HeNan/gravity_wave/figure/picture_upar/div/'
     fig_name = str(fig_path)+str(dic['model'])+'_'+str(dic['level'])+'_'+(dic['time']).strftime('%Y%m%d%H')+'div'
     # fig_name = str(fig_path)+str(dic['model'])+'_'+str(dic['level'])+'_'+(dic['time']).strftime('%Y%m%d%H')+'div'
     # fig.savefig(fig_name, bbox_inches = 'tight')
@@ -337,53 +365,54 @@ def draw_model_once():
 
     # for t in pd.date_range('2021-07-17 00', '2021-07-23 00', freq='12H'):
     for t in pd.date_range('2021-07-20 00', '2021-07-20 00', freq='12H'):
-        dic_model = {
-            'model':'GWD3',
-            'level':850,
-            # 'time':pd.Timestamp('2021-07-20 00'),
-            'time':t,
-            'flnm':path_out,
-        }    
-        print("画 [%s] 的图"%(dic_model['model']))
-        ds = get_data(dic_model)
-        print(ds)
-        # draw(ds['qf_div']*10, ds['u'], ds['v'], dic_model)
-        daa = ds['div']
-        # daa = ds['wa']
-        
+        # for lev in [925,]:
+        for lev in [500,]:
+            dic_model = {
+                'model':'GWD3',
+                # 'level':850,
+                'level':lev,
+                'time':t,
+                'flnm':path_out,
+            }    
+            print("画 [%s] 的图"%(dic_model['model']))
+            ds = get_data(dic_model)
+            # print(ds)
+            daa = ds['div']
+            da = daa*10**5
 
-        # da = filter_lambda_low(daa.values*10**5, dx=3, lam=100)
-        da = daa*10**5
+            # da = np.sqrt(ds['u']**2+ds['v']**2)
 
-        da1 = xr.DataArray(da,
-                           coords=daa.coords,
-                           dims=daa.dims,
-                           )
+            # daa = ds['wa']
+            # da = daa*10**2
 
-        
+            da1 = xr.DataArray(da,
+                            coords=daa.coords,
+                            dims=daa.dims,
+                            )
 
-        # draw(ds['div']*10**5, ds['u'], ds['v'], dic_model)
-        draw(da1, ds['u'], ds['v'], dic_model)
+            # print(smooth2d(da1, passes=2))
+            draw(da1, ds['u'], ds['v'], dic_model)
 
-        # draw(ds['div']*10**3*10, ds['u'], ds['v'], dic_model)
-        # draw(ds['wa']*10, ds['u'], ds['v'], dic_model)
     
     
 def draw_model_dual():
     """画所有模式的数据
     """
-    path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/'
-    model_list = ['gwd0', 'gwd3']
+    # path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/'
+    path_main = '/home/fengxiang/HeNan/Data/GWD/d03/newall/'
+    model_list = ['GWD3', 'CTRL', 'FD', 'SS']
     fl_list = []
     for model in model_list:
         fl = path_main+model+'/upar.nc'
         fl_list.append(fl)
-    t_list = pd.DatetimeIndex(['2021-07-20 06','2021-07-20 06'])
+    # t_list = pd.DatetimeIndex(['2021-07-20 06','2021-07-20 06'])
     # t_list = pd.date_range('2021-07-20 00', '2021-07-21 00', freq='6H')
+    t_list = pd.date_range('2021-07-17 00', '2021-07-23 00', freq='12H')
     # level_list = [500, 700, 850, 900, 925]
     # level_list = [500, 700, 850, 900, 925]
     # level_list = [500, 850,]
-    level_list = [700,]
+    # level_list = [700,]
+    level_list = [850,]
 
     i = 0
     for fl in fl_list:
@@ -400,19 +429,27 @@ def draw_model_dual():
                     'time':t,
                     'flnm':fl,
                 }    
-                dic_model2 = {
-                    'model':model,
-                    'level':900,
-                    'time':t,
-                    'flnm':fl,
-                }    
+                # dic_model2 = {
+                #     'model':model,
+                #     'level':900,
+                #     'time':t,
+                #     'flnm':fl,
+                # }    
                 print("画北京时[%s],[%s]hPa高度, [%s]分辨率的图"%(t,level, model))
                 # draw_all(dic_model)
                 ds = get_data(dic_model)
-                ds2 = get_data(dic_model2)
-                # draw(ds['qf_div']*10, ds['u'], ds['v'], dic_model)
-                # draw(ds['div']*10**3, ds['u'], ds['v'], dic_model)
-                draw(ds['wa']*10, ds2['u'], ds2['v'], dic_model)
+
+                
+                # print(ds)
+                daa = ds['div']
+                da = daa*10**5
+
+                da1 = xr.DataArray(da,
+                                coords=daa.coords,
+                                dims=daa.dims,
+                                )
+
+                draw(da1, ds['u'], ds['v'], dic_model)
         i += 1
 
 
@@ -431,7 +468,7 @@ def draw_minus():
     # t_list = pd.date_range('2021-07-20 01', '2021-07-21 00', freq='1H')
     t_list = pd.DatetimeIndex(['2021-07-20 00'])
     # level_list = [700, 850, 900]
-    level_list = [700]
+    level_list = [925]
 
     # i = 0
     # for fl in fl_list:

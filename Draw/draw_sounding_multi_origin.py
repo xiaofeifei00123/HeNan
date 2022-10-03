@@ -149,8 +149,11 @@ def main(t):
     ds = xr.open_dataset(flnm)
     ## 对某一个时次来看
     # t = pd.Timestamp('2021-07-20 06')
-    fig = plt.figure(figsize=(10,10), dpi=300)
-    skew = SkewT(fig, rotation=45, rect=[0.05, 0.08, 0.94, 0.88], aspect=70)
+    # fig = plt.figure(figsize=(10,10), dpi=300)
+    # skew = SkewT(fig, rotation=45, rect=[0.05, 0.08, 0.94, 0.88], aspect=70)
+    cm = 1/2.54
+    fig = plt.figure(figsize=(8*cm,7*cm), dpi=300)
+    skew = SkewT(fig, rotation=30, rect=[0.2, 0.15, 0.70, 0.75])
     # skew = SkewT(fig, rotation=45, rect=[0.1, 0.1, 0.85, 0.6],aspect=1)
     # skew.ax.set_extent([10,30, 200, 1000])
     ## 筛选时间，将不合要求的时间删除
@@ -169,18 +172,18 @@ def main(t):
         # print(dic)
         draw_skewt(skew, dic, pic_dic)
     ## 设置范围
-    skew.ax.legend(edgecolor='white', fontsize=20,loc='lower left')
+    skew.ax.legend(edgecolor='white', fontsize=10,loc='lower left')
     # skew.ax.legend(edgecolor='white')
     # Add the relevant special lines, 画感绝热和湿绝热线
     skew.plot_dry_adiabats(alpha=0.1, colors='black')
     skew.plot_moist_adiabats(alpha=0.1, colors='black')
     skew.plot_mixing_lines(alpha=0.1)
 
-    skew.ax.tick_params(axis='both', labelsize=20, direction='out')
+    skew.ax.tick_params(axis='both', labelsize=10, direction='out')
     skew.ax.set_title(pic_dic['time'].strftime('%Y-%m-%d %H'), loc='right', size=20)
     # skew.ax.set_title(pic_dic['model'], loc='left', size=20)
-    skew.ax.set_ylabel('Pressure (hPa)', size=24)
-    skew.ax.set_xlabel('Temperature (℃)', size=24)
+    skew.ax.set_ylabel('Pressure (hPa)', size=10)
+    skew.ax.set_xlabel('Temperature (℃)', size=10)
 
     path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_sounding/'
     fig_name = 'diff1'+'_'+pic_dic['time'].strftime('%Y%m%d_%H')

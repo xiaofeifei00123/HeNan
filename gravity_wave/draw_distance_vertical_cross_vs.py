@@ -3,7 +3,7 @@
 '''
 Description:
 绘制剖面图
-散度场
+垂直速度
 风场
 相当位温
 -----------------------------------------
@@ -25,6 +25,8 @@ from matplotlib.cm import get_cmap
 import cartopy.crs as crs
 from cartopy.feature import NaturalEarthFeature
 from geopy.distance import distance  # 根据经纬度计算两点距离
+
+from draw_rain_distribution_24h import Rain
 # import cmaps
 plt.rcParams['axes.unicode_minus']=False 
 # from ..Data.read_vertical_cross import CrossData
@@ -36,13 +38,22 @@ def draw_quiver(ax, u,v):
     '''
     绘制风矢图
     '''
-    # x = u.cross_line_idx.values[::12]
-    x = u.cross_line_idx.values[::10]
-    # x = u.cross_line_idx.values
+    # x = u.cross_line_idx.values[::10]
     # u = u[::3,::10]
     # v = v[::3,::10]
-    u = u[::6,::10]
-    v = v[::6,::10]
+
+    
+    # x = u.cross_line_idx.values[::5]
+    da = latlon2distance(u)
+    x = da.distance.values[::10]
+    u = u[::8,::10]
+    v = v[::8,::10]
+    # u = u[::1,::5]
+    # v = v[::1,::5]
+    
+    
+    
+
     # u = u[::4,::4]
     # v = v[::4,::4]
     # u = u[::9,::30]
@@ -53,6 +64,16 @@ def draw_quiver(ax, u,v):
     # Q = ax.quiver(x, y, u.values,v.values,units='inches',scale=10,pivot='middle', zorder=2)  # 绘制风矢
     Q = ax.quiver(x, y, u.values,v.values,units='inches',scale=50,pivot='tip',minlength=0.001, width=0.01,zorder=2)  # 绘制风矢
     # Q = ax.quiver(x, y, u.values,v.values,units='width',scale=20,pivot='tip', width=0.03,zorder=2)  # 绘制风矢
+    qk = ax.quiverkey(Q,
+                      X=0.05, Y=0.15, 
+                      U=10 ,
+                      label=r'$10 m/s$', 
+                      labelpos='S',  # label在参考箭头的哪个方向
+                      labelsep=0.05, # 箭头和标签之间的距离
+                      coordinates='figure',  
+                      fontproperties={'size':8}
+                      )   # 设置参考风矢
+
 
 def draw_contour(ax, da):
     pass
@@ -81,16 +102,31 @@ def draw_contour2(ax,da):
 def draw_contourf(fig, ax_cross, da, ter_line):
 
 
-    xs = np.arange(0, da.shape[-1], 1)
-    ys = da.coords['vertical'].values
-    colordict=['#191970','#005ffb','#5c9aff','#98ff98','#ddfddd','#FFFFFF','#fffde1','#ffff9e', '#ffc874','#ffa927', '#ff0000']#颜色列表
+    colorlevel=[-168, -10, -4, -2, -1, -0.5, 0.5, 1, 2, 4, 10, 168]#垂直速度
     # colorlevel=[-80, -30, -20, -10, -5, -1, 1, 5, 10, 20, 30, 80]#雨量等级
     # colorlevel=[-280, -60, -30, -10, -5, -1, 1, 5, 10, 30, 60, 280]#雨量等级
     # colorlevel=[-680, -100, -40, -15, -5, -1, 1, 5, 15, 40, 100, 680]#雨量等级
-    colorlevel=[-168, -10, -4, -2, -1, -0.5, 0.5, 1, 2, 4, 10, 168]#垂直速度
+    ### 散度
+    colordict=['#191970','#005ffb','#5c9aff','#98ff98','#ddfddd','#FFFFFF','#fffde1','#ffff9e', '#ffc874','#ffa927', '#ff0000']#颜色列表
+    # colorlevel=[-168, -10, -4, -2, -1, -0.5, 0.5, 1, 2, 4, 10, 168]#垂直速度
+    # colorlevel=[-80, -30, -20, -10, -5, -1, 1, 5, 10, 20, 30, 80]#雨量等级
+    # colorlevel=[0., 0.1, 0.5, 1, 2,3, 4,6, 8,10,20,  168]#垂直速度
+
+    ### 垂直速度
+    # colordict= ['white', '#6CA6CD', '#436EEE', '#66CD00', '#7FFF00','#cdfd02', 'yellow','#fdaa48','#EE7600','red']
+    # colorlevel=[0, 0.1, 0.5, 1, 2, 4, 8, 10,15, 20, 168]#垂直速度
+
     # colorlevel=[-1680, -100, -40, -20, -10, -1, 1, 10, 20, 40, 100, 1680]#雨量等级
     # colorticks=[-30, -20, -10, -5, -1, 1, 5, 10, 20, 30]#雨量等级
     colorticks = colorlevel[1:-1]
+
+    
+    da1 = latlon2distance(da)    
+    xs = da1.distance.values
+    # xs = np.arange(0, da.shape[-1], 1)
+    ys = da.coords['vertical'].values
+    
+
     dbz_contours = ax_cross.contourf(xs,
                                     ys,
                                     da.values,
@@ -99,8 +135,12 @@ def draw_contourf(fig, ax_cross, da, ter_line):
     )
     ax_cross.set_ylim(0, 20000)
     ax_cross.set_yticks(np.arange(0, 20000+1, 2000))
-    y_labels = np.arange(0, 20+0.1, 2).astype(int)
+    y_labels = np.arange(0, 20+1, 2).astype(int)
     ax_cross.set_yticklabels(y_labels)
+
+    # ax_cross.set_ylim(0, 2000)
+    # ax_cross.set_yticks(np.arange(0, 2000+1, 200))
+
     ax_cross.tick_params(axis='both', labelsize=10, direction='out')
     cb_dbz = fig.colorbar(dbz_contours, ax=ax_cross, ticks=colorticks, orientation='vertical', fraction=0.06, pad=0.02)
 
@@ -110,7 +150,8 @@ def draw_contourf(fig, ax_cross, da, ter_line):
     
 
     cb_dbz.ax.tick_params(labelsize=10)
-    print(xs)
+    ax_cross.xaxis.set_minor_locator(plt.MultipleLocator(10))
+    # print(xs)
 
     ## Set the x-ticks to use latitude and longitude labels
     # coord_pairs = da.coords["xy_loc"].values
@@ -139,38 +180,34 @@ def draw_contourf(fig, ax_cross, da, ter_line):
     x_ticks = np.arange(coord_pairs.shape[0])
     da1 = latlon2distance(da)    
     x_labels = da1.distance.values.astype(int)
-    ax_cross.set_xticks(x_ticks[::12])
-    ax_cross.set_xticklabels(x_labels[::12] ,fontsize=10)
+
+    # ax_cross.set_xticks(x_ticks[::12])
+    # ax_cross.set_xticklabels(x_labels[::12] ,fontsize=10)
 
     # ax_cross.set_ylim(0,10000)
 
     def add_anotate(lat2, lon2, text):
+        """添加标注
+
+        Args:
+            lat2 (_type_): _description_
+            lon2 (_type_): _description_
+            text (_type_): _description_
+        """
         lat1, lon1 = coord_pairs[0].split(',')
         lat3, lon3 = coord_pairs[-1].split(',')
-        print(lat1, lon1)
-        print(lat3, lon3)
+        # print(lat1, lon1)
+        # print(lat3, lon3)
         # lat2, lon2 = 33.6, 112.6
         loc1 = (lat1, lon1)
         loc2 = (lat2, lon2)
-        a = distance(loc1, loc2).km
-        # print(type(a))
-        idx = np.argmin(np.abs(a-x_labels))
-        # print(idx)
-        # print(x_labels[idx])
-        # print(coord_pairs[idx])
-        ax_cross.annotate(text, xy=(idx, 0), xytext=(idx, -2000),
-                arrowprops=dict(facecolor='black',  headwidth=2, headlength=16),
+        a = distance(loc1, loc2).km  # 距离
+        ax_cross.annotate(text, xy=(a, 0), xytext=(a, -3800),
+                arrowprops=dict(facecolor='black',  headwidth=8, headlength=8),
                 )
-    loc1 = (33.7, 112.55)
-    loc2 = (34.7, 113.35)
-    loc3 = (35.5, 114.0)
-    text_list = ['A', 'B', 'C']
-    i = 0
-    for loc in [loc1, loc2, loc3]:
-        lat = loc[0]
-        lon = loc[1]
-        add_anotate(lat, lon,text_list[i])
-        i+=1
+    dr = Rain()
+    for loc in dr.station.values():
+        add_anotate(loc['lat'], loc['lon'],loc['abbreviation'])
 
 
 
@@ -286,17 +323,23 @@ def draw(t='2021-07-20 08', flpath='/mnt/zfm_18T/fengxiang/HeNan/Data/1900_90m/'
     v = ds['va_cross']
     theta_e = ds['theta_e_cross']
     div = ds['div_cross']
+    drag = ds['drag_cross']
+    ws = ds['ws_cross']
 
     w = drop_na(w)
     u = drop_na(u)
     v = drop_na(v)
     theta_e = drop_na(theta_e)
     div = drop_na(div)
+    drag = drop_na(drag)
+    ws = drop_na(ws)
 
     cm = round(1/2.54, 2)
     fig = plt.figure(figsize=(16*cm,6*cm), dpi=600)
+    # fig = plt.figure(figsize=(8*cm,4*cm), dpi=600)
     # fig = plt.figure(figsize=(8*cm,2*cm), dpi=600)
-    ax_cross = fig.add_axes([0.08, 0.2, 0.9, 0.7])
+    # ax_cross = fig.add_axes([0.08, 0.2, 0.9, 0.7])
+    ax_cross = fig.add_axes([0.1, 0.2, 0.88, 0.7])
 
     title_t = ds.time.dt.strftime('%d-%H').values
     # title_model = flnm.split('/')[-2]
@@ -305,10 +348,12 @@ def draw(t='2021-07-20 08', flpath='/mnt/zfm_18T/fengxiang/HeNan/Data/1900_90m/'
     ax_cross.set_title(title_t, loc='left', fontsize=10)
     ax_cross.set_title(title_model, loc='right', fontsize=10)
 
-    draw_contour(ax_cross, theta_e)
+    # draw_contour(ax_cross, theta_e)
     # draw_contour2(ax_cross, div)
     # draw_contourf(fig, ax_cross, div*10**4, ter_line)
     draw_contourf(fig, ax_cross, w*10, ter_line)
+    # draw_contourf(fig, ax_cross, drag*10**5, ter_line)
+    # draw_contourf(fig, ax_cross, ws, ter_line)
     # return u,v,w
 
 
@@ -316,11 +361,13 @@ def draw(t='2021-07-20 08', flpath='/mnt/zfm_18T/fengxiang/HeNan/Data/1900_90m/'
     # hor = np.sqrt(u**2+v**2)    
     # ver = w
     ## 1. 计算切角
+    # self.cross_start= CoordPair(lat=33.5, lon=114.5)
+    # self.cross_end= CoordPair(lat=35.5, lon=112.5)
     ldic = {
-        'lat1':32,
-        'lon1':111.2,
-        'lat2':36.5,
-        'lon2':114.7,
+        'lat1':float(ds.attrs['cross_start'][0]),
+        'lon1':float(ds.attrs['cross_start'][1]),
+        'lat2':float(ds.attrs['cross_end'][0]),
+        'lon2':float(ds.attrs['cross_end'][1]),
     }
         # self.cross_start = CoordPair(lat=32, lon=111.2)
         # self.cross_end = CoordPair(lat=36.5, lon=114.7)
@@ -331,9 +378,11 @@ def draw(t='2021-07-20 08', flpath='/mnt/zfm_18T/fengxiang/HeNan/Data/1900_90m/'
     ver = w
     # draw_quiver(ax_cross,u,v)
     draw_quiver(ax_cross,hor,ver*10)
+    # print(hor)
 
-    fig_path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_cross/newall/'
-    fig_name = title_model+'_'+title_t+'div'
+    fig_path = '/mnt/zfm_18T/fengxiang/HeNan/gravity_wave/figure/picture_cross/vs/'
+    # fig_name = title_model+'_'+title_t+'div'
+    fig_name = title_model+'_'+title_t+'vs'
     # fig.savefig(fig_path+fig_name+'test5.png', bbox_inches = 'tight')
     fig.savefig(fig_path+fig_name+'.png')
     # plt.clf()
@@ -366,29 +415,3 @@ if __name__ == '__main__':
     # draw()
     draw_mtime()
     # draw_1time()
-
-# %%
-
-
-
-
-
-# %%
-
-# flnm ='/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/newall/SS/wrfout/cross2.nc'
-# ds = xr.open_dataset(flnm)
-# ds
-# # %%
-# da = ds['ua_cross']
-
-# # %%
-# #    coord_pairs = da.coords["xy_loc"].values
-# coord_pairs = da.coords["xy_loc"].values
-# x_ticks = np.arange(coord_pairs.shape[0])
-
-# ## set tick labels use distance
-# da1 = latlon2distance(da)    
-# x_labels = da1.distance.values.astype(int)
-# # %%
-# x_labels
-# # ax_cross.set_xticks(x_ticks[::12]) ds.xy_loc

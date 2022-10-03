@@ -31,6 +31,15 @@ import xarray as xr
 
 # %%
 def get_data_micaps(ds, pic_dic):
+    """_summary_
+
+    Args:
+        ds (_type_): _description_
+        pic_dic (_type_): _description_
+
+    Returns:
+        _type_: _description_
+    """
     # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/upar_zhenzhou.nc'
     # ds = xr.open_dataset(flnm)
     # da = ds.sel(time='2021-07-20 00')
@@ -118,14 +127,16 @@ def draw_skewt(ds, pic_dic):
     )
     # return da
 
-    fig = plt.figure(figsize=(10,10), dpi=400)
-    # ax = fig.add_axes([0.1,0.1,0.8,0.8])
+    # fig = plt.figure(figsize=(10,10), dpi=400)
+    # skew = SkewT(fig, rotation=30)
+    cm = 1/2.54
+    fig = plt.figure(figsize=(8*cm,7*cm), dpi=300)
+    skew = SkewT(fig, rotation=30, rect=[0.2, 0.15, 0.70, 0.75])
 
-    skew = SkewT(fig, rotation=30)
     skew.plot(p, T, 'r', linewidth=1.5)  # 画温度层节曲线
     skew.plot(p, Td, 'g', linewidth=1.5)  # 露点层节曲线
-    # skew.plot_barbs(p[::5], u[::5], v[::5], length = 7)  # 画风
-    skew.plot_barbs(p, u, v, length = 7)  # 画风
+    skew.plot_barbs(p[::5], u[::5], v[::5], length = 5)  # 画风
+    # skew.plot_barbs(p, u, v, length = 5)  # 画风
 
     ## 设置范围
     # skew.ax.set_ylim(1000,200)
@@ -159,14 +170,19 @@ def draw_skewt(ds, pic_dic):
     # h.plot_colormapped(u,v,)
 
 
-    skew.ax.tick_params(axis='both', labelsize=20, direction='out')
-    skew.ax.set_title(pic_dic['time'].strftime('%Y-%m-%d %H'), loc='right', size=20)
-    skew.ax.set_title(pic_dic['type'], loc='left', size=20)
-    skew.ax.set_ylabel('Pressure (hPa)', size=24)
-    skew.ax.set_xlabel('Temperature (℃)', size=24)
+    skew.ax.tick_params(axis='both', labelsize=10, direction='out')
+
+    tt = pic_dic['time']+pd.Timedelta('8H')
+    skew.ax.set_title(tt.strftime('%Y-%m-%d %H'), loc='left', size=10, y=0.97)
+    # skew.ax.set_title(pic_dic['time'].strftime('%Y-%m-%d %H'), loc='right', size=10)
+    # skew.ax.set_title(pic_dic['type'], loc='left', size=10)
+    skew.ax.set_title('CAPE: {} \n CIN:{}'.format(cape.magnitude.round(1), cin.magnitude.round(1)),  y=0.8, x=0.7)
+    # skew.ax.set_title('CIN: {}'.format(cin.magnitude.round(1)),  y=0.9, x=0.7)
+    skew.ax.set_ylabel('Pressure (hPa)', size=10)
+    skew.ax.set_xlabel('Temperature (℃)', size=10)
     skew.ax.set_yticks([990, 925,  850, 800, 700, 600, 500, 400, 300, 200])
 
-    path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_sounding/'
+    path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_sounding/micaps/'
     fig_name = pic_dic['type']+'_'+pic_dic['time'].strftime('%Y%m%d_%H')
     fig.savefig(path+fig_name)
     return da
@@ -177,8 +193,8 @@ def draw_micaps():
     flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/upar_zhenzhou.nc'
     ds = xr.open_dataset(flnm)  # 所有时次探空的集合
     # t = pd.Timestamp('2021-07-20 00')
-    # tt = pd.date_range('2021-07-19 00', '2021-07-19 14', freq='6H')
-    tt = pd.date_range('2021-07-20 00', '2021-07-20 14', freq='6H')
+    tt = pd.date_range('2021-07-19 00', '2021-07-19 14', freq='6H')
+    # tt = pd.date_range('2021-07-20 00', '2021-07-20 14', freq='6H')
     tt_list = []
     for t in tt:
         pic_dic = {
@@ -255,8 +271,6 @@ def test():
     dic = get_data_wrf(ds, pic_dic)
     diag = draw_skewt(dic, pic_dic)
 
-        
-        
 
 def get_diag():
     ds2 = draw_wrf_all()
@@ -288,7 +302,7 @@ if __name__ == '__main__':
     pass
     #### 
     # draw_1km()
-    # draw_micaps()
-    draw_wrf_all()
+    draw_micaps()
+    # draw_wrf_all()
     ## 需要决定是否注释117行的return, 不注释了则运行快一些，否则会慢一些
     # get_diag() ## 如果要计算的话，draw里面的return 位置要放在上面

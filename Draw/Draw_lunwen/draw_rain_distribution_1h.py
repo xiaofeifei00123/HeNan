@@ -39,6 +39,7 @@ class Draw(object):
 
     def __init__(self) -> None:
         super().__init__()
+        self.path_province = '/mnt/zfm_18T/fengxiang/DATA/SHP/shp_micaps/City.shp'
         # self.path_province = '/mnt/zfm_18T/fengxiang/DATA/SHP/Map/cn_shp/Province_9/Province_9.shp'
         self.path_province = '/mnt/zfm_18T/fengxiang/DATA/SHP/Province_shp/henan.shp'
         self.path_henan = '/mnt/zfm_18T/fengxiang/DATA/SHP/shp_henan/henan.shp'

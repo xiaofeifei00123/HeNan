@@ -21,14 +21,16 @@ import netCDF4 as nc
 from baobao.interp import regrid_xesmf
 
 # %%
-
-# %%
-def combine_rain(path):
+def combine_rain(path, domain='wrfout_d03', flag='all'):
     """
+    path: 包含wrfout数据的路径
+    domain: 合并哪个domain的降水数据呢, wrfout_d01;wrfout_d02;wrfout_d03
+    flag: 需要的是， 总降水all、格点降水grid，还是对流降水convection呢
+
     由于wrfout数据的降水是累计降水，
     这里将它变为逐小时降水,同时进行合并
     又由于wrfout数据的坐标是x,y格点上的，
-    通过wrf-python 库将其转为不规则的latlon格点坐标
+    通过wrf-python库将其转为不规则的latlon格点坐标
 
     Args:
         path ([type]): 包含有wrfout数据的文件夹路径
@@ -38,16 +40,30 @@ def combine_rain(path):
     """    
 
     # fl_list = os.popen('ls {}/wrfout_d03*'.format(path))  # 打开一个管道
-    fl_list = os.popen('ls {}/wrfout_d01*'.format(path))  # 打开一个管道
+    # fl_list = os.popen('ls {}/wrfout_d03*'.format(path))  # 打开一个管道
+    fl_list = os.popen('ls {}/{}*'.format(path, domain))  # 打开一个管道
     fl_list = fl_list.read().split()
     dds_list = []
     r = 0
     for fl in fl_list:
-        print(fl[-18:])
+        print(fl[-19:])
         ds = xr.open_dataset(fl)
-        da = ds['RAINNC']+ds['RAINC']+ds['RAINSH']-r
-        r = (ds['RAINNC']+ds['RAINC']+ds['RAINSH']).values.round(1)
-
+        ## 总降水
+        if flag == 'all':
+            da = ds['RAINNC']+ds['RAINC']+ds['RAINSH']-r
+            r = (ds['RAINNC']+ds['RAINC']+ds['RAINSH']).values.round(1)
+        
+        ## 对流降水
+        elif flag == 'convection':
+            da = ds['RAINC']+ds['RAINSH']-r   #  深对流+浅对流
+            r = (ds['RAINC']+ds['RAINSH']).values.round(1)
+        elif flag == 'grid': 
+            # 格点降水
+            da = ds['RAINNC']-r   #  
+            r = (ds['RAINNC']).values.round(1)
+        else:
+            print("请输入需要计算的降水类型， all, convection, grid")
+            break
         dda = da.squeeze()  # 该是几维的就是几维的
         dc = dda.rename({'XLAT':'lat', 'XLONG':'lon', 'XTIME':'time'})
         dds_list.append(dc)
@@ -103,7 +119,7 @@ def regrid_latlon(flnm_rain, area):
     return ds_out
     
 
-def save_one(path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/1900_90m/'):
+def save_one(path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/1900_90m/', domain='wrfout_d03', flag='all'):
     """处理一个模式的数据
 
     Args:
@@ -112,10 +128,11 @@ def save_one(path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/1900_90m/'):
 
     path_dic = {
         'path_main':path_main,  # 模式数据文件夹
-        'path_wrfout':'/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd3-BL/wrfout_d03_2021-07-19_19:00:00', # 原始的一个wrfout数据，获得投影需要
-        'path_rain_wrf_grid':path_main+'rain_d01.nc', # 原始降水数据存储路径+文件名
-        'path_rain_wrf_latlon':path_main+'rain_latlon_005.nc',  # 插值到latlon之后的文件名
-        'path_rain_wrf_station':path_main+'rain_station.nc',  # 插值到站点之后的文件名
+        # 'path_wrfout':'/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd3-BL/wrfout_d03_2021-07-19_19:00:00', # 原始的一个wrfout数据，获得投影需要
+        'path_wrfout':path_main+'wrfout_d03_2021-07-19_01:00:00',
+        'path_rain_wrf_grid':path_main+'/rain_'+domain+'.nc', # 原始降水数据存储路径+文件名
+        'path_rain_wrf_latlon':path_main+'/rain_'+domain+'_latlon.nc',  # 插值到latlon之后的文件名
+        'path_rain_wrf_station':path_main+'/rain_'+domain+'_station.nc',  # 插值到站点之后的文件名
         'path_rain_obs_station':'/mnt/zfm_18T/fengxiang/HeNan/Data/OBS/rain_station.nc', # 站点降水
     }
     area = {
@@ -125,16 +142,9 @@ def save_one(path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/1900_90m/'):
         'lat2':36.5,
         'interval':0.05,
     }
-    # area = {
-    #     'lon1':110.5,
-    #     'lon2':116,
-    #     'lat1':32,
-    #     'lat2':36.5,
-    #     'interval':0.125,
-    # }
 
     ## 合并数据
-    da = combine_rain(path_main)
+    da = combine_rain(path_main,domain, flag)
     da.to_netcdf(path_dic['path_rain_wrf_grid'])
 
     ## 降低分辨率和转换投影
@@ -150,25 +160,29 @@ def dual():
     """处理多个模式的数据
     """
     pass
-    # model_list = ['gwd3-FD', 'gwd3-BL','gwd3-SS', 'gwd3-LS']
-    model_list = ['gwd0', 'gwd1', 'gwd3']
-    # model_list = ['gwd3-test']
-    # model_list = ['gwd0', 'gwd3']
-    # model_list = ['strengthen_typhoon', 'weak_typhoon']
+    # model_list = ['CTRL','Dual', 'FD', 'GWD3', 'SS', 'SS2']
+    # model_list = ['CTRL','FD', 'GWD3', 'SS']
+    # model_list = ['CTRL2','DUAL2']
+    # model_list = ['LS', 'BL', 'BL2', 'BL3']
+    # model_list = ['gwd0']
+    model_list = ['DUAL10']
+    domain = 'wrfout_d03'
+    # flag = 'all'
+    # flag_list = ['all','convection', 'grid']
+    flag_list = ['all']
     for model in model_list:
-        path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/'+model+'/'
+        print(model)
+        # path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/newall/'+model+'/wrfout/'
+        # path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/newall/'+model+'/wrfout/'
+        path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/new_modify/'+model+'/'
         # path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/'+model+'/'
-        # path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/Typhoon/'+model+'/'
-        # path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d04/'+model+'/'
-        save_one(path_main)
+        for flag in flag_list:
+            save_one(path_main, domain, flag)
     
 if __name__ == '__main__':
 
     pass
-    # main()
-    # save_one()
     dual()
-
 
 
 

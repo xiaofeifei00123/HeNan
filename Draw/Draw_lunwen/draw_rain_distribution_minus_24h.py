@@ -41,11 +41,8 @@ from cartopy.io.shapereader import Reader, natural_earth
 import matplotlib as mpl
 from matplotlib.path import Path
 import matplotlib.patches as patches
-import seaborn as sns
 # import matplotlib.patches as patches
 import matplotlib.pyplot as plt
-import geopandas
-import cmaps
 from multiprocessing import Pool
 from baobao.map import Map
 from baobao.interp import rain_station2grid   # 站点插值成格点，这里插到和EC网格点一样
@@ -179,8 +176,10 @@ class GetData():
         pass
 
         # dr = Draw()
-        flnm3 = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd3/rain.nc'
-        flnm0 = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd0/rain.nc'
+        # flnm3 = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd3/rain.nc'
+        # flnm0 = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd0/rain.nc'
+        flnm3 = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/new_modify/SS/rain_d03.nc'
+        flnm0 = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/new_modify/CTRL/rain_d03.nc'
 
         da3 = xr.open_dataarray(flnm3)
         da3 = da3.sel(time=slice('2021-07-20 01', '2021-07-21 00'))
@@ -276,8 +275,12 @@ class GetData():
 
 if __name__ == '__main__':
 
+<<<<<<< HEAD
     fig_path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_lunwen/'
     # %%
+=======
+    fig_path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_lunwen/test/'
+>>>>>>> gravity
     def get_dr():
         cm = 1/2.54
         fig = plt.figure(figsize=(8*cm, 8*cm), dpi=600)
@@ -317,6 +320,7 @@ if __name__ == '__main__':
         )
     cb.ax.tick_params(labelsize=8)  # 设置色标标注的大小
     title_name = '(a)'
+<<<<<<< HEAD
     dr.ax.set_title(title_name, loc='left', fontsize=10,y=0.98)
     fig_name = 'gwd3-no_gwd'
 
@@ -368,6 +372,11 @@ if __name__ == '__main__':
     fmt = {300:'300',80:'80'} # 将这个值变为相关的值
     dr.ax.clabel(CS, inline=True, fontsize=10, manual=manual_locaton, fmt=fmt)
 
+=======
+    dr.ax.set_title(title_name, loc='left', fontsize=8,y=0.98)
+    # fig_name = 'gwd3-no_gwd'
+    fig_name = 'SS-CTRL'
+>>>>>>> gravity
     dr.fig.savefig(fig_path+fig_name+'.png')
 
 
