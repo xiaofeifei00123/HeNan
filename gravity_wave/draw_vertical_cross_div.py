@@ -36,18 +36,24 @@ def draw_quiver(ax, u,v):
     '''
     绘制风矢图
     '''
+    # da = latlon2distance(u)
     # x = u.cross_line_idx.values[::10]
+
     # u = u[::3,::10]
     # v = v[::3,::10]
 
     
     # x = u.cross_line_idx.values[::5]
+    # da = latlon2distance(u)
+    # x = da.distance.values[::5]
+    # u = u[::1,::5]
+    # v = v[::1,::5]
+    
+    
     da = latlon2distance(u)
-    x = da.distance.values[::5]
-    u = u[::1,::5]
-    v = v[::1,::5]
-    
-    
+    x = da.distance.values[::10]
+    u = u[::3,::10]
+    v = v[::3,::10]
     
 
     # u = u[::4,::4]
@@ -74,7 +80,9 @@ def draw_quiver(ax, u,v):
 def draw_contour(ax, da):
     pass
 
-    xs = np.arange(0, da.shape[-1], 1)
+    da = latlon2distance(da)
+    xs = da.distance.values
+    # xs = np.arange(0, da.shape[-1], 1)
     ys = da.coords['vertical'].values
     # levels=np.arange(342, 372, 4)
     # levels=np.arange(342, 372, 2)
@@ -129,10 +137,11 @@ def draw_contourf(fig, ax_cross, da, ter_line):
                                     colors=colordict,
                                     levels=colorlevel
     )
-    # ax_cross.set_ylim(0, 20000)
-    # ax_cross.set_yticks(np.arange(0, 20000+1, 2000))
-    ax_cross.set_ylim(0, 2000)
-    ax_cross.set_yticks(np.arange(0, 2000+1, 200))
+    """
+    ax_cross.set_ylim(0, 20000)
+    ax_cross.set_yticks(np.arange(0, 20000+1, 2000))
+    # ax_cross.set_ylim(0, 2000)
+    # ax_cross.set_yticks(np.arange(0, 2000+1, 200))
     # y_labels = np.arange(0, 2+0.1, 0.2).astype(int)
     # ax_cross.set_yticklabels(y_labels)
     ax_cross.tick_params(axis='both', labelsize=10, direction='out')
@@ -145,6 +154,7 @@ def draw_contourf(fig, ax_cross, da, ter_line):
 
     cb_dbz.ax.tick_params(labelsize=10)
     ax_cross.xaxis.set_minor_locator(plt.MultipleLocator(10))
+    """
     # print(xs)
 
     ## Set the x-ticks to use latitude and longitude labels
@@ -313,7 +323,8 @@ def draw(t='2021-07-20 08', flpath='/mnt/zfm_18T/fengxiang/HeNan/Data/1900_90m/'
     # flnm = flpath+'cross2.nc'
     # flnm = flpath+'cross3.nc'
     # flnm = flpath+'cross3.nc'
-    flnm = flpath + 'cross4_1time.nc'
+    # flnm = flpath + 'cross4_1time.nc'
+    flnm = flpath + 'cross8_1time.nc'
     ds = xr.open_dataset(flnm)
     ds = ds.sel(time=t)
     # print(ds)
@@ -324,6 +335,7 @@ def draw(t='2021-07-20 08', flpath='/mnt/zfm_18T/fengxiang/HeNan/Data/1900_90m/'
     ter_line = ds['ter']
     u = ds['ua_cross']
     v = ds['va_cross']
+    theta_e = ds['theta_e_cross']
     theta_e = ds['theta_e_cross']
     div = ds['div_cross']
     drag = ds['drag_cross']
@@ -406,7 +418,7 @@ def draw_1time(t='2021-07-20 00'):
 def draw_mtime():
     # time_list = pd.date_range('2021-07-17 00', '2021-07-23 00', freq='3H')
     # time_list = pd.date_range('2021-07-20 00', '2021-07-20 00', freq='3H')
-    time_list = pd.date_range('2021-07-20 12', '2021-07-20 12', freq='3H')
+    time_list = pd.date_range('2021-07-20 18', '2021-07-20 18', freq='3H')
     # time_list = pd.date_range('2021-07-20 00', '2021-07-21 00', freq='3H')
     # time_list = pd.date_range('2021-07-20 06', '2021-07-20 06', freq='1H')
     # time_list = pd.date_range('2021-07-20 08', '2021-07-20 08', freq='1H')

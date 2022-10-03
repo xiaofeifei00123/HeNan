@@ -113,7 +113,7 @@ def get_vs_distance():
     # da = div2
     return sst, tt, da
 
-def get_data_rain():
+def get_data_rain_obs():
     def caculate_area_mean_obs(da,area):
         mask = (
             (da.coords['lat']>area['lat1'])
@@ -131,12 +131,18 @@ def get_data_rain():
     #     'lon1':112.2,
     #     'lon2':114.8,
     #     }        
+    # area = {
+    #     'lat1':32,
+    #     'lat2':36.5,
+    #     'lon1':110.5,
+    #     'lon2':116,
+    #     }        
     area = {
-        'lat1':32,
-        'lat2':36.5,
-        'lon1':110.5,
-        'lon2':116,
-        }        
+        'lat1':34.4,
+        'lat2':34.9,
+        'lon1':113.0,
+        'lon2':113.7,
+    }        
     flnm_obs = '/mnt/zfm_18T/fengxiang/HeNan/gravity_wave/data/'+'rain_obs.nc'
     ds_obs = xr.open_dataset(flnm_obs)
     gd = GetData()
@@ -147,7 +153,8 @@ def get_data_rain():
     return sst, tt, da
 
 def get_rain_wrf():
-    flnm_model = '/mnt/zfm_18T/fengxiang/HeNan/gravity_wave/data/'+'rain_model.nc'
+    # flnm_model = '/mnt/zfm_18T/fengxiang/HeNan/gravity_wave/data/'+'rain_model.nc'
+    flnm_model = '/mnt/zfm_18T/fengxiang/HeNan/gravity_wave/data/rain_model_da.nc'
     ds_model = xr.open_dataset(flnm_model)
     def caculate_area_mean(da, area,):
         lon = da['lon'].values
@@ -168,12 +175,18 @@ def get_rain_wrf():
     #     'lon1':112,
     #     'lon2':115,
     #     }        
+    # area = {
+    #     'lat1':32,
+    #     'lat2':36.5,
+    #     'lon1':110.5,
+    #     'lon2':116,
+    #     }        
     area = {
-        'lat1':32,
-        'lat2':36.5,
-        'lon1':110.5,
-        'lon2':116,
-        }        
+        'lat1':34.4,
+        'lat2':34.9,
+        'lon1':113.0,
+        'lon2':113.7,
+    }        
     ds_model_mean = caculate_area_mean(ds_model, area)
     ds_model_mean = ds_model_mean['GWD3']
     da = ds_model_mean.sel(time=slice('2021-07-17 00', '2021-07-23 00'))
@@ -298,12 +311,12 @@ def  get_data_vs_distance():
 
 
 
-sst, time, da = get_data_vertical_speed()
+# sst, time, da = get_data_vertical_speed()
 # sst, time, da = get_div_distance()
 # sst, time, da = get_vs_distance()
 # sst, time, da = get_data_div()
 
-# sst, time, da = get_data_rain()
+sst, time, da = get_data_rain_obs()
 # sst, time, da = get_rain_wrf()
 variance = np.std(sst, ddof=1) ** 2
 print("variance = ", variance)
@@ -445,7 +458,8 @@ axx.set_major_formatter(ticker.ScalarFormatter())
 ax.ticklabel_format(axis='y', style='plain')
 # %%
 figpath = '/mnt/zfm_18T/fengxiang/HeNan/gravity_wave/figure/picture_wave/'
-fig.savefig(figpath+'wave_time_4km_SS')
+fig.savefig(figpath+'wave_time_rain_obs')
+# fig.savefig(figpath+'wave_time_4km_SS')
 # fig.savefig(figpath+'wave_time_4km_gwd3')
 # fig.savefig(figpath+'tttt')
 # fig.savefig(figpath+'wave_rain')

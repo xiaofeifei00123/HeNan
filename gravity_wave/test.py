@@ -18,6 +18,26 @@ from netCDF4 import Dataset
 from wrf import getvar, interpline, CoordPair, vertcross
 from geopy.distance import distance  # 根据经纬度计算两点距离
 # %%
+flnm1 = '/home/fengxiang/HeNan/Data/GWD/d03/gwd3/wrfout_d01_2021-07-20_00:00:00'
+flnm2 = '/home/fengxiang/HeNan/Data/GWD/d03/gwd3/wrfout_d02_2021-07-20_00:00:00'
+flnm3 = '/home/fengxiang/HeNan/Data/GWD/d03/gwd3/wrfout_d03_2021-07-20_00:00:00'
+ds1 = xr.open_dataset(flnm1)
+ds2 = xr.open_dataset(flnm2)
+ds3 = xr.open_dataset(flnm3)
+# %%
+ds1['DUSFCG_BL'].max()
+# ds2['DUSFCG_BL'].max()
+# ds3['DUSFCG_BL'].max()
+
+ds1['DTAUX3D_BL'].max()
+ds2['DTAUX3D_BL'].max()
+ds3['DTAUX3D_BL'].max()
+# %%
+for i in list(ds3.data_vars):
+    print(i)
+# ds1['DTAUX3D_BL'].max()
+
+# %%
 # flnm_obs = '/mnt/zfm_18T/fengxiang/HeNan/gravity_wave/data/'+'rain_obs.nc'
 # ds_obs = xr.open_dataset(flnm_obs)
 # ds_obs.time

@@ -34,7 +34,7 @@ import netCDF4 as nc
 import wrf
 from multiprocessing import Pool
 # from read_global import caculate_diagnostic, regrid_xesmf
-from baobao.caculate import caculate_q_rh_thetav, caculate_vo_div_wrf
+from baobao.caculate import caculate_q_rh_thetav# , caculate_vo_div_wrf
 from baobao.interp import regrid_xesmf
 # from baobao.coord_transform import xy_ll
 
@@ -115,7 +115,7 @@ class GetUpar():
         fl_list = os.popen('ls {}/wrfout/wrfout_d03*'.format(path))  # 打开一个管道
         fl_list = fl_list.read().split()
         ## 临时测试
-        fl_list = fl_list[0:5]
+        # fl_list = fl_list[0:5]
         dds = self.get_upar_multi(fl_list)
         print("开始计算诊断变量")
         # dd = caculate_diagnostic(dds)
@@ -133,7 +133,8 @@ def combine_one(model='1912_90m'):
     处理两种模式，不同时次的数据
     """
     # path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/Typhoon/'
-    path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/newall/'
+    # path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/newall/'
+    path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/DA/'
     # path_main = os.path.join(path_main, model)
     gu = GetUpar()
     # path_wrfout = path_main+'1912_90m'
@@ -158,7 +159,8 @@ def combine():
     """
     # model_list = ['1900_90m','1900_900m', '1912_90m', '1912_900m']
     # model_list = ['gwd0','gwd1', 'gwd3']
-    model_list = ['CTRL','FD', 'SS', 'GWD3']
+    # model_list = ['CTRL','FD', 'SS', 'GWD3']
+    model_list = ['CTRL','GWD3']
     # model_list = ['strengthen_typhoon','weak_typhoon']
     for model in model_list:
         combine_one(model)

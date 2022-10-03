@@ -39,8 +39,24 @@ import os
 import numpy as np
 from baobao.map import get_rgb
 import matplotlib.patches as patches
+import wrf
+from wrf import smooth2d
+import netCDF4 as nc
+from matplotlib import rcParams
+rcParams['font.family'] = 'Times New Roman'
 
 # %%
+def get_hgt(
+    # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d04/gwd0/wrfout_d04_2021-07-19_12:00:00'
+    flnm='/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd0/wrfout_d02_2021-07-19_12:00:00'
+    ):
+    """从wrfout文件中获取海拔高度数据
+    """
+    pass
+    wrfnc = nc.Dataset(flnm)
+    h = wrf.getvar(wrfnc, 'ter')
+    h = h.rename({'XLAT':'lat', 'XLONG':'lon'})
+    return h
 
 class Rain():
     pass
@@ -71,6 +87,18 @@ class Rain():
                     'lon': 114.0,
                 },
             }
+        self.areaA = {
+            'lat1':33.4,
+            'lat2':34.2,
+            'lon1':111.4,
+            'lon2':112.2,
+        }        
+        self.areaB = {
+            'lat1':33.4,
+            'lat2':34.2,
+            'lon1':112.6,
+            'lon2':113.4,
+        }        
 
 class Draw(Rain):
     """画单张降水图的
@@ -95,9 +123,13 @@ class Draw(Rain):
         # rgb = get_rgb(rgbtxt)
         # self.colordict = rgb        
         
-        self.colorlevel=[-700, -200, -100, -50, -20, 20, 50 , 100, 200,700 ]#雨量等级
-        self.colorticks = self.colorlevel[1:-1]
-        self.colordict=['#0000fb','#3232fd','#6464fd','#a2a3fb','white','#fbbcbc', '#ff8383', '#fd4949', '#fd0000']#正负, 蓝-红
+        # self.colorlevel=[-700, -200, -100, -50, -20, 20, 50 , 100, 200,700 ]#雨量等级
+        # self.colordict=['#0000fb','#3232fd','#6464fd','#a2a3fb','white','#fbbcbc', '#ff8383', '#fd4949', '#fd0000']#正负, 蓝-红
+
+        self.colorlevel=[-700, -200, -100, -40, 40 , 100, 200,700 ]#雨量等级
+        # self.colorlevel=[-700, -100, -50, -20, 20 , 50, 100,700 ]#雨量等级
+        self.colordict=['#0000fb','#3232fd','#6464fd','white', '#ff8383', '#fd4949', '#fd0000']#正负, 蓝-红
+
         
 
         self.colorticks = self.colorlevel[1:-1]
@@ -164,7 +196,8 @@ class Draw(Rain):
             xy = (area['lon1'], area['lat1'])
             width = area['lon2']-area['lon1']
             height = area['lat2']-area['lat1']
-            rect = patches.Rectangle(xy=xy, width=width, height=height, edgecolor='black', fill=False, lw=1.5, ) # 左下角的点的位置
+            # rect = patches.Rectangle(xy=xy, width=width, height=height, edgecolor='black', fill=False, lw=1.5, ) # 左下角的点的位置
+            rect = patches.Rectangle(xy=xy, width=width, height=height, edgecolor='black', fill=False, lw=1.5, linestyle='--') # 左下角的点的位置
             ax.add_patch(rect)
 
     def draw_single(self, da,):
@@ -200,26 +233,27 @@ class Draw(Rain):
                           colors = self.colordict,
                           transform=ccrs.PlateCarree()
                           )
-        # mp.add_station(ax, self.station, justice=True)
-        # plt.plot(self.cross_start, self.cross_end, transform=ccrs.PlateCarree(),zorder=5)
-        # plt.plot(112, 35, 113,36,transform=ccrs.PlateCarree(),zorder=5)
-        # ax.scatter(np.linspace(self.cross_start[0], self.cross_end[0], 10), np.linspace(self.cross_start[1], self.cross_end[1], 10), transform=ccrs.PlateCarree())
-        # ax.plot(np.linspace(self.cross_start[0], self.cross_end[0], 10), np.linspace(self.cross_start[1], self.cross_end[1], 10), color='black')
-
-        areaA = {
-            'lat1':33.6,
-            'lat2':34.0,
-            'lon1':111.8,
-            'lon2':112.2,
-        }        
-        areaB = {
-            'lat1':33.4,
-            'lat2':33.8,
-            'lon1':112.4,
-            'lon2':112.8,
-        }        
+        # areaA = {
+        #     'lat1':33.4,
+        #     'lat2':34.2,
+        #     'lon1':111.4,
+        #     'lon2':112.2,
+        # }        
+        # areaB = {
+        #     'lat1':33.4,
+        #     'lat2':34.2,
+        #     'lon1':112.6,
+        #     'lon2':113.4,
+        # }        
+        areaA = self.areaA
+        areaB = self.areaB
+        ax.text(areaA['lon1']+0.3, areaA['lat1']+0.3, 'A')
+        ax.text(areaB['lon1']+0.3, areaB['lat1']+0.3, 'B')
         self.add_patch(areaA, ax)
         self.add_patch(areaB, ax)
+        from draw_rain_distribution_24h import Rain
+        dr = Rain()
+        ax.plot(np.linspace(dr.cross_start[0], dr.cross_end[0], 10), np.linspace(dr.cross_start[1], dr.cross_end[1], 10), color='black')
         # ax.text(114.4, 33.7, 'D', transform=ccrs.PlateCarree())
         return crx
         
@@ -387,7 +421,9 @@ def draw_obs(tl):
     dr.fig.savefig(fig_path+fig_name)
 
 def draw_model(tl):
-    flnm_model = '/mnt/zfm_18T/fengxiang/HeNan/gravity_wave/data/'+'rain_model.nc'
+# tl = slice('2021-07-17 01', '2021-07-23 00')
+    # flnm_model = '/mnt/zfm_18T/fengxiang/HeNan/gravity_wave/data/'+'rain_model.nc'
+    flnm_model = '/mnt/zfm_18T/fengxiang/HeNan/gravity_wave/data/rain_model_da.nc'
     ds_model = xr.open_dataset(flnm_model)
     # for model in ['gwd3','gwd1', 'gwd0']:
     # model_list = ['SS2']
@@ -404,7 +440,13 @@ def draw_model(tl):
     da1 = ds['CTRL'].sum(dim='time')
     da2 = ds['GWD3'].sum(dim='time')
     da = da2 - da1
-    cf = dr.draw_single(da)    
+    db = ds['GWD3'].isel(time=0).squeeze()
+    dc = xr.DataArray(
+        da.values, 
+        coords=db.coords
+    )
+    # da.coords = da1.coords
+    cf = dr.draw_single(dc)    
 
 
     cb = dr.fig.colorbar(
@@ -425,8 +467,49 @@ def draw_model(tl):
     tt = t1+'-'+t2
     tfig = str(ds.time.dt.strftime('%d%H')[-1].values)
     dr.ax.set_title(tt, fontsize=10,loc='center')
+
+    # h_level = [100,200,500,1000]
+    # h_level = [0, 100,200,300, 400,500,700, 1000]
+    # h_level = [100,200,500]
+    # h_level = [0, 100,200,500, 10000]
+    # h_level = [0 ,500, 1000,10000]
+    h_level = [0 ,500, 10000]
+    h = get_hgt()
+    # h1 = smooth2d(h, 10)
+    h1 = h
+    # CS = dr.ax.contour(h.lon,h.lat, h1, levels=h_level, colors='black', linestyles='solid')    
+    # CS = dr.ax.contourf(h.lon,h.lat, h1, levels=10, cmap=cmaps.GMT_gray, linestyles='solid', alpha=0.5)    
+
+    # self.colorlevel=[0, 1, 10, 25, 50, 100, 250, 400,600,800,1000, 2000]#雨量等级
+    rgbtxt = '/mnt/zfm_18T/fengxiang/HeNan/gravity_wave/data/gray2.rgb'
+    rgb = get_rgb(rgbtxt)
+    colorticks = h_level[1:-1]
+    # colordict = rgb        
+    # CS = dr.ax.contourf(h.lon,h.lat, h1, levels=10, cmap=cmaps.GMT_gray, linestyles='solid', alpha=0.5)    
+    h_level = [500,10000]
+    # cf = dr.ax.contourf(h.lon,h.lat, h1, levels=h_level, colors = rgb, alpha=0.5)    
+    cf = dr.ax.contourf(h.lon,h.lat, h1, levels=h_level, colors = ['gray','black'], alpha=0.4)    
+    CS = dr.ax.contour(h.lon,h.lat, h1, levels=h_level, colors = ['black','black'])    
+
+    # cb = dr.fig.colorbar(
+    #     cf,
+    #     # cax=ax6,
+    #     orientation='horizontal',
+    #     ticks=colorticks,
+    #     fraction = 0.06,  # 色标大小,相对于原图的大小
+    #     pad=0.1,  #  色标和子图间距离
+    #     )
     
-    fig_name = model+tfig+'minus'
+    
+
+    manual_locaton = [(113,35),(111, 33)]
+    fmt = {500:'500'} # 将这个值变为相关的值
+    # fmt = {300:'300',80:'80'} # 将这个值变为相关的值
+    # fmt = {200:'200',100:'100', 500:'500', 1000:'1000'} # 将这个值变为相关的值
+    dr.ax.clabel(CS, inline=True, fontsize=10, manual=manual_locaton, fmt=fmt)
+
+
+    fig_name = model+tfig+'minus_da'
     fig_path = '/mnt/zfm_18T/fengxiang/HeNan/gravity_wave/figure/picture_rain/rain_new/'
     dr.fig.savefig(fig_path+fig_name)
 
@@ -457,3 +540,20 @@ if __name__ == '__main__':
         # draw_obs(tl)
 
 # %%
+# import xarray as xr
+# flnm_model = '/mnt/zfm_18T/fengxiang/HeNan/gravity_wave/data/rain_model_da.nc'
+# ds = xr.open_dataset(flnm_model)
+# ds
+# # %%
+# # ds['GWD3']
+# da1 = ds['CTRL'].sum(dim='time')
+# da2 = ds['GWD3'].sum(dim='time')
+# da = da2 - da1
+# # %%
+# da.coords = da1.isel(time=0).coords.values
+# da1
+# da
+# da1
+# db.shape
+# da.shape
+# da

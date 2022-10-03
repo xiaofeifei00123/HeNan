@@ -64,8 +64,8 @@ class CrossData():
         # self.cross_end= CoordPair(lat=36, lon=115.3)
 
         ## 伏牛山东西侧
-        self.cross_start = CoordPair(lat=33.8, lon=111.7)
-        self.cross_end = CoordPair(lat=33.5, lon=113.2)
+        self.cross_start = CoordPair(lat=33, lon=111.5)
+        self.cross_end = CoordPair(lat=36, lon=114.3)
 
         # self.cross_start = CoordPair(lat=31, lon=112.4)
         # self.cross_end = CoordPair(lat=34, lon=112.4)
@@ -138,7 +138,7 @@ class CrossData():
         ter_line = ter_line.assign_attrs({'projection':'lambert'})
         return ter_line
 
-    def get_cross_data(self, var_list=['ua', 'va', 'wa', 'theta_e']):
+    def get_cross_data(self, var_list=['ua', 'va', 'wa', 'theta_e', 'theta']):
         """获得垂直切一刀的数据
 
         Returns:
@@ -250,7 +250,8 @@ def save_one_model_mp(path):
 
     # path = '/mnt/zfm_18T/fengxiang/HeNan/Data/1900_90m/'
     # tt = pd.date_range('2021-07-20 0000', '2021-07-20 0000', freq='1H')
-    tt = pd.date_range('2021-07-20 1200', '2021-07-20 1200', freq='1H')
+    # tt = pd.date_range('2021-07-20 1200', '2021-07-20 1200', freq='1H')
+    tt = pd.date_range('2021-07-20 1800', '2021-07-20 1800', freq='1H')
     # tt = pd.date_range('2021-07-17 0000', '2021-07-23 0000', freq='1H')
     # tt
     fl_list = []
@@ -282,7 +283,7 @@ def save_one_model_mp(path):
 
     ds = ds.rename({'Time':'time'})
     # save_name = path+'cross4_times.nc'
-    save_name = path+'cross7_1time.nc'
+    save_name = path+'cross8_1time.nc'
     # save_name = path+'cross5_d03_1time.nc'
     ds.to_netcdf(save_name)
 
@@ -290,11 +291,13 @@ def save_all_model():
     # model_list = ['1900_90m', '1900_900m','1912_90m', '1912_900m']
     # model_list = ['gwd3-NO','gwd3-CTL','gwd3-FD', 'gwd3-BL','gwd3-SS', 'gwd3-LS']
     # model_list = ['gwd0', 'gwd3']
-    model_list = ['CTRL', 'SS', 'FD', 'GWD3']
+    # model_list = ['CTRL', 'SS', 'FD', 'GWD3']
+    model_list = ['CTRL', 'GWD3']
     # model_list = ['CTRL2', 'SS', 'FD', 'GWD3', 'BL', 'LS']
     # model_list = ['GWD3']
     # path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/'
-    path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/newall/'
+    # path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/newall/'
+    path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/DA/'
     # path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/new_modify/'
     for model in model_list:
         path = path_main+model+'/wrfout/'

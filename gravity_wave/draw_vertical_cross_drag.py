@@ -347,7 +347,8 @@ def draw(t='2021-07-20 08', flpath='/mnt/zfm_18T/fengxiang/HeNan/Data/1900_90m/'
     # flnm = flpath+'cross3.nc'
     # flnm = flpath+'cross3.nc'
     # flnm = flpath + 'cross4_1time.nc'
-    flnm = flpath + 'cross7_1time.nc'
+    # flnm = flpath + 'cross7_1time.nc'
+    flnm = flpath + 'cross8_1time.nc'
     # flnm = flpath + 'cross5_d02_1time.nc'
     # flnm = flpath + 'cross5_d03_1time.nc'
     ds = xr.open_dataset(flnm)
@@ -432,7 +433,7 @@ def draw(t='2021-07-20 08', flpath='/mnt/zfm_18T/fengxiang/HeNan/Data/1900_90m/'
 
     fig_path = '/mnt/zfm_18T/fengxiang/HeNan/gravity_wave/figure/picture_cross/'
     # fig_name = title_model+'_'+title_t+'div'
-    fig_name = title_model+'_'+title_t+'drag7'
+    fig_name = title_model+'_'+title_t+'drag8'
     # fig.savefig(fig_path+fig_name+'test5.png', bbox_inches = 'tight')
     fig.savefig(fig_path+fig_name+'.png')
     # plt.clf()
@@ -456,7 +457,8 @@ def draw_1time(t='2021-07-20 00'):
 def draw_mtime():
     # time_list = pd.date_range('2021-07-17 00', '2021-07-23 00', freq='3H')
     # time_list = pd.date_range('2021-07-20 00', '2021-07-20 00', freq='3H')
-    time_list = pd.date_range('2021-07-20 12', '2021-07-20 12', freq='3H')
+    # time_list = pd.date_range('2021-07-20 12', '2021-07-20 12', freq='3H')
+    time_list = pd.date_range('2021-07-20 18', '2021-07-20 18', freq='3H')
     # time_list = pd.date_range('2021-07-20 00', '2021-07-21 00', freq='3H')
     # time_list = pd.date_range('2021-07-20 06', '2021-07-20 06', freq='1H')
     # time_list = pd.date_range('2021-07-20 08', '2021-07-20 08', freq='1H')

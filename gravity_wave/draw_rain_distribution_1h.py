@@ -23,8 +23,37 @@ from baobao.map import Map
 
 from draw_rain_distribution_24h import Rain
 import numpy as np
+from draw_upar_850_d03_div import draw_quiver, get_data
+import pandas as pd
+# %%
 
+t = pd.date_range('2021-07-20 18', '2021-07-20 18', freq='1H')
+lev = 500
+path_out = '/home/fengxiang/HeNan/Data/GWD/d03/newall/GWD3/upar.nc'
+dic_model = {
+    'model':'GWD3',
+    # 'level':850,
+    'level':lev,
+    'time':t,
+    'flnm':path_out,
+}    
+# print("画 [%s] 的图"%(dic_model['model']))
+ds = get_data(dic_model)
+ds
+# ds_wrf = xr.open_dataset(flnm_wrf)
+# ds_wrf = ds_wrf.rename({'ua':'u', 'va':'v'})
+# dic = dic_model
+# t = dic['time']
+# level = dic['level']
+# ds2 = ds_wrf.sel(time=t, pressure=level).squeeze()
 
+# ## 计算水汽通量和散度
+# # qvd = QvDiv()
+# # ds3 = qvd.caculate_qfdiv(ds2)
+# ## 计算涡度和散度
+# from baobao.caculate import caculate_vo_div, caculate_div
+# ds3 = caculate_vo_div(ds2)
+# ds_return = xr.merge([ds2,ds3])
 
 # %%
 class Draw(object):
@@ -39,6 +68,7 @@ class Draw(object):
         self.path_tibet = '/mnt/zfm_18T/fengxiang/DATA/SHP/shp_tp/Tibet.shp'
         self.picture_path = '/mnt/zfm_18T/fengxiang/Asses_PBL/Rain/picture'
 
+        
 
     def draw_contourf_single(self, data, ax, dic):
         """画填色图
@@ -123,7 +153,7 @@ class Draw(object):
         
 
         fig_name = picture_dic['type']+'_'+picture_dic['initial_time']+'_'+picture_dic['date']
-        fig_path = '/mnt/zfm_18T/fengxiang/HeNan/gravity_wave/figure/picture_rain/'
+        fig_path = '/mnt/zfm_18T/fengxiang/HeNan/gravity_wave/figure/picture_rain/rain_da/'
         fig.savefig(fig_path+fig_name)
 
 
@@ -239,12 +269,18 @@ def draw_one(model):
     dr = Draw()
     # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/'+model+'/'+'rain.nc'
     # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/new_modify/GWD3/rain_wrfout_d03.nc'
-    flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/new_modify/'+model+'/rain_wrfout_d03.nc'
+    # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/new_modify/'+model+'/rain_wrfout_d03.nc'
+    # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/DA/GWD3'
+    flnm = '/mnt/zfm_18T/fengxiang/HeNan/gravity_wave/data/'+'rain_model_da.nc'
+    # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/newall/GWD3/wrfout/rain_wrfout_d03.nc'
     # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/1912_900m/rain.nc'
-    da = xr.open_dataarray(flnm)
+    ds = xr.open_dataset(flnm)
+    da = ds[model]
+    # da = xr.open_dataarray(flnm)
     # da = da.sel(time=slice('2021-07-20 00', '2021-07-20 00'))
-    da = da.sel(time=slice('2021-07-20 12', '2021-07-20 12'))
-    # da = da.sel(time=slice('2021-07-19 16', '2021-07-20 04 '))
+    # da = da.sel(time=slice('2021-07-20 12', '2021-07-20 12'))
+    # da = da.sel(time=slice('2021-07-20 18', '2021-07-20 18'))
+    da = da.sel(time=slice('2021-07-19 18', '2021-07-20 12'))
     # da = da.sel(time=slice('2021-07-19 17', '2021-07-20 05 '))
     # da = da.sum(dim='time') 
     tt = da.time
@@ -256,7 +292,8 @@ def draw_one(model):
 def draw_dual():
     # model_list = ['gwd0', 'gwd3']
     # model_list = ['gwd0','gwd1', 'gwd3', 'gwd3-LS', 'gwd3-BL', 'gwd3-SS', 'gwd3-FD']
-    model_list = ['GWD3', 'CTRL', 'FD', 'SS']
+    # model_list = ['GWD3', 'CTRL', 'FD', 'SS']
+    model_list = ['GWD3', ]
     # model_list = ['1912_90m_gwd3']
     for model in model_list:
         # path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/'+model+'/'

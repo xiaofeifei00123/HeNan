@@ -2,7 +2,7 @@
 # -*- encoding: utf-8 -*-
 '''
 Description:
-
+区域平均的降水变化
 -----------------------------------------
 Time             :2022/08/23 20:07:20
 Author           :Forxd
@@ -14,8 +14,36 @@ import xarray as xr
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+from matplotlib.ticker import AutoMinorLocator
 from read_rain_wrf import GetData
 from common import Common
+from draw_rain_distribution_minus import Rain
+# %%
+# flnm_model = '/mnt/zfm_18T/fengxiang/HeNan/gravity_wave/data/'+'rain_model.nc'
+# flnm_obs = '/mnt/zfm_18T/fengxiang/HeNan/gravity_wave/data/'+'rain_obs.nc'
+# ds_model = xr.open_dataset(flnm_model)
+# ds_obs = xr.open_dataset(flnm_obs)
+# flnm_model = '/mnt/zfm_18T/fengxiang/HeNan/gravity_wave/data/rain_model.nc'
+# flnm_obs = '/mnt/zfm_18T/fengxiang/HeNan/gravity_wave/data/'+'rain_obs.nc'
+# ds_model = xr.open_dataset(flnm_model)
+# ds_obs = xr.open_dataset(flnm_obs)
+# gd = GetData()
+# area = {
+#     'lat1':32,
+#     'lat2':36.5,
+#     'lon1':110.5,
+#     'lon2':116,
+#     }        
+# ds_model_mean = gd.caculate_area_mean(ds_model, area)
+# ds_obs_mean  = caculate_area_mean_obs(ds_obs, area)
+# # %%
+# # ds_model_mean
+# # ds_obs_mean
+# xr.merge([ds_obs_mean, ds_model_mean])
+
+# %%
+# ds_obs
+# ds2 = xr.merge([ds_model['GWD3'], ds_model['CTRL'], ds_])
 
 # %%
 def caculate_area_mean_obs(da,area):
@@ -30,35 +58,41 @@ def caculate_area_mean_obs(da,area):
     dsr = db.mean(dim=['lat', 'lon'])
     return dsr
 
-# %%
 def get_data(area):
-    flnm_model = '/mnt/zfm_18T/fengxiang/HeNan/gravity_wave/data/'+'rain_model.nc'
+    """
+    area = {
+        'lat1':32,
+        'lat2':36.5,
+        'lon1':110.5,
+        'lon2':116,
+        }        
+    """
+    # flnm_model = '/mnt/zfm_18T/fengxiang/HeNan/gravity_wave/data/'+'rain_model.nc'
+    # flnm_model = '/mnt/zfm_18T/fengxiang/HeNan/gravity_wave/data/rain_model.nc'
+    flnm_model = '/mnt/zfm_18T/fengxiang/HeNan/gravity_wave/data/'+'rain_model_da.nc'
     flnm_obs = '/mnt/zfm_18T/fengxiang/HeNan/gravity_wave/data/'+'rain_obs.nc'
     ds_model = xr.open_dataset(flnm_model)
     ds_obs = xr.open_dataset(flnm_obs)
-    # ds_obs.time.values = ds_obs.time.values+pd.Timedelta('12H')
+    gd = GetData()
+    ds_model_mean = gd.caculate_area_mean(ds_model, area)
+    ds_obs_mean  = caculate_area_mean_obs(ds_obs, area)
 
-    # tt = ds_obs.time.values+pd.Timedelta('8H')
-    # ds_obs = ds_obs.assign_coords({'time':tt})
+    # ds = xr.merge([ds_obs_mean, ds_model_mean])
+    # dsall = dsall.sel(model=['GWD3', 'CTRL'])
+    # ds = dsall.sel(time=slice('2021-07-17 00', '2021-07-23 00'))
+    ds = xr.merge([ds_model_mean['GWD3'], ds_model_mean['CTRL'],ds_obs_mean['PRCP']])
+    # ds = ds_model_mean
 
-    #  cm = Common()
-    #  gd = GetData()
-    #  ds_model_mean = gd.caculate_area_mean(ds_model, area)
-    #  # ds_model_mean.sel(model='gwd3')
-    #  ds_model_mean = ds_model_mean['GWD3']
-    #  # print(ds_model_mean.dims)
-    #  ds_obs_mean  = caculate_area_mean_obs(ds_obs, area)
-    #  dsall = ds_obs_mean
-    #  dsall = xr.merge([ds_obs_mean, ds_model_mean])
-    #  ds = dsall.sel(time=slice('2021-07-17 00', '2021-07-23 00'))
-    # ds = dsall.sel(time=slice('2021-07-17 00', '2021-07-19 00'))
-    # ds = ds.resample(time='12H').sum()
-    ds = ds_obs.sel(time=slice('2021-07-17 00', '2021-07-23 00'))
+    ds = ds.sel(time=slice('2021-07-17 00', '2021-07-23 00'))
+    # ds = ds.resample(time='3H').sum()
     return ds
 
-def draw(ds, fig, ax):
+def draw(ds, fig, ax, *args, **kw):
     # color_list = ['black', 'green', 'blue', 'red', 'orange']
-    color_list = ['black', 'blue', 'blue', 'red', 'orange']
+    # color_list = ['black', 'blue', 'red','green', 'orange']
+    # color_list = ['black', 'red', 'blue','orange', 'green']
+    color_list = ds.color_list
+    linestyle_list = ds.line_list
     var_list = list(ds.data_vars)
     i = 0
     for var in var_list:
@@ -67,44 +101,71 @@ def draw(ds, fig, ax):
         y = da.values
         if var == 'PRCP':
             var = 'OBS'
-        ax.plot(x,y, label=var, color=color_list[i])
+        # ax.plot(x,y, label=var, color=color_list[i], **kw)
+        ax.plot(x,y, label=var, color=color_list[i],linestyle=linestyle_list[i], **kw)
         i+=1
     ax.legend(edgecolor='white')
-    ax.set_xticks(x[::24])
-    ax.set_xticklabels(x[::24].values, rotation=0, fontsize=10)
-    ax.xaxis.set_minor_locator(plt.MultipleLocator(6))
+
+    # ax.set_xticks(x[::24])
+    # ax.set_xticklabels(x[::24].values, rotation=0, fontsize=10)
+    # ax.xaxis.set_minor_locator(plt.MultipleLocator(6))
+
+    ax.set_xticks(x[12::12])
+    ax.set_xticklabels(x[12::12].values, rotation=0, fontsize=10)
+    # ax.xaxis.set_minor_locator(plt.MultipleLocator(6))
+    ax.xaxis.set_minor_locator(AutoMinorLocator())
+    ax.yaxis.set_minor_locator(AutoMinorLocator())
+    # ax.set_xlim(47, 124)
+    # ax.set_ylim(0, 20)
     # ax.set_xticks(x[::2])
     # ax.set_xticklabels(x[::2].values, rotation=0, fontsize=10)
     # ax.xaxis.set_minor_locator(plt.MultipleLocator(1))
-
+# %%
 # ds['FD'].resample(time='3H').sum()
 def main():
     # area = {
-    #     'lat1':33.5,
-    #     'lat2':36.0,
-    #     'lon1':112,
-    #     'lon2':115,
-    #     }        
-    area = {
-        'lat1':32,
-        'lat2':36.5,
-        'lon1':110.5,
-        'lon2':116,
-        }        
+    #     'lat1':33.4,
+    #     'lat2':33.8,
+    #     'lon1':112.6,
+    #     'lon2':113.0,
+    # }        
+    # ra = Rain()
 
-    cm = Common()
-    # area = cm.areaA
-    ds = get_data(area)
-    # ds = get_data(cm.areaB)
+    areaA = {
+        'lat1':34.4,
+        'lat2':34.9,
+        'lon1':113.0,
+        'lon2':113.7,
+    }        
+    areaB = {
+        'lat1':35.3,
+        'lat2':35.8,
+        'lon1':113.5,
+        'lon2':114.2,
+    }        
+    dsA = get_data(areaA)
+    dsB = get_data(areaB)
+    dsA = dsA.rename({'GWD3':'GWD3A', 'CTRL':'CTRLA', 'PRCP':'OBSA'})
+    dsA = xr.merge([dsA['GWD3A'], dsA['OBSA']])
+    dsB = dsB.rename({'GWD3':'GWD3B', 'CTRL':'CTRLB', 'PRCP':'OBSB'})
+    ds = xr.merge([dsA, dsB])
+    # ds = dsA
     cm = 1/2.54
+    # fig = plt.figure(figsize=(16*cm, 8*cm), dpi=300)
     fig = plt.figure(figsize=(16*cm, 8*cm), dpi=300)
-    ax  = fig.add_axes([0.1, 0.15, 0.8, 0.8])
+    ax  = fig.add_axes([0.1, 0.15, 0.85, 0.8])
     ax.set_ylabel('Precipitation (mm)')
     ax.set_xlabel('Time (Date/Hour)')
+    # ds.attrs['color_list'] = ['red', 'black', 'red', 'black']
+    # ds.attrs['line_list'] = ['-', '-', '--', '--']
+    # ds.attrs['color_list'] = ['red', 'green', 'black', 'red', 'green', 'black']
+    ds.attrs['color_list'] = ['red', 'black', 'black', 'red', 'green', 'black']
+    ds.attrs['line_list'] = ['-', '-', '-', '--', '--', '--']
     draw(ds, fig, ax)
-    fig_path = '/mnt/zfm_18T/fengxiang/HeNan/gravity_wave/figure/picture_rain/'
-    fig.savefig(fig_path+'core1')
-    # cm.areaA
+    fig_path = '/mnt/zfm_18T/fengxiang/HeNan/gravity_wave/figure/picture_rain/rain_time/'
+    # fig.savefig(fig_path+'time_sAB')
+    fig.savefig(fig_path+'model_A')
+# cm.areaA
 if __name__ == "__main__":
     main()
 

@@ -46,8 +46,10 @@ class Rain():
     pass
     def __init__(self):
 
-        self.cross_start = [111.5, 33]
-        self.cross_end = [114.3, 36]
+        self.cross_start = [111, 34.5]
+        self.cross_end = [114.5, 32.5]
+        # self.cross_start = [111.4, 34.2]
+        # self.cross_end = [113.4, 33.4]
 
         self.station = {
                 'A': {
@@ -157,11 +159,11 @@ class Draw(Rain):
 
 
 
-    def add_patch(self, area, ax):
+    def add_patch(self, area, ax, **kw):
             xy = (area['lon1'], area['lat1'])
             width = area['lon2']-area['lon1']
             height = area['lat2']-area['lat1']
-            rect = patches.Rectangle(xy=xy, width=width, height=height, edgecolor='blue', fill=False, lw=1.5, ) # 左下角的点的位置
+            rect = patches.Rectangle(xy=xy, width=width, height=height, fill=False, lw=1.5, **kw) # 左下角的点的位置
             ax.add_patch(rect)
 
     def draw_single(self, da,):
@@ -203,14 +205,22 @@ class Draw(Rain):
         # ax.scatter(np.linspace(self.cross_start[0], self.cross_end[0], 10), np.linspace(self.cross_start[1], self.cross_end[1], 10), transform=ccrs.PlateCarree())
         # ax.plot(np.linspace(self.cross_start[0], self.cross_end[0], 10), np.linspace(self.cross_start[1], self.cross_end[1], 10), color='black')
 
-        areaC = {
-            'lat1':33.5,
-            'lat2':36,
-            'lon1':112.2,
-            'lon2':114.8,
+        areaA = {
+            'lat1':34.4,
+            'lat2':34.9,
+            'lon1':113.0,
+            'lon2':113.7,
         }        
-        # self.add_patch(areaC, ax)
-        # ax.text(114.4, 33.7, 'D', transform=ccrs.PlateCarree())
+        areaB = {
+            'lat1':35.3,
+            'lat2':35.8,
+            'lon1':113.5,
+            'lon2':114.2,
+        }        
+        self.add_patch(areaB, ax, edgecolor='blue')
+        self.add_patch(areaA, ax, edgecolor='blue')
+        ax.text(113.0, 34.9, 'A', transform=ccrs.PlateCarree())
+        ax.text(113.4, 35.8, 'B', transform=ccrs.PlateCarree())
         return crx
         
     def draw_tricontourf(self, rain):
@@ -352,6 +362,7 @@ def draw_obs(tl):
     # ds_obs = ds_obs.sel(time=slice('2021-07-20 01', '2021-07-21 00'))
     ds_obs = ds_obs.sel(time=tl)
     da_obs = ds_obs.sum(dim='time')['PRCP']
+    
     cf = dr.draw_single(da_obs)    
 
     cb = dr.fig.colorbar(
@@ -376,25 +387,30 @@ def draw_obs(tl):
     fig_path = '/mnt/zfm_18T/fengxiang/HeNan/gravity_wave/figure/picture_rain/rain_new/'
     dr.fig.savefig(fig_path+fig_name)
 
+# %%
 def draw_model(tl):
-    flnm_model = '/mnt/zfm_18T/fengxiang/HeNan/gravity_wave/data/'+'rain_model.nc'
+    # flnm_model = '/mnt/zfm_18T/fengxiang/HeNan/gravity_wave/data/'+'rain_model.nc'
+    flnm_model = '/mnt/zfm_18T/fengxiang/HeNan/gravity_wave/data/'+'rain_model_da.nc'
     ds_model = xr.open_dataset(flnm_model)
     # for model in ['gwd3','gwd1', 'gwd0']:
     # model_list = ['SS2']
     # model_list = ['CTRL','FD','GWD3','SS']
-    model_list = ['GWD3']
+    model_list = ['CTRL', 'GWD3']
     for model in model_list:
         dr = get_dr()  # 画图的对象
-        gd = GetData()  # 数据的对象
+        # gd = GetData()  # 数据的对象
         # da = gd.onemodel(model)
         # da = gd.onemodel_newall(model)
         # da
         # ds = ds_model.sel(time=slice('2021-07-20 01', '2021-07-21 00'))
         ds = ds_model.sel(time=tl)
-        da = ds[model].sum(dim='time')
+        # da = ds[model].sum(dim='time')
+        db = ds_model[model].isel(time=0)
+        da = ds_model[model].sum(dim='time').assign_coords(db.coords)
+        # print(da)
+
+
         cf = dr.draw_single(da)    
-
-
         cb = dr.fig.colorbar(
             cf,
             # cax=ax6,
@@ -413,9 +429,11 @@ def draw_model(tl):
         tfig = str(ds.time.dt.strftime('%d%H')[-1].values)
         dr.ax.set_title(tt, fontsize=10,loc='center')
         
-        fig_name = model+tfig+'aa'
-        fig_path = '/mnt/zfm_18T/fengxiang/HeNan/gravity_wave/figure/picture_rain/rain_new/'
+        fig_name = model+tfig
+        fig_path = '/mnt/zfm_18T/fengxiang/HeNan/gravity_wave/figure/picture_rain/rain_da/'
         dr.fig.savefig(fig_path+fig_name)
+
+# %%
 
 if __name__ == '__main__':
     pass
@@ -442,5 +460,3 @@ if __name__ == '__main__':
     for tl in time_list:
         draw_model(tl)
         # draw_obs(tl)
-
-# %%

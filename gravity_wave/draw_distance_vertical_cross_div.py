@@ -45,12 +45,18 @@ def draw_quiver(ax, u,v):
     
     # x = u.cross_line_idx.values[::5]
     da = latlon2distance(u)
+
     # x = da.distance.values[::10]
     # u = u[::8,::10]
     # v = v[::8,::10]
-    x = da.distance.values[::5]
-    u = u[::1,::5]
-    v = v[::1,::5]
+    x = da.distance.values[::6]
+    u = u[::6,::6]
+    v = v[::6,::6]
+
+    # x = da.distance.values[::5]
+    # u = u[::1,::5]
+    # v = v[::1,::5]
+
     # u = u[::1,::5]
     # v = v[::1,::5]
     
@@ -64,8 +70,14 @@ def draw_quiver(ax, u,v):
     # u = u[::3,::10]
     # v = v[::3,::10]
     y = u.coords['vertical'].values
+    # Q = ax.quiver(x, y, u.values,v.values,units='inches',scale=50,pivot='tip',minlength=0.001, width=0.01,zorder=2)  # 绘制风矢
+    # Q = ax.quiver(x, y, u.values,v.values,units='inches',scale=50,pivot='tip',minlength=0.001, width=0.01,zorder=2)  # 绘制风矢
+    Q = ax.quiver(x, y, u.values,v.values,units='inches',scale=70,pivot='tip',minlength=0.001, width=0.015,zorder=2)  # 绘制风矢
+
+
     # Q = ax.quiver(x, y, u.values,v.values,units='inches',scale=10,pivot='middle', zorder=2)  # 绘制风矢
-    Q = ax.quiver(x, y, u.values,v.values,units='inches',scale=50,pivot='tip',minlength=0.001, width=0.01,zorder=2)  # 绘制风矢
+
+
     # Q = ax.quiver(x, y, u.values,v.values,units='width',scale=20,pivot='tip', width=0.03,zorder=2)  # 绘制风矢
     qk = ax.quiverkey(Q,
                       X=0.05, Y=0.15, 
@@ -81,23 +93,36 @@ def draw_quiver(ax, u,v):
 def draw_contour(ax, da):
     pass
 
-    xs = np.arange(0, da.shape[-1], 1)
+    # xs = np.arange(0, da.shape[-1], 1)
+    da = latlon2distance(da)
+    xs = da.distance.values
     ys = da.coords['vertical'].values
     # levels=np.arange(342, 372, 4)
     # levels=np.arange(342, 372, 2)
     # levels=np.arange(336, 372, 4)
-    levels=np.arange(336, 357, 4)
+    # levels=np.arange(336, 357, 4)
+    levels=np.arange(300, 357, 8)
     plt.contour
     # cs = ax.contour(xs, ys, smooth2d(da.values, passes=16), levels=levels, colors='black', linewidths=0.5)
     # cs = ax.contour(xs, ys, smooth2d(da.values, passes=4), levels=levels, colors='black', linewidths=0.5)
-    cs = ax.contour(xs, ys, smooth2d(da.values, passes=1), levels=levels, colors='black', linewidths=0.5)
-    ax.clabel(cs, inline=True, fontsize=10)
+    cs = ax.contour(xs, ys, smooth2d(da.values, passes=1), levels=levels, colors='blue', linewidths=0.8, linestyles='dashed')
+    # ax.clabel(cs, inline=True, fontsize=10)
+    manual_locaton = [(400, 2000), (400, 5000), (400, 10000), (400, 15000)]
+    ax.clabel(cs, inline=True, fontsize=10, manual=manual_locaton)
 
 def draw_contour2(ax,da):
-    xs = np.arange(0, da.shape[-1], 1)
+    # xs = np.arange(0, da.shape[-1], 1)
+    da = latlon2distance(da)
+    xs = da.distance.values
     ys = da.coords['vertical'].values
     # levels=np.arange(342, 372, 4)
-    cs = ax.contour(xs, ys, smooth2d(da.values*10**4, passes=16), colors='red')
+    # levels=[-100,-20, -10, -5,-1, 1, 5,10,20, 100]
+    levels=[5, 10, 20]
+    # levels=np.arange(-20, 21,5)
+    # levels=np.arange(-20, 21,5)
+    # levels=[-5,]
+    cs = ax.contour(xs, ys, smooth2d(da.values, passes=30),levels=levels, colors='red', linewidths=0.8, negative_linestyles='dashed')
+    # manual_locaton = [(420, 2), (420, 5)]
     ax.clabel(cs, inline=True, fontsize=10)
 
 
@@ -105,8 +130,8 @@ def draw_contour2(ax,da):
 def draw_contourf(fig, ax_cross, da, ter_line):
 
 
-    # colorlevel=[-168, -10, -4, -2, -1, -0.5, 0.5, 1, 2, 4, 10, 168]#垂直速度
-    colorlevel=[-80, -30, -20, -10, -5, -1, 1, 5, 10, 20, 30, 80]# 散度
+    colorlevel=[-168, -10, -4, -2, -1, -0.5, 0.5, 1, 2, 4, 10, 168]#垂直速度
+    # colorlevel=[-80, -30, -20, -10, -5, -1, 1, 5, 10, 20, 30, 80]# 散度
     # colorlevel=[-280, -60, -30, -10, -5, -1, 1, 5, 10, 30, 60, 280]#雨量等级
     # colorlevel=[-680, -100, -40, -15, -5, -1, 1, 5, 15, 40, 100, 680]#雨量等级
     ### 散度
@@ -136,13 +161,20 @@ def draw_contourf(fig, ax_cross, da, ter_line):
                                     colors=colordict,
                                     levels=colorlevel
     )
-    # ax_cross.set_ylim(0, 20000)
+    # ax_cross.set_ylim(-10, 20000)
     # ax_cross.set_yticks(np.arange(0, 20000+1, 2000))
     # y_labels = np.arange(0, 20+1, 2).astype(int)
     # ax_cross.set_yticklabels(y_labels)
 
-    ax_cross.set_ylim(0, 2000)
-    ax_cross.set_yticks(np.arange(0, 2000+1, 200))
+    ax_cross.set_ylim(0, 16000)
+    ax_cross.set_yticks(np.arange(0, 16000+1, 2000))
+    y_labels = np.arange(0, 16+1, 2).astype(int)
+    ax_cross.set_yticklabels(y_labels)
+
+    # ax_cross.set_ylim(0, 2000)
+    # ax_cross.set_yticks(np.arange(0, 2000+1, 200))
+    # ax_cross.set_ylim(0, 2000)
+    # ax_cross.set_yticks(np.arange(0, 2000+1, 200))
 
     ax_cross.tick_params(axis='both', labelsize=10, direction='out')
     cb_dbz = fig.colorbar(dbz_contours, ax=ax_cross, ticks=colorticks, orientation='vertical', fraction=0.06, pad=0.02)
@@ -313,9 +345,10 @@ def draw(t='2021-07-20 08', flpath='/mnt/zfm_18T/fengxiang/HeNan/Data/1900_90m/'
     # flnm = flpath+'cross2.nc'
     # flnm = flpath+'cross3.nc'
     # flnm = flpath+'cross3.nc'
-    flnm = flpath + 'cross4_1time.nc'
+    # flnm = flpath + 'cross4_1time.nc'
     # flnm = flpath + 'cross6_1time.nc'
     # flnm = flpath + 'cross7_1time.nc'
+    flnm = flpath + 'cross8_1time.nc'
     ds = xr.open_dataset(flnm)
     ds = ds.sel(time=t)
     # print(ds)
@@ -327,6 +360,7 @@ def draw(t='2021-07-20 08', flpath='/mnt/zfm_18T/fengxiang/HeNan/Data/1900_90m/'
     u = ds['ua_cross']
     v = ds['va_cross']
     theta_e = ds['theta_e_cross']
+    theta = ds['theta_cross']
     div = ds['div_cross']
     drag = ds['drag_cross']
     ws = ds['ws_cross']
@@ -335,12 +369,14 @@ def draw(t='2021-07-20 08', flpath='/mnt/zfm_18T/fengxiang/HeNan/Data/1900_90m/'
     u = drop_na(u)
     v = drop_na(v)
     theta_e = drop_na(theta_e)
+    theta = drop_na(theta)
     div = drop_na(div)
     drag = drop_na(drag)
     ws = drop_na(ws)
 
     cm = round(1/2.54, 2)
-    fig = plt.figure(figsize=(16*cm,6*cm), dpi=600)
+    # fig = plt.figure(figsize=(16*cm,6*cm), dpi=600)
+    fig = plt.figure(figsize=(8*cm,8*cm), dpi=600)
     # fig = plt.figure(figsize=(8*cm,4*cm), dpi=600)
     # fig = plt.figure(figsize=(8*cm,2*cm), dpi=600)
     # ax_cross = fig.add_axes([0.08, 0.2, 0.9, 0.7])
@@ -353,18 +389,12 @@ def draw(t='2021-07-20 08', flpath='/mnt/zfm_18T/fengxiang/HeNan/Data/1900_90m/'
     ax_cross.set_title(title_t, loc='left', fontsize=10)
     ax_cross.set_title(title_model, loc='right', fontsize=10)
 
-    # draw_contour(ax_cross, theta_e)
-    # draw_contour2(ax_cross, div)
+    draw_contour(ax_cross, theta)
+    draw_contour2(ax_cross, w*10)
     draw_contourf(fig, ax_cross, div*10**4, ter_line)
-    # draw_contourf(fig, ax_cross, w*10, ter_line)
-    # draw_contourf(fig, ax_cross, drag*10**5, ter_line)
-    # draw_contourf(fig, ax_cross, ws, ter_line)
-    # return u,v,w
 
 
     ## 计算剖面风
-    # hor = np.sqrt(u**2+v**2)    
-    # ver = w
     ## 1. 计算切角
     # self.cross_start= CoordPair(lat=33.5, lon=114.5)
     # self.cross_end= CoordPair(lat=35.5, lon=112.5)
@@ -386,7 +416,7 @@ def draw(t='2021-07-20 08', flpath='/mnt/zfm_18T/fengxiang/HeNan/Data/1900_90m/'
     # print(hor)
 
     fig_path = '/mnt/zfm_18T/fengxiang/HeNan/gravity_wave/figure/picture_cross/div/'
-    fig_name = title_model+'_'+title_t+'div7'
+    fig_name = title_model+'_'+title_t+'div9'
     # fig_name = title_model+'_'+title_t+'vs'
     # fig.savefig(fig_path+fig_name+'test5.png', bbox_inches = 'tight')
     fig.savefig(fig_path+fig_name+'.png')
@@ -408,7 +438,8 @@ def draw_1time(t='2021-07-20 00'):
 
 def draw_mtime():
     # time_list = pd.date_range('2021-07-17 00', '2021-07-23 00', freq='3H')
-    time_list = pd.date_range('2021-07-20 00', '2021-07-20 00', freq='3H')
+    # time_list = pd.date_range('2021-07-20 00', '2021-07-20 00', freq='3H')
+    time_list = pd.date_range('2021-07-20 18', '2021-07-20 18', freq='3H')
     # time_list = pd.date_range('2021-07-20 12', '2021-07-20 12', freq='3H')
     # time_list = pd.date_range('2021-07-20 00', '2021-07-21 00', freq='3H')
     # time_list = pd.date_range('2021-07-20 06', '2021-07-20 06', freq='1H')

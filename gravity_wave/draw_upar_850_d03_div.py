@@ -342,13 +342,14 @@ def get_data(dic):
     ds_wrf = ds_wrf.rename({'ua':'u', 'va':'v'})
     t = dic['time']
     level = dic['level']
-    ds2 = ds_wrf.sel(time=t, pressure=level)
+    ds2 = ds_wrf.sel(time=t, pressure=level).squeeze()
 
     ## 计算水汽通量和散度
     # qvd = QvDiv()
     # ds3 = qvd.caculate_qfdiv(ds2)
     ## 计算涡度和散度
     ds3 = caculate_vo_div(ds2)
+    ds3 = ds3.squeeze()
     ds_return = xr.merge([ds2,ds3])
     return ds_return
 

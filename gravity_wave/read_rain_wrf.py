@@ -166,8 +166,10 @@ class GetData():
         
 
     def combine_time(self, ):
-        path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/newall/'
-        fd_list = ['CTRL', 'GWD3', 'FD', 'SS']
+        # path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/newall/'
+        path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/DA/'
+        # fd_list = ['CTRL', 'GWD3', 'FD', 'SS']
+        fd_list = ['CTRL', 'GWD3']
         for fd in fd_list:
             path = os.path.join(path_main, fd)
             ff = self.create_fold_times(path)
@@ -177,10 +179,11 @@ class GetData():
                 self.save_one_model(path)
 
     def combine_model(self,):
-        path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/newall/'
+        # path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/newall/'
+        path_main = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/DA/'
         flag = 'all'
         # fd_list = ['CTRL',]#  'GWD3', 'FD', 'SS']
-        fd_list = ['CTRL','GWD3', 'FD', 'SS']
+        fd_list = ['CTRL','GWD3']
         rain_list = []
         for fd in fd_list:
             path = os.path.join(path_main, fd)
@@ -220,12 +223,13 @@ class GetData():
 
 
 # %%
-gd = GetData()
-# gd.combine_time()  # 一个小试验一个小试验的存
-ds = gd.combine_model()
-ds.to_netcdf('/mnt/zfm_18T/fengxiang/HeNan/gravity_wave/data/'+'rain_model.nc')
+if __name__ == '__main__':
+    
+    gd = GetData()
+    gd.combine_time()  # 一个小试验一个小试验的存
+    ds = gd.combine_model()
+    ds.to_netcdf('/mnt/zfm_18T/fengxiana/HeNan/gravity_wave/data/'+'rain_model_da.nc')
 # %%
 # dds = gd.caculate_area_mean(ds, )
 # dds
 # %%
-# cm = 1/2.54

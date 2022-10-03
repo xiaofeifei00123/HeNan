@@ -40,6 +40,7 @@ class TS():
     def __init__(self, ) -> None:
         # self.model_list = ['gwd0','gwd1', 'gwd3', 'gwd3-BL', 'gwd3-FD', 'gwd3-LS', 'gwd3-SS']
         self.model_list = ['gwd0', 'gwd3', 'gwd3-FD', 'gwd3-SS']
+        # self.model_list = ['gwd0', 'gwd3']
 
 class Caculate(TS):
 
@@ -134,7 +135,8 @@ def get_ts():
     """获取不同阈值的ts评分
     """
     # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/rain_all.nc'
-    flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/Rain/rain_all_station2.nc'
+    # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/Rain/rain_all_station2.nc'
+    flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/Rain/rain_all_station.nc'
     ds = xr.open_dataset(flnm)
     # dds = ds.sel(time=slice('2022-07-20 0000', '2021-07-20 1200')).sum(dim='time')
     dds = ds.sel(time=slice('2021-07-20 0100', '2021-07-21 0000')).sum(dim='time')
