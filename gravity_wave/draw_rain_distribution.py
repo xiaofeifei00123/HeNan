@@ -39,6 +39,8 @@ import os
 import numpy as np
 from baobao.map import get_rgb
 import matplotlib.patches as patches
+from matplotlib import rcParams
+rcParams['font.family'] = 'Times New Roman'
 from common import Common
 
 # %%
@@ -161,6 +163,24 @@ class Draw(Rain):
         self.path_city = '/mnt/zfm_18T/fengxiang/DATA/SHP/shp_henan/zhenzhou/zhenzhou_max.shp'
         self.path_tibet = '/mnt/zfm_18T/fengxiang/DATA/SHP/shp_tp/Tibet.shp'
 
+    def set_colorbar(self,cf, ax, fig):    
+        ## 设置colorbar
+        levels = cf.levels
+        colorticks = levels[1:-1]
+        cb = fig.colorbar(
+            cf,
+            # cax=ax,
+            # ax,
+            orientation='horizontal',
+            ticks=colorticks,
+            fraction = 0.06,  # 色标大小,相对于原图的大小
+            pad=0.1,  #  色标和子图间距离
+            )
+        ax.tick_params(labelsize=10)  # 设置色标标注的大小
+        tic = cb.get_ticks()
+        labels = list(map(lambda x: str(x) if x<1 else str(int(x)), tic))  # 将colorbar的标签变为字符串
+        cb.set_ticklabels(labels)
+
     def add_patch(self, area, ax, **kw):
             xy = (area['lon1'], area['lat1'])
             width = area['lon2']-area['lon1']
@@ -204,12 +224,19 @@ class Draw(Rain):
             rain_max = da.max(dim=['lat', 'lon'])        
         else:
             print("出错啦")
-        # mp.add_station(ax, self.station, justice=True, delx=-0.1)
+        mp.add_station(ax, self.station_zz, justice=True, delx=-0.1)
         ax.set_title('Max = %s'%(rain_max.values.round(1)), fontsize=10,loc='right')
-        self.add_patch(self.areaB, ax, edgecolor='blue')
-        self.add_patch(self.areaA, ax, edgecolor='blue')
-        ax.text(113.0, 34.9, 'A', transform=ccrs.PlateCarree())
-        ax.text(113.4, 35.8, 'B', transform=ccrs.PlateCarree())
+
+        ax.text(self.areaA['lon1']-0.3, self.areaA['lat1']+0.2, 'A')
+        # ax.text(self.areaB['lon1']-0.3, self.areaB['lat1']+0.2, 'B')
+        ax.text(self.areaD['lon1']-0.3, self.areaD['lat1']+0.2, 'B')
+        ax.text(self.areaC['lon1']-0.3, self.areaC['lat1']+0.2, 'C')
+        self.add_patch(self.areaA, ax, color='blue')
+        self.add_patch(self.areaD, ax, color='blue')
+        self.add_patch(self.areaC, ax, color='blue')
+        
+        
+
         return crx   # 可以从crx里面获得colorticks, 色标相关的变量
         
     def draw_rain_1h(self, data, ax):
@@ -271,12 +298,14 @@ class Draw(Rain):
                           transform=ccrs.PlateCarree()
                           )
         # mp.add_station(ax, self.station, justice=True, delx=-0.1)
-        areaA = self.areaA
-        areaB = self.areaB
-        ax.text(areaA['lon1']+0.3, areaA['lat1']+0.3, 'A')
-        ax.text(areaB['lon1']+0.3, areaB['lat1']+0.3, 'B')
-        self.add_patch(areaA, ax)
-        self.add_patch(areaB, ax)
+        # areaA = self.areaA
+        # areaB = self.areaB
+        ax.text(self.areaA['lon1']+0.3, self.areaA['lat1']+0.3, 'A')
+        ax.text(self.areaB['lon1']+0.3, self.areaB['lat1']+0.3, 'B')
+        ax.text(self.areaC['lon1']+0.3, self.areaB['lat1']+0.3, 'C')
+        self.add_patch(self.areaA, ax)
+        self.add_patch(self.areaB, ax)
+        self.add_patch(self.areaC, ax)
         # ax.text(114.4, 33.7, 'D', transform=ccrs.PlateCarree())
         com = Common()
         ax.plot(np.linspace(com.cross_start[0], com.cross_end[0], 10), np.linspace(com.cross_start[1], com.cross_end[1], 10), color='black')

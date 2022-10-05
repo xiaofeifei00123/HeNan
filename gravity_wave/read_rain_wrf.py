@@ -226,9 +226,10 @@ class GetData():
 if __name__ == '__main__':
     
     gd = GetData()
-    gd.combine_time()  # 一个小试验一个小试验的存
+    # gd.combine_time()  # 一个小试验一个小试验的存
     ds = gd.combine_model()
-    ds.to_netcdf('/mnt/zfm_18T/fengxiana/HeNan/gravity_wave/data/'+'rain_model_da.nc')
+    # ds.to_netcdf('/mnt/zfm_18T/fengxiana/HeNan/gravity_wave/data/'+'rain_model_da.nc')
+    ds.to_netcdf('/mnt/zfm_18T/fengxiang/HeNan/gravity_wave/data/rain_model_da.nc')
 # %%
 # dds = gd.caculate_area_mean(ds, )
 # dds
