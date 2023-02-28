@@ -227,13 +227,13 @@ class Draw(Rain):
         mp.add_station(ax, self.station_zz, justice=True, delx=-0.1)
         ax.set_title('Max = %s'%(rain_max.values.round(1)), fontsize=10,loc='right')
 
-        ax.text(self.areaA['lon1']-0.3, self.areaA['lat1']+0.2, 'A')
+        # ax.text(self.areaA['lon1']-0.3, self.areaA['lat1']+0.2, 'A')
         # ax.text(self.areaB['lon1']-0.3, self.areaB['lat1']+0.2, 'B')
         ax.text(self.areaD['lon1']-0.3, self.areaD['lat1']+0.2, 'B')
-        ax.text(self.areaC['lon1']-0.3, self.areaC['lat1']+0.2, 'C')
-        self.add_patch(self.areaA, ax, color='blue')
+        # ax.text(self.areaC['lon1']-0.3, self.areaC['lat1']+0.2, 'C')
+        # self.add_patch(self.areaA, ax, color='blue')
         self.add_patch(self.areaD, ax, color='blue')
-        self.add_patch(self.areaC, ax, color='blue')
+        # self.add_patch(self.areaC, ax, color='blue')
         
         
 

@@ -21,6 +21,7 @@ from multiprocessing import Pool
 # import cartopy.crs as crs
 # from cartopy.feature import NaturalEarthFeature
 from baobao.caculate import caculate_pdiv3d, caculate_pvor3d, caculate_div3d, caculate_vor3d
+from common import Common
 
 # %%
 # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/newall/GWD3/wrfout/cross4_1time.nc'
@@ -50,22 +51,15 @@ class CrossData():
     提供剖面数据
     地形的剖面数据
     """
-    def __init__(self, wrf_file) -> None:
+    def __init__(self, wrf_file):
         pass
-        ## Create the start point and end point for the cross section
-        ## 降水的分布
-        # self.cross_start = [111.5, 33]
-        # self.cross_end = [114.3, 36]
-        # self.cross_start = CoordPair(lat=33, lon=111.5)
-        # self.cross_end = CoordPair(lat=36, lon=114.3)
-
-        ## 西北东南走向，过嵩山
-        # self.cross_start= CoordPair(lat=33.7, lon=112.2)
-        # self.cross_end= CoordPair(lat=36, lon=115.3)
 
         ## 伏牛山东西侧
-        self.cross_start = CoordPair(lat=33, lon=111.5)
-        self.cross_end = CoordPair(lat=36, lon=114.3)
+        # self.cross_start = CoordPair(lat=33, lon=111.5)
+        # self.cross_end = CoordPair(lat=36, lon=114.3)
+        com = Common()
+        self.cross_start = CoordPair(lat=com.cross_start[1], lon=com.cross_start[0])
+        self.cross_end = CoordPair(lat=com.cross_end[1], lon=com.cross_end[0])
 
         # self.cross_start = CoordPair(lat=31, lon=112.4)
         # self.cross_end = CoordPair(lat=34, lon=112.4)
@@ -166,33 +160,33 @@ class CrossData():
         # print((div.values-div1.values).max())
         # print((vor.values-vor1.values).max())
 
-        dragx0 = getvar(self.ncfile, 'DTAUX3D_LS')
-        dragy0 = getvar(self.ncfile, 'DTAUY3D_LS')
-        dragx1 = getvar(self.ncfile, 'DTAUX3D_SS')
-        dragy1 = getvar(self.ncfile, 'DTAUY3D_SS')
-        dragx2 = getvar(self.ncfile, 'DTAUX3D_BL')
-        dragy2 = getvar(self.ncfile, 'DTAUY3D_BL')
-        dragx3 = getvar(self.ncfile, 'DTAUX3D_FD')
-        dragy3 = getvar(self.ncfile, 'DTAUY3D_FD')
-        drag0 = np.sqrt(dragx0**2+dragy0**2)
-        drag1 = np.sqrt(dragx1**2+dragy1**2)
-        drag2 = np.sqrt(dragx2**2+dragy2**2)
-        drag3 = np.sqrt(dragx3**2+dragy3**2)
-        drag = (drag1+drag2+drag3+drag0).rename('drag')
+        # dragx0 = getvar(self.ncfile, 'DTAUX3D_LS')
+        # dragy0 = getvar(self.ncfile, 'DTAUY3D_LS')
+        # dragx1 = getvar(self.ncfile, 'DTAUX3D_SS')
+        # dragy1 = getvar(self.ncfile, 'DTAUY3D_SS')
+        # dragx2 = getvar(self.ncfile, 'DTAUX3D_BL')
+        # dragy2 = getvar(self.ncfile, 'DTAUY3D_BL')
+        # dragx3 = getvar(self.ncfile, 'DTAUX3D_FD')
+        # dragy3 = getvar(self.ncfile, 'DTAUY3D_FD')
+        # drag0 = np.sqrt(dragx0**2+dragy0**2)
+        # drag1 = np.sqrt(dragx1**2+dragy1**2)
+        # drag2 = np.sqrt(dragx2**2+dragy2**2)
+        # drag3 = np.sqrt(dragx3**2+dragy3**2)
+        # drag = (drag1+drag2+drag3+drag0).rename('drag')
 
         
 
         ws.attrs = u.attrs  # 因为get_vcross,对project做了统一处理，这里需要是一样的
         div.attrs = u.attrs  # 因为get_vcross,对project做了统一处理，这里需要是一样的
         vor.attrs = u.attrs  # 因为get_vcross,对project做了统一处理，这里需要是一样的
-        drag.attrs = u.attrs  # 因为get_vcross,对project做了统一处理，这里需要是一样的
+        # drag.attrs = u.attrs  # 因为get_vcross,对project做了统一处理，这里需要是一样的
         div_cross = self.get_vcross(div)  # 插值到剖面上
         vor_cross = self.get_vcross(vor)  # 插值到剖面上
-        drag_cross = self.get_vcross(drag)
+        # drag_cross = self.get_vcross(drag)
         ws_cross = self.get_vcross(ws)
         da_cross_list.append(div_cross)
         da_cross_list.append(vor_cross)
-        da_cross_list.append(drag_cross)
+        # da_cross_list.append(drag_cross)
         da_cross_list.append(ws_cross)
         ds = xr.merge(da_cross_list)
         ds.attrs['cross_start'] = self.cross_start.latlon_str()
@@ -251,7 +245,7 @@ def save_one_model_mp(path):
     # path = '/mnt/zfm_18T/fengxiang/HeNan/Data/1900_90m/'
     # tt = pd.date_range('2021-07-20 0000', '2021-07-20 0000', freq='1H')
     # tt = pd.date_range('2021-07-20 1200', '2021-07-20 1200', freq='1H')
-    tt = pd.date_range('2021-07-20 1800', '2021-07-20 1800', freq='1H')
+    tt = pd.date_range('2021-07-20 0100', '2021-07-20 0100', freq='1H')
     # tt = pd.date_range('2021-07-17 0000', '2021-07-23 0000', freq='1H')
     # tt
     fl_list = []
@@ -283,7 +277,7 @@ def save_one_model_mp(path):
 
     ds = ds.rename({'Time':'time'})
     # save_name = path+'cross4_times.nc'
-    save_name = path+'cross8_1time.nc'
+    save_name = path+'cross9_1time.nc'
     # save_name = path+'cross5_d03_1time.nc'
     ds.to_netcdf(save_name)
 

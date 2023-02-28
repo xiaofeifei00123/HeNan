@@ -50,7 +50,8 @@ from baobao.caculate import caculate_q_rh_thetav
 from baobao.caculate import caculate_vo_div, caculate_div
 from baobao.map import Map   # 一个类名
 from baobao.map import get_rgb
-from gravity_wave.draw_rain_distribution import Draw, Rain
+from draw_rain_distribution import Draw, Rain
+from common import Common
 
 
 
@@ -197,7 +198,8 @@ def draw_contourf(ax, da):
     # colorlevel= [-90,-20,-10,-5, 0, 5,10,20,90]  # 垂直速度的色标
     # colorlevel= [-90,-4,-3,-2,-1,0,1,2,3,4,90]# 水汽通量散度的色标
     # colorticks=colorlevel[1:-2]
-    da = smooth2d(field=da, passes=16)
+    da = smooth2d(field=da, passes=6)   # 这个画850hPa的效果比较好
+    # da = smooth2d(field=da, passes=2)
     crx = ax.contourf(x,
                         y,
                         da.values,
@@ -293,7 +295,7 @@ def draw(qdif, qu,qv, dic):
     cs, colorlevel = draw_contourf(ax,qdif)
     colorticks = colorlevel[1:-1]
     # ax.set_xlabel('vertical velocity $(w, 10^{-1}m/s)$', labelpad=0.01, fontsize=8)  # 和图片的距离
-    ax.set_xlabel('散度 $10^{-5}s^{-1}$', labelpad=0.01, fontsize=8)  # 水汽通量散度
+    ax.set_xlabel('Divergence ($10^{-5}s^{-1}$)', labelpad=0.01, fontsize=8)  # 水汽通量散度
     # ax.set_xlabel('垂直速度 $10^{-2}m \cdot s^{-1}$', labelpad=0.01, fontsize=8)  # 水汽通量散度
     cb = fig.colorbar(
         cs,
@@ -310,10 +312,14 @@ def draw(qdif, qu,qv, dic):
     
     ## 画直线
     # dr = Draw(fig, ax)
-    dr = Rain()
+    # dr = Rain()
+    dr = Common()
     ax.plot(np.linspace(dr.cross_start[0], dr.cross_end[0], 10), np.linspace(dr.cross_start[1], dr.cross_end[1], 10), color='black')
     # ax.text(dr.cross_start[0], dr.cross_start[1], 'D', transform=ccrs.PlateCarree())
-    mp.add_station(ax, dr.station, justice=True, ssize=10, marker='o')
+    mp.add_station(ax, dr.station_zz, justice=True, ssize=10, marker='o')
+    # 画降水核心区域
+    drr = Draw()
+    drr.add_patch(dr.areaB, ax, color='red') 
     
 
     # fig_path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_upar/850/alltime/'
@@ -361,13 +367,16 @@ def draw_model_once():
     模式
     """
     # path_out = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd3/upar.nc'
-    path_out = '/home/fengxiang/HeNan/Data/GWD/d03/newall/GWD3/upar.nc'
-
+    # path_out = '/home/fengxiang/HeNan/Data/GWD/d03/newall/GWD3/upar.nc'
+    # path_out = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/DA/GWD3/upar.nc'
+    path_out = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/DA/CTRL/upar.nc'
 
     # for t in pd.date_range('2021-07-17 00', '2021-07-23 00', freq='12H'):
-    for t in pd.date_range('2021-07-20 00', '2021-07-20 00', freq='12H'):
+    # for t in pd.date_range('2021-07-20 00', '2021-07-20 00', freq='12H'):
+    for t in pd.date_range('2021-07-20 01', '2021-07-20 01', freq='12H'):
         # for lev in [925,]:
-        for lev in [500,]:
+        lev_list = [900, 925, 850, 700, 600, 500, 400,300,200]
+        for lev in lev_list[2:3]:
             dic_model = {
                 'model':'GWD3',
                 # 'level':850,

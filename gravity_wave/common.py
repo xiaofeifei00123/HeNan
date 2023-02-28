@@ -1,3 +1,4 @@
+# from wrf import CoordPair
 class Common():
     def __init__(self, ):
 
@@ -7,11 +8,12 @@ class Common():
             'lon1':112.4,
             'lon2':112.8,
         }        
+        ## 模式降水核心区
         self.areaB = {
             'lat1':34.4,
-            'lat2':34.9,
+            'lat2':34.8,
             'lon1':113.0,
-            'lon2':113.7,
+            'lon2':113.4,
         }        
         self.areaC = {
             'lat1':35.3,
@@ -32,6 +34,22 @@ class Common():
             'lat2':34.8,
             'lon1':113.2,
             'lon2':113.6,
+        }        
+        ## 整个河南区域
+        self.areaall = {
+            'lat1':32.0,
+            'lat2':36.5,
+            'lon1':110.5,
+            'lon2':116,
+        }        
+
+        
+        ## 波动的一个区域
+        self.area_bo= {
+            'lat1':33.4,
+            'lat2':33.7,
+            'lon1':112.6,
+            'lon2':112.9,
         }        
 
         self.station_line = {
@@ -82,5 +100,12 @@ class Common():
                     'lon': 113.65
                 },
             }
-        self.cross_start = [111, 34.5]
-        self.cross_end = [114.5, 32.5]
+        # self.cross_start = [112.2, 32.6]
+        self.cross_start = [112.5, 33]
+        # self.cross_end = [113.5, 34.9]
+        self.cross_end = [113.5, 35]
+
+        # self.cross_start = [112.2, 32.5]
+        # self.cross_end = [113.7, 35.5]
+        # self.cross_start_coord = CoordPair(lat=33, lon=111.5)
+        # self.cross_end_coord = CoordPair(lat=36, lon=114.3)

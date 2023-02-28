@@ -50,7 +50,8 @@ from baobao.caculate import caculate_q_rh_thetav
 from baobao.caculate import caculate_vo_div, caculate_div
 from baobao.map import Map   # 一个类名
 from baobao.map import get_rgb
-from gravity_wave.draw_rain_distribution import Draw
+# from draw_rain_distribution import Draw
+from common import Common
 
 
 
@@ -194,7 +195,8 @@ def draw_contourf(ax, da):
     # colorlevel= [-90,-20,-10,-5, 0, 5,10,20,90]  # 垂直速度的色标
     # colorlevel= [-90,-4,-3,-2,-1,0,1,2,3,4,90]# 水汽通量散度的色标
     # colorticks=colorlevel[1:-2]
-    da = smooth2d(field=da, passes=16)
+    # da = smooth2d(field=da, passes=16)
+    da = smooth2d(field=da, passes=6)
     crx = ax.contourf(x,
                         y,
                         da.values,
@@ -305,10 +307,11 @@ def draw(qdif, qu,qv, dic):
     draw_quiver(qu,qv,ax)
 
     
-    dr = Draw(fig, ax)
+    # dr = Draw(fig, ax)
+    dr = Common()
     ax.plot(np.linspace(dr.cross_start[0], dr.cross_end[0], 10), np.linspace(dr.cross_start[1], dr.cross_end[1], 10), color='black')
     # mp.add_station(dr.station)
-    mp.add_station(ax, dr.station, justice=True, ssize=30)
+    mp.add_station(ax, dr.station_zz, justice=True, ssize=30)
     
 
     # fig_path = '/mnt/zfm_18T/fengxiang/HeNan/Draw/picture_upar/850/alltime/'
@@ -355,12 +358,14 @@ def draw_model_once():
     模式
     """
     # path_out = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd3/upar.nc'
-    path_out = '/home/fengxiang/HeNan/Data/GWD/d03/newall/GWD3/upar.nc'
+    # path_out = '/home/fengxiang/HeNan/Data/GWD/d03/newall/GWD3/upar.nc'
+    path_out = '/home/fengxiang/HeNan/Data/GWD/d03/DA/GWD3/upar.nc'
 
 
     # for t in pd.date_range('2021-07-17 00', '2021-07-23 00', freq='12H'):
-    for t in pd.date_range('2021-07-20 00', '2021-07-20 00', freq='12H'):
-        for lev in [600,]:
+    for t in pd.date_range('2021-07-20 01', '2021-07-20 01', freq='12H'):
+        lev_list = [900, 925, 850, 700, 600, 500, 400,300,200]
+        for lev in lev_list:
             dic_model = {
                 'model':'GWD3',
                 # 'level':850,

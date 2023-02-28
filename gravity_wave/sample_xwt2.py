@@ -119,7 +119,9 @@ def get_data_div_vor(height):
         
     # flnm = '/home/fengxiang/HeNan/Data/GWD/d03/newall/GWD3/wrfout/cross4_1time.nc'
     # flnm = '/home/fengxiang/HeNan/Data/GWD/d03/newall/CTRL/wrfout/cross4_1time.nc'
-    flnm = '/home/fengxiang/HeNan/Data/GWD/d03/newall/FD/wrfout/cross4_1time.nc'
+    # flnm = '/home/fengxiang/HeNan/Data/GWD/d03/newall/FD/wrfout/cross4_1time.nc'
+    flnm = '/home/fengxiang/HeNan/Data/GWD/d03/DA/GWD3/wrfout/cross9_1time.nc'
+    # flnm = '/home/fengxiang/HeNan/Data/GWD/d03/DA/CTRL/wrfout/cross9_1time.nc'
 # flnm = '/home/fengxiang/HeNan/Data/GWD/d03/newall/SS/wrfout/cross4_1time.nc'
     ds = xr.open_dataset(flnm)
     ds = ds.squeeze()
@@ -280,7 +282,7 @@ def draw_xwt(s1, s2, t1, t2, fig, ax ):
     ax.set_xlim(max(t1.min(), t2.min()), min(t1.max(), t2.max()))
     # axx = plt.gca().yaxis
 # ax.set_yticks([8, 16, 32, 64, 128])
-    ax.set_yticks([8, 16, 32, 50, 64, 90, 128])
+    ax.set_yticks([8, 16,24, 32, 50, 64, 90, 128])
     ax.yaxis.set_major_formatter(FormatStrFormatter('%.0f'))
     # fig.colorbar(cr)
     # return cr
@@ -302,7 +304,7 @@ def draw_xwt(s1, s2, t1, t2, fig, ax ):
 # fig.savefig('./xwt.png')
 
 ## 自己的数据
-da1, da2 = get_data_div_vor(4200)
+da1, da2 = get_data_div_vor(10500)
 # da1, da2 = get_data_div_vor(1000)
 t1 = da1.distance.values
 t2 = da2.distance.values
@@ -338,6 +340,6 @@ ax2.set_xticks(np.arange(0, t1.max(), 100))
 ax2.xaxis.set_minor_locator(plt.MultipleLocator(20))
 
 fig_path = '/mnt/zfm_18T/fengxiang/HeNan/gravity_wave/figure/picture_wave/'
-fig.savefig(fig_path+'xwt_4200_FD')
+fig.savefig(fig_path+'xwt_DA_4200')
 
 

@@ -21,7 +21,8 @@ import cmaps
 
 from baobao.map import Map
 
-from gravity_wave.draw_rain_distribution import Rain
+from draw_rain_distribution import Rain
+from common import Common
 import numpy as np
 from draw_upar_850_d03_div import draw_quiver, get_data
 import pandas as pd
@@ -99,7 +100,7 @@ class Draw(object):
         cm = 1/2.54
         fig = plt.figure(figsize=(8*cm, 8*cm), dpi=300)
         proj = ccrs.PlateCarree()  # 创建坐标系
-        ax = fig.add_axes([0.1,0.1,0.85,0.85], projection=proj)
+        ax = fig.add_axes([0.12,0.1,0.83,0.83], projection=proj)
         # ax.set_extent([])
         print("画{}时刻的图".format(str(picture_dic['date'])))
         date = picture_dic['date']
@@ -146,10 +147,11 @@ class Draw(object):
         cb.ax.tick_params(labelsize=10)  # 设置色标标注的大小
 
         
-        dr = Rain()
+        # dr = Rain()
+        dr = Common()
         ax.plot(np.linspace(dr.cross_start[0], dr.cross_end[0], 10), np.linspace(dr.cross_start[1], dr.cross_end[1], 10), color='black')
         # ax.text(dr.cross_start[0], dr.cross_start[1], 'D', transform=ccrs.PlateCarree())
-        mp.add_station(ax, dr.station, justice=True, ssize=10, marker='o')
+        mp.add_station(ax, dr.station_zz, justice=True, ssize=10, marker='o')
         
 
         fig_name = picture_dic['type']+'_'+picture_dic['initial_time']+'_'+picture_dic['date']
@@ -271,7 +273,8 @@ def draw_one(model):
     # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/new_modify/GWD3/rain_wrfout_d03.nc'
     # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/new_modify/'+model+'/rain_wrfout_d03.nc'
     # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/DA/GWD3'
-    flnm = '/mnt/zfm_18T/fengxiang/HeNan/gravity_wave/data/'+'rain_model_da.nc'
+    # flnm = '/mnt/zfm_18T/fengxiang/HeNan/gravity_wave/data/'+'rain_model_da.nc'
+    flnm = '/mnt/zfm_18T/fengxiang/HeNan/gravity_wave/data/rain_model_da_new.nc'
     # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/newall/GWD3/wrfout/rain_wrfout_d03.nc'
     # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/1912_900m/rain.nc'
     ds = xr.open_dataset(flnm)

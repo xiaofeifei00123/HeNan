@@ -131,15 +131,15 @@ y3 = b/du
 # y4 = b/ri
 ax.plot(x,y,label='$R_i$', color='black', marker='.')
 ax.plot(x,y1*10000, label='$N^2*10^4$', color='red', marker='.')
-# ax.plot(x,y2*1000, label='$shear^2$', color='blue', marker='.')
+ax.plot(x,y2*1000, label='$shear^2$', color='blue', marker='.')
 # ax.plot(x,y2*100, label='$shear^2$')
 # ax.plot(x,y1/y2, label='$ N^2/shear^2$', marker='.', color='black')
 # ax.plot(x,y4, label='$ N^2/shear^2$')
 # ax.set_xticks(x[2::2])
 # ax.set_xticks(x[4::1])
-ax.set_ylim(-2, 5)
+ax.set_ylim(-2, 6)
 ax.axhline(y=0.25, color='black')
-ax.legend(edgecolor='white')
+ax.legend(edgecolor='white', ncol=1, loc='upper right', fontsize=9)
 ax.set_xlabel('Time (Hour/Date)')
 # ax.set_ylabel('Time (Hour/Date)')
 figpath = '/mnt/zfm_18T/fengxiang/HeNan/gravity_wave/figure/picture/'
@@ -178,7 +178,7 @@ def draw(ri2):
     fig_name = path+'richard'
     fig.savefig(fig_name)
 
-# if __name__ == '__main__':
+if __name__ == '__main__':
     
-#     ri2 = get_data()
-#     draw(ri2)
+    ri2 = get_data()
+    draw(ri2)

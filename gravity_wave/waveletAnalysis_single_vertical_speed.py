@@ -83,8 +83,7 @@ def drop_na(da):
 
 # %%
 def get_div_distance():
-    # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/newall/GWD3/wrfout/cross2.nc' 
-    flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/DA/GWD3/wrfout/cross9_1time.nc'
+    flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/newall/GWD3/wrfout/cross2.nc' 
     ds = xr.open_dataset(flnm)
     div = ds['div_cross'].sel(time='2021-07-20 00')#.sel(vertical=2000, method='nearest')
     div = drop_na(div)
@@ -102,10 +101,9 @@ def get_vs_distance():
     Returns:
         _type_: _description_
     """
-    # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/newall/GWD3/wrfout/cross2.nc' 
-    flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/DA/GWD3/wrfout/cross9_1time.nc'
+    flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/newall/GWD3/wrfout/cross2.nc' 
     ds = xr.open_dataset(flnm)
-    div = ds['wa_cross'].sel(time='2021-07-20 01')#.sel(vertical=2000, method='nearest')
+    div = ds['wa_cross'].sel(time='2021-07-20 00')#.sel(vertical=2000, method='nearest')
     div = drop_na(div)
     div2 = div.sel(vertical=4200, method='nearest')
     div2
@@ -258,7 +256,8 @@ def get_data_vertical_speed():
 
     # dc = db.sel(z=3000, method='nearest')
     # dc = db.sel(z=4200, method='nearest')
-    dc = db.sel(z=1500, method='nearest')
+    # dc = db.sel(z=1500, method='nearest')
+    dc = db.sel(z=5000, method='nearest')
     # dc = dc*10
     dc = dc*10**2
     da = dc
@@ -272,14 +271,13 @@ def  get_data_vs_distance():
         _type_: _description_
     """
     # flnm='/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd3/cross_rain.nc'
-    # flnm='/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd0/cross_rain.nc'
+    flnm='/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd0/cross_rain.nc'
     # flnm='/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/gwd0/cross2.nc'
-    flnm='/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/DA/GWD3/wrfout/cross9_1time.nc'
     ds = xr.open_dataset(flnm)
-    ds1 = ds.sel(time='2021-07-20 01')
+    ds1 = ds.sel(time='2021-07-20 12')
     da = ds1['wa_cross']
     da1 = da.interpolate_na(dim='vertical', method='linear',  fill_value="extrapolate")
-    da2 = da1.sel(vertical=1500, method='nearest')
+    da2 = da1.sel(vertical=1000, method='nearest')
     dd = da2.xy_loc
     def str_latlon(string):
         # d1 = dd.values[0]
@@ -322,7 +320,6 @@ def  get_data_vs_distance():
 sst, time, da = get_data_vertical_speed()
 # sst, time, da = get_div_distance()
 # sst, time, da = get_vs_distance()
-# sst, time, da = get_data_vs_distance()
 # sst, time, da = get_data_div()
 
 # sst, time, da = get_data_rain_obs()
@@ -389,9 +386,9 @@ levels = [-40, -20,0, 20,  40, 999]
 #     colors=['white', 'bisque', 'orange', 'orangered', 'darkred'])
 
 # colorlevel=[0, 1, 10, 25, 50, 100, 250, 400,600,800,1000, 2000]#雨量等级
-colorlevel=[0, 10, 20, 30, 50, 70, 100, 150, 200, 400,800,50000]  # 垂直速度
+# colorlevel=[0, 10, 20, 30, 50, 70, 100, 150, 200, 400,800,50000]  # 垂直速度
 # colorlevel=[0, 100, 150, 200, 400,800,1000, 1500, 2000, 3000, 4000, 50000]
-# colorlevel=[0,  50, 100, 150, 200,250, 400,800,1200, 1600, 2000, 50000]
+colorlevel=[0,  50, 100, 150, 200,250, 400,800,1200, 1600, 2000, 50000]
 # colorlevel=[0, 1, 2, 3, 5, 7, 10, 15, 20, 40,80,100]
 # colorlevel=[0, 0.1, 0.2, 0.3, 0.5, 0.7, 1, 1.5, 2.0, 4.0,8.0,100.0]
 # colorlevel=[-60, -40,-30,  -20 , -10, -5, 5,10,20 ,30, 40, 60]
@@ -469,7 +466,7 @@ ax.ticklabel_format(axis='y', style='plain')
 figpath = '/mnt/zfm_18T/fengxiang/HeNan/gravity_wave/figure/picture_wave/'
 # fig.savefig(figpath+'wave_time_rain_obs')
 # fig.savefig(figpath+'wave_time_rain_model')
-fig.savefig(figpath+'wave_time_1_5km')
+fig.savefig(figpath+'wave_time_5km')
 # fig.savefig(figpath+'wave_time_4km_gwd3')
 # fig.savefig(figpath+'tttt')
 # fig.savefig(figpath+'wave_rain')

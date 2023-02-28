@@ -18,32 +18,34 @@ from matplotlib.ticker import AutoMinorLocator
 from read_rain_wrf import GetData
 from common import Common
 from draw_rain_distribution_minus import Rain
-# %%
-# flnm_model = '/mnt/zfm_18T/fengxiang/HeNan/gravity_wave/data/'+'rain_model.nc'
-# flnm_obs = '/mnt/zfm_18T/fengxiang/HeNan/gravity_wave/data/'+'rain_obs.nc'
-# ds_model = xr.open_dataset(flnm_model)
-# ds_obs = xr.open_dataset(flnm_obs)
-# flnm_model = '/mnt/zfm_18T/fengxiang/HeNan/gravity_wave/data/rain_model.nc'
-# flnm_obs = '/mnt/zfm_18T/fengxiang/HeNan/gravity_wave/data/'+'rain_obs.nc'
-# ds_model = xr.open_dataset(flnm_model)
-# ds_obs = xr.open_dataset(flnm_obs)
-# gd = GetData()
-# area = {
-#     'lat1':32,
-#     'lat2':36.5,
-#     'lon1':110.5,
-#     'lon2':116,
-#     }        
-# ds_model_mean = gd.caculate_area_mean(ds_model, area)
-# ds_obs_mean  = caculate_area_mean_obs(ds_obs, area)
-# # %%
-# # ds_model_mean
-# # ds_obs_mean
-# xr.merge([ds_obs_mean, ds_model_mean])
+
+
+import meteva.method as mem
+import numpy as np
+
 
 # %%
-# ds_obs
-# ds2 = xr.merge([ds_model['GWD3'], ds_model['CTRL'], ds_])
+
+
+def replace_rain():
+    """将19日18-20日00时的降水，换成1912起报的结果
+    """
+    import xarray as xr
+    flnm_19_gwd3 = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/DA/GWD3/2021-07-19-12__2021-07-21-00/all.nc'
+    flnm_19_ctrl = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/DA/GWD3/2021-07-19-12__2021-07-21-00/all.nc'
+    flnm_all = '/mnt/zfm_18T/fengxiang/HeNan/gravity_wave/data/'+'rain_model_da.nc'
+    flnm_new = '/mnt/zfm_18T/fengxiang/HeNan/gravity_wave/data/'+'rain_model_da_new.nc'
+    da19_gwd3 = xr.open_dataarray(flnm_19_gwd3)
+    da19_ctrl = xr.open_dataarray(flnm_19_ctrl)
+    ds = xr.open_dataset(flnm_all)
+    tt = pd.date_range('2021-07-19 18', '2021-07-20 00', freq='1H')
+    ds['GWD3'].loc[tt, :, ::] = da19_gwd3.sel(time=tt)
+    ds['CTRL'].loc[tt, :, ::] = da19_ctrl.sel(time=tt)
+    ds.to_netcdf(flnm_new)
+
+
+
+
 
 # %%
 def caculate_area_mean_obs(da,area):
@@ -58,37 +60,30 @@ def caculate_area_mean_obs(da,area):
     dsr = db.mean(dim=['lat', 'lon'])
     return dsr
 
-def get_data(area):
+def get_data():
+    """降水核心区域平均降水随时间变化曲线
+
+    Returns:
+        _type_: _description_
     """
-    area = {
-        'lat1':32,
-        'lat2':36.5,
-        'lon1':110.5,
-        'lon2':116,
-        }        
-    """
-    # flnm_model = '/mnt/zfm_18T/fengxiang/HeNan/gravity_wave/data/'+'rain_model.nc'
-    # flnm_model = '/mnt/zfm_18T/fengxiang/HeNan/gravity_wave/data/rain_model.nc'
-    flnm_model = '/mnt/zfm_18T/fengxiang/HeNan/gravity_wave/data/'+'rain_model_da.nc'
-    flnm_obs = '/mnt/zfm_18T/fengxiang/HeNan/gravity_wave/data/'+'rain_obs.nc'
+    flnm_model= '/mnt/zfm_18T/fengxiang/HeNan/gravity_wave/data/'+'rain_model_da_new.nc'
     ds_model = xr.open_dataset(flnm_model)
-    # tt = ds_model.time.values+pd.Timedelta('6H')
-    # ds_model = ds_model.assign_coords({'time':tt})
-
-    ds_obs = xr.open_dataset(flnm_obs)
     gd = GetData()
-    ds_model_mean = gd.caculate_area_mean(ds_model, area)
-    ds_obs_mean  = caculate_area_mean_obs(ds_obs, area)
+    com = Common()
+    ds_model_mean = gd.caculate_area_mean(ds_model, com.areaD)
+    ds_model_mean
 
-    # ds = xr.merge([ds_obs_mean, ds_model_mean])
-    # dsall = dsall.sel(model=['GWD3', 'CTRL'])
-    # ds = dsall.sel(time=slice('2021-07-17 00', '2021-07-23 00'))
-    ds = xr.merge([ds_model_mean['GWD3'], ds_model_mean['CTRL'],ds_obs_mean['PRCP']])
-    # ds = ds_model_mean
 
-    ds = ds.sel(time=slice('2021-07-17 00', '2021-07-23 00'))
-    # ds = ds.resample(time='3H').sum()
-    return ds
+    flnm_obs = '/mnt/zfm_18T/fengxiang/HeNan/gravity_wave/data/'+'rain_obs.nc'
+    ds_obs = xr.open_dataset(flnm_obs)
+    da_obs = ds_obs['PRCP']
+    da_obs_mean  = caculate_area_mean_obs(da_obs, com.areaE)
+    da_obs_mean
+
+    ds_model_mean['OBS'] = da_obs_mean
+    ds_mean = ds_model_mean
+    ds_mean
+    return ds_mean
 
 def draw(ds, fig, ax, *args, **kw):
     # color_list = ['black', 'green', 'blue', 'red', 'orange']
@@ -123,114 +118,57 @@ def draw(ds, fig, ax, *args, **kw):
     # ax.set_xticks(x[::2])
     # ax.set_xticklabels(x[::2].values, rotation=0, fontsize=10)
     # ax.xaxis.set_minor_locator(plt.MultipleLocator(1))
-# %%
-import xarray as xr
-flnm_19 = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/DA/GWD3/2021-07-19-12__2021-07-21-00/all.nc'
-# flnm_18 = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/DA/GWD3/2021-07-18-12__2021_07-20-00/all.nc'
-flnm_all = '/mnt/zfm_18T/fengxiang/HeNan/gravity_wave/data/'+'rain_model_da.nc'
-
-# da18 = xr.open_dataarray(flnm_18)
-da19 = xr.open_dataarray(flnm_19)
-ds = xr.open_dataset(flnm_all)
 
 # %%
-# da2 = ds['GWD3'].sel(time=slice('2021-07-19 18', '2021-07-20 00')).values #= 
-# ds['GWD3'].values
-daa = da19.sel(time=slice('2021-07-19 18', '2021-07-20 00'))
-daa
-ds['GWD3'].update(daa)
-# ds
+def draw_skill(ds):
+    fo = ds[['GWD3', 'CTRL']].to_array().values
+    fo_name_list = ["GWD3","CTRL"]
+    ob = ds['OBS'].values
+    cm = 1/2.54
+    width = 8*cm
+    height = 8*cm
+    fig_path = '/mnt/zfm_18T/fengxiang/HeNan/gravity_wave/figure/picture_rain/rain_time/'
+    save_path = fig_path+'rain_time_skill'
+    mem.taylor_diagram(ob,fo,member_list = fo_name_list, width=width, height=height,save_path=save_path)
+# # %%
 
-# %%
-da = ds['GWD3']
-gd = GetData()
-com = Common()
-da_model_mean = gd.caculate_area_mean(da, com.areaD)
-da_model_mean.plot()
+def main(ds):
+    cm = 1/2.54
+    fig = plt.figure(figsize=(16*cm, 8*cm), dpi=300)
+    ax  = fig.add_axes([0.1, 0.15, 0.85, 0.8])
+    ax.set_ylabel('Precipitation (mm)')
+    ax.set_xlabel('Time (Date/Hour)')
+    # ds.attrs['color_list'] = ['red', 'green', 'black', 'red', 'green', 'black']
+    # ds.attrs['color_list'] = ['green', 'red', 'black', 'red', 'green', 'black']
+    ds.attrs['color_list'] = ['red', 'black', 'red', 'green', 'black']
+    ds.attrs['line_list'] = ['-', '-', '-', '--', '--', '--']
+    draw(ds, fig, ax)
+    fig_path = '/mnt/zfm_18T/fengxiang/HeNan/gravity_wave/figure/picture_rain/rain_time/'
+    fig.savefig(fig_path+'model_A')
 
-# %%
-# da = ds['GWD3']
-da = da19
-gd = GetData()
-com = Common()
-ds_model_mean = gd.caculate_area_mean(da, com.areaD)
-
-flnm_obs = '/mnt/zfm_18T/fengxiang/HeNan/gravity_wave/data/'+'rain_obs.nc'
-ds_obs = xr.open_dataset(flnm_obs)
-ds_obs_mean  = caculate_area_mean_obs(ds_obs, com.areaE)
-
-
-# %%
-ds_model_mean.plot(label='model')
-ds_obs_mean['PRCP'].plot(label='obs')
-plt.legend()
-# %%
-# da = da19
-cm = 1/2.54
-fig = plt.figure(figsize=(16*cm, 8*cm), dpi=300)
-ax  = fig.add_axes([0.1, 0.15, 0.85, 0.8])
-x1 = ds_obs_mean.time
-x2 = ds_model_mean.time
-y1 = ds_obs_mean['PRCP'].values
-y2 = ds_model_mean.values
-ax.plot(x1, y1, color='black')
-ax.plot(x2, y2, color='red')
-ax.set_xlim(x1[70], x1[130])
-# x1.shape
-# y1.shape
-
-# %%
-
-def main():
-dsA = get_data(areaA)
-dsB = get_data(areaB)
-dsA = dsA.rename({'GWD3':'GWD3A', 'CTRL':'CTRLA', 'PRCP':'OBSA'})
-dsA = xr.merge([dsA['GWD3A'], dsA['OBSA']])
-dsB = xr.merge([dsB['GWD3A'], dsB['OBSA']])
-dsB = dsB.rename({'GWD3':'GWD3B', 'CTRL':'CTRLB', 'PRCP':'OBSB'})
-ds = xr.merge([dsA, dsB])
-
-
-ds = dsA
-cm = 1/2.54
-# fig = plt.figure(figsize=(16*cm, 8*cm), dpi=300)
-fig = plt.figure(figsize=(16*cm, 8*cm), dpi=300)
-ax  = fig.add_axes([0.1, 0.15, 0.85, 0.8])
-ax.set_ylabel('Precipitation (mm)')
-ax.set_xlabel('Time (Date/Hour)')
-# ds.attrs['color_list'] = ['red', 'black', 'red', 'black']
-# ds.attrs['line_list'] = ['-', '-', '--', '--']
-# ds.attrs['color_list'] = ['red', 'green', 'black', 'red', 'green', 'black']
-ds.attrs['color_list'] = ['red', 'green', 'black', 'red', 'green', 'black']
-ds.attrs['line_list'] = ['-', '-', '-', '--', '--', '--']
-draw(ds, fig, ax)
-# %%
-fig_path = '/mnt/zfm_18T/fengxiang/HeNan/gravity_wave/figure/picture_rain/rain_time/'
-# fig.savefig(fig_path+'time_sAB')
-fig.savefig(fig_path+'model_A')
-# %%
-# cm.areaA
 if __name__ == "__main__":
-    main()
+    ds = get_data()
+    main(ds[['GWD3', 'OBS']])
+    # draw_skill(ds)
 
-# %%
+# # %%
 
-# import xarray as xr
-# # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/newall/GWD3/2021-07-19-12__2021-07-21-00/all.nc'
-# flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/newall/GWD3/2021-07-20-12__2021-07-22-00/all.nc'
-# da = xr.open_dataarray(flnm)
-# da
-# # %%
-# gd = GetData()
-# cm = Common()
-# area = {
-#     'lat1':33.5,
-#     'lat2':36.0,
-#     'lon1':112.5,
-#     'lon2':114.5,
-#     }        
-# daa = gd.caculate_area_mean(da, area)
-# daa
-# # %%
-# daa.plot()
-# # da.mean(dim=['south'])
+# # import xarray as xr
+# # # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/newall/GWD3/2021-07-19-12__2021-07-21-00/all.nc'
+# # flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/newall/GWD3/2021-07-20-12__2021-07-22-00/all.nc'
+# # da = xr.open_dataarray(flnm)
+# # da
+# # # %%
+# # gd = GetData()
+# # cm = Common()
+# # area = {
+# #     'lat1':33.5,
+# #     'lat2':36.0,
+# #     'lon1':112.5,
+# #     'lon2':114.5,
+# #     }        
+# # daa = gd.caculate_area_mean(da, area)
+# # daa
+# # # %%
+# # daa.plot()
+# # # da.mean(dim=['south'])

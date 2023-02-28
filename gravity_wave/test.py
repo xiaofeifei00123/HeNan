@@ -278,3 +278,5 @@ plt.plot(l,np.linspace(Sw,Sw,l.shape[0]),'--m',label='white noise')
 plt.legend()
 plt.show()
 print(r1)
+
+# %%

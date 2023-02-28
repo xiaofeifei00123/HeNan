@@ -26,7 +26,8 @@ import cartopy.crs as crs
 from cartopy.feature import NaturalEarthFeature
 from geopy.distance import distance  # 根据经纬度计算两点距离
 
-from gravity_wave.draw_rain_distribution import Rain
+# from gravity_wave.draw_rain_distribution import Rain
+from common import Common
 # import cmaps
 plt.rcParams['axes.unicode_minus']=False 
 # from ..Data.read_vertical_cross import CrossData
@@ -240,8 +241,8 @@ def draw_contourf(fig, ax_cross, da, ter_line):
         ax_cross.annotate(text, xy=(a, 0), xytext=(a, -3800),
                 arrowprops=dict(facecolor='black',  headwidth=8, headlength=8),
                 )
-    dr = Rain()
-    for loc in dr.station.values():
+    dr = Common()
+    for loc in dr.station_zz.values():
         add_anotate(loc['lat'], loc['lon'],loc['abbreviation'])
 
 
@@ -362,7 +363,7 @@ def draw(t='2021-07-20 08', flpath='/mnt/zfm_18T/fengxiang/HeNan/Data/1900_90m/'
     theta_e = ds['theta_e_cross']
     theta = ds['theta_cross']
     div = ds['div_cross']
-    drag = ds['drag_cross']
+    # drag = ds['drag_cross']
     ws = ds['ws_cross']
 
     w = drop_na(w)
@@ -371,7 +372,7 @@ def draw(t='2021-07-20 08', flpath='/mnt/zfm_18T/fengxiang/HeNan/Data/1900_90m/'
     theta_e = drop_na(theta_e)
     theta = drop_na(theta)
     div = drop_na(div)
-    drag = drop_na(drag)
+    # drag = drop_na(drag)
     ws = drop_na(ws)
 
     cm = round(1/2.54, 2)
@@ -424,14 +425,15 @@ def draw(t='2021-07-20 08', flpath='/mnt/zfm_18T/fengxiang/HeNan/Data/1900_90m/'
 
 def draw_1time(t='2021-07-20 00'):
     # path_main ='/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/'
-    path_main ='/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/newall/'
+    # path_main ='/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/newall/'
+    path_main ='/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/DA/'
     # model_list = ['1900_90m', '1900_900m','1912_90m', '1912_900m']
     # model_list = ['1912_90m', '1912_90m_OGWD']
     # model_list = ['gwd0', 'gwd3']
     # model_list = ['CTRL', 'GWD3', 'FD', 'SS']
-    model_list = ['CTRL', 'FD', 'SS', 'GWD3']
+    # model_list = ['CTRL', 'FD', 'SS', 'GWD3']
     # model_list = ['CTRL']
-    # model_list = ['GWD3']
+    model_list = ['GWD3', 'CTRL']
     for model in model_list:
         fl = path_main+model+'/wrfout/'
         draw(t=t, flpath=fl, model=model)
@@ -439,7 +441,7 @@ def draw_1time(t='2021-07-20 00'):
 def draw_mtime():
     # time_list = pd.date_range('2021-07-17 00', '2021-07-23 00', freq='3H')
     # time_list = pd.date_range('2021-07-20 00', '2021-07-20 00', freq='3H')
-    time_list = pd.date_range('2021-07-20 18', '2021-07-20 18', freq='3H')
+    time_list = pd.date_range('2021-07-20 01', '2021-07-20 01', freq='3H')
     # time_list = pd.date_range('2021-07-20 12', '2021-07-20 12', freq='3H')
     # time_list = pd.date_range('2021-07-20 00', '2021-07-21 00', freq='3H')
     # time_list = pd.date_range('2021-07-20 06', '2021-07-20 06', freq='1H')

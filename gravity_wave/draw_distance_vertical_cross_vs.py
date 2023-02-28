@@ -26,10 +26,11 @@ import cartopy.crs as crs
 from cartopy.feature import NaturalEarthFeature
 from geopy.distance import distance  # 根据经纬度计算两点距离
 
-from gravity_wave.draw_rain_distribution import Rain
+# from gravity_wave.draw_rain_distribution import Rain
 # import cmaps
 plt.rcParams['axes.unicode_minus']=False 
 # from ..Data.read_vertical_cross import CrossData
+from common import Common
 
 # %%
 
@@ -44,10 +45,15 @@ def draw_quiver(ax, u,v):
 
     
     # x = u.cross_line_idx.values[::5]
+    # da = latlon2distance(u)
+    # x = da.distance.values[::10]
+    # u = u[::8,::10]
+    # v = v[::8,::10]
+
     da = latlon2distance(u)
-    x = da.distance.values[::10]
-    u = u[::8,::10]
-    v = v[::8,::10]
+    x = da.distance.values[::5]
+    u = u[::6,::5]
+    v = v[::6,::5]
     # u = u[::1,::5]
     # v = v[::1,::5]
     
@@ -102,8 +108,8 @@ def draw_contour2(ax,da):
 def draw_contourf(fig, ax_cross, da, ter_line):
 
 
-    colorlevel=[-168, -10, -4, -2, -1, -0.5, 0.5, 1, 2, 4, 10, 168]#垂直速度
-    # colorlevel=[-80, -30, -20, -10, -5, -1, 1, 5, 10, 20, 30, 80]#雨量等级
+    # colorlevel=[-168, -10, -4, -2, -1, -0.5, 0.5, 1, 2, 4, 10, 168]#垂直速度
+    colorlevel=[-80, -30, -20, -10, -5, -1, 1, 5, 10, 20, 30, 80]#雨量等级
     # colorlevel=[-280, -60, -30, -10, -5, -1, 1, 5, 10, 30, 60, 280]#雨量等级
     # colorlevel=[-680, -100, -40, -15, -5, -1, 1, 5, 15, 40, 100, 680]#雨量等级
     ### 散度
@@ -133,9 +139,9 @@ def draw_contourf(fig, ax_cross, da, ter_line):
                                     colors=colordict,
                                     levels=colorlevel
     )
-    ax_cross.set_ylim(0, 20000)
-    ax_cross.set_yticks(np.arange(0, 20000+1, 2000))
-    y_labels = np.arange(0, 20+1, 2).astype(int)
+    ax_cross.set_ylim(0, 12000)
+    ax_cross.set_yticks(np.arange(0, 12000+1, 2000))
+    y_labels = np.arange(0, 12+1, 2).astype(int)
     ax_cross.set_yticklabels(y_labels)
 
     # ax_cross.set_ylim(0, 2000)
@@ -205,9 +211,10 @@ def draw_contourf(fig, ax_cross, da, ter_line):
         ax_cross.annotate(text, xy=(a, 0), xytext=(a, -3800),
                 arrowprops=dict(facecolor='black',  headwidth=8, headlength=8),
                 )
-    dr = Rain()
-    for loc in dr.station.values():
-        add_anotate(loc['lat'], loc['lon'],loc['abbreviation'])
+    # dr = Rain()
+    # dr = Common()
+    # for loc in dr.station_zz.values():
+    #     add_anotate(loc['lat'], loc['lon'],loc['abbreviation'])
 
 
 
@@ -310,7 +317,7 @@ def draw(t='2021-07-20 08', flpath='/mnt/zfm_18T/fengxiang/HeNan/Data/1900_90m/'
     # flnm = flpath+'cross2.nc'
     # flnm = flpath+'cross3.nc'
     # flnm = flpath+'cross3.nc'
-    flnm = flpath + 'cross4_1time.nc'
+    flnm = flpath + 'cross9_1time.nc'
     ds = xr.open_dataset(flnm)
     ds = ds.sel(time=t)
     # print(ds)
@@ -323,7 +330,7 @@ def draw(t='2021-07-20 08', flpath='/mnt/zfm_18T/fengxiang/HeNan/Data/1900_90m/'
     v = ds['va_cross']
     theta_e = ds['theta_e_cross']
     div = ds['div_cross']
-    drag = ds['drag_cross']
+    # drag = ds['drag_cross']
     ws = ds['ws_cross']
 
     w = drop_na(w)
@@ -331,7 +338,7 @@ def draw(t='2021-07-20 08', flpath='/mnt/zfm_18T/fengxiang/HeNan/Data/1900_90m/'
     v = drop_na(v)
     theta_e = drop_na(theta_e)
     div = drop_na(div)
-    drag = drop_na(drag)
+    # drag = drop_na(drag)
     ws = drop_na(ws)
 
     cm = round(1/2.54, 2)
@@ -389,7 +396,8 @@ def draw(t='2021-07-20 08', flpath='/mnt/zfm_18T/fengxiang/HeNan/Data/1900_90m/'
 
 def draw_1time(t='2021-07-20 00'):
     # path_main ='/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/'
-    path_main ='/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/newall/'
+    # path_main ='/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/newall/'
+    path_main ='/mnt/zfm_18T/fengxiang/HeNan/Data/GWD/d03/DA/'
     # model_list = ['1900_90m', '1900_900m','1912_90m', '1912_900m']
     # model_list = ['1912_90m', '1912_90m_OGWD']
     # model_list = ['gwd0', 'gwd3']
@@ -403,7 +411,7 @@ def draw_1time(t='2021-07-20 00'):
 
 def draw_mtime():
     # time_list = pd.date_range('2021-07-17 00', '2021-07-23 00', freq='3H')
-    time_list = pd.date_range('2021-07-20 00', '2021-07-20 00', freq='3H')
+    time_list = pd.date_range('2021-07-20 01', '2021-07-20 01', freq='3H')
     # time_list = pd.date_range('2021-07-20 00', '2021-07-21 00', freq='3H')
     # time_list = pd.date_range('2021-07-20 06', '2021-07-20 06', freq='1H')
     # time_list = pd.date_range('2021-07-20 08', '2021-07-20 08', freq='1H')

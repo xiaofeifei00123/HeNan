@@ -32,6 +32,108 @@ config = {
         'axes.unicode_minus': False # 处理负号，即-号
 }
 rcParams.update(config)
+# %%
+"""获取不同阈值的ts评分
+"""
+# flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/rain_all.nc'
+# flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/Rain/rain_all_station2.nc'
+flnm = '/mnt/zfm_18T/fengxiang/HeNan/Data/Rain/rain_all_station.nc'
+ds = xr.open_dataset(flnm)
+# dds = ds.sel(time=slice('2022-07-20 0000', '2021-07-20 1200')).sum(dim='time')
+dds = ds.sel(time=slice('2021-07-20 0100', '2021-07-21 0000')).sum(dim='time')
+# print(dds)
+dds
+# %%
+flnm_model= '/mnt/zfm_18T/fengxiang/HeNan/gravity_wave/data/'+'rain_model_da_new.nc'
+flnm_obs = '/mnt/zfm_18T/fengxiang/HeNan/gravity_wave/data/'+'rain_obs.nc'
+tt = pd.date_range('2021-07-17 01', '2021-07-23 00', freq='1H')
+ds_model1 = xr.open_dataset(flnm_model).sel(time=tt)
+ds_model = ds_model1.sum(dim='time')
+ds_obs1 = xr.open_dataset(flnm_obs).sel(time=tt)
+ds_obs = ds_obs1.sum(dim='time')
+da_obs = ds_obs['PRCP']
+ds_model
+# %%
+dd = ds_model1.isel(time=0)
+dd.dims
+# %%
+# ds_model2 = xr.
+# ds_model.assign_coords(dd.coords)
+# da_obs
+ds_model
+# %%
+# da_obs.ravel()
+ds2 = xr.Dataset()
+ds2['OBS'] = da_obs.values.flatten()
+ds2['GWD3'] = ds_model['GWD3'].values.flatten()
+ds2['CTRL'] = ds_model['CTRL'].values.flatten()
+ds2
+# da_obs
+# %%
+# ds2['GWD3'].max()
+# ds_obs
+ds_model
+# %%
+## mask高原外的数据
+rain_obs = ds2['OBS'].values
+rain_model = ds2['GWD3'].values
+
+# rain_model.shape
+rain_obs.shape
+# %%
+threshold = 50
+hfmc = mem.hfmc(rain_obs, rain_model, grade_list=[threshold])   # 这里算的都是平均值的评分, 我想要的是评分的平均值, 也就是要算每个时次的评分
+
+# %%
+ds = ds_model.rename({'south_north':'y', 'west_east':'x'})
+# ds
+ds.assign_coords({'lat':('y', ds.y.values)})
+ds_model
+ds2
+# %%
+ds_model
+# %%
+ds
+
+
+# %%
+ 
+from common import Common
+com = Common()
+com.areaA
+from baobao.interp import regrid_xesmf
+
+com.areaall['interval'] = 0.1
+# com.areaall
+ds_out = regrid_xesmf(ds['GWD3'], com.areaall)
+# TS = 
+# TS = {}
+# TS['GWD3'] = mem.ets_hfmc(hfmc) 
+# TS
+# hfmc
+# TS[model] = mem.ts_hfmc(hfmc) 
+# Accuracy[model] = mem.pc_hfmc(hfmc)
+# POFD[model] = mem.pofd_hfmc(hfmc)
+# POFD[model] = mem.far_hfmc(hfmc)
+# HK[model] = mem.hk_yesorno_hfmc(hfmc)
+# ODR[model] = mem.odds_ratio_hfmc(hfmc)
+# BIAS[model] = mem.bias_hfmc(hfmc)
+
+
+# %%
+ca = Caculate(dds)
+# threshold_list = [0.1, 5, 15, 30, 70, 140]
+threshold_list=[0.1, 10, 25.0, 50, 100, 250]#雨量等级
+rain_list = ['小雨', '中雨', '大雨', '暴雨', '大暴雨', '特大暴雨']
+ts_list = []
+for threshold in threshold_list:
+    df = ca.get_two_scale(threshold).T
+    ddf = df['TS']
+    ddf.index.name = 'model'
+    da = xr.DataArray.from_series(ddf)
+    # da = get_ts(threshold)
+    ts_list.append(da)
+dda = xr.concat(ts_list, pd.Index(threshold_list, name='threshold'))
 
 
 
